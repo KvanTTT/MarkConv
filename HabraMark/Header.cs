@@ -60,6 +60,18 @@ namespace HabraMark
             }
         }
 
+        public string LoweredLink { get; set; } = "";
+
+        public int LoweredLinkNumber { get; set; } = 0;
+
+        public string FullLoweredLinkNumber
+        {
+            get
+            {
+                return LoweredLinkNumber == 0 ? LoweredLink : $"{LoweredLink}-{LoweredLinkNumber}";
+            }
+        }
+
         public string HabraLink { get; set; } = "";
 
         public int HabraLinkNumber { get; set; } = 0;
@@ -85,26 +97,28 @@ namespace HabraMark
 
         public static void AddHeader(List<Header> headers, string header, int level)
         {
-            string headerLink = HeaderToLink(header);
+            string headerLink = HeaderToLink(header, false);
+            string loweredHeaderLink = HeaderToLink(header, true);
             string headerHabraLink = HeaderToHabralink(header);
             headers.Add(new Header(header, level)
             {
                 Link = headerLink,
                 LinkNumber = headers.Count(h => h.Link == headerLink),
+                LoweredLink = loweredHeaderLink,
+                LoweredLinkNumber = headers.Count(h => h.LoweredLink == loweredHeaderLink),
                 HabraLink = headerHabraLink,
                 HabraLinkNumber = headers.Count(h => h.HabraLink == headerHabraLink)
             });
         }
 
-        public static string HeaderToLink(string header)
+        public static string HeaderToLink(string header, bool lower)
         {
-            string lower = header.ToLowerInvariant();
-            var link = new StringBuilder(lower.Length);
-            foreach (char c in lower)
+            var link = new StringBuilder(header.Length);
+            foreach (char c in header)
             {
                 if (char.IsLetterOrDigit(c))
                 {
-                    link.Append(c);
+                    link.Append(lower || (c >= 'A' && c <= 'Z') ? char.ToLowerInvariant(c) : c);
                 }
                 else
                 {

@@ -14,7 +14,7 @@ namespace HabraMark.Cli
             {
                 LinesMaxLength = -1,
                 RemoveTitleHeader = true,
-                ReplaceRelativeLinks = true,
+                RelativeLinksKind = RelativeLinksKind.VisualCode,
                 HeaderImageLink = "",
                 ReplaceSpoilers = true,
                 Trim = true

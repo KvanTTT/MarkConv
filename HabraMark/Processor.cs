@@ -24,7 +24,7 @@ namespace HabraMark
 
         public bool RemoveTitleHeader { get; set; } = true;
 
-        public bool ReplaceRelativeLinks { get; set; } = true;
+        public RelativeLinksKind RelativeLinksKind { get; set; } = RelativeLinksKind.Default;
 
         public string HeaderImageLink { get; set; } = string.Empty;
 
@@ -139,10 +139,17 @@ namespace HabraMark
                         string lowerAddress = link.Address.ToLowerInvariant();
                         Header header;
                         int linkLength;
-                        if (ReplaceRelativeLinks && link.IsRelative && !link.IsImage &&
-                            (header = headers.FirstOrDefault(h => h.FullLink == lowerAddress)) != null)
+                        if (RelativeLinksKind != RelativeLinksKind.Default && link.IsRelative && !link.IsImage &&
+                            (header = headers.FirstOrDefault(h => h.FullLoweredLinkNumber == lowerAddress)) != null)
                         {
-                            Link newLink = new Link(link.Title, header.FullHabraLink) { IsRelative = true };
+                            string newLinkAddress = "";
+                            if (RelativeLinksKind == RelativeLinksKind.Habrahbr)
+                                newLinkAddress = header.FullHabraLink;
+                            else if (RelativeLinksKind == RelativeLinksKind.GitHub)
+                                newLinkAddress = header.FullLink;
+                            else if (RelativeLinksKind == RelativeLinksKind.VisualCode)
+                                newLinkAddress = header.FullLoweredLinkNumber;
+                            Link newLink = new Link(link.Title, newLinkAddress) { IsRelative = true };
                             line = Replace(line, link, newLink, out linkLength);
                         }
                         else if (link.IsImage)
