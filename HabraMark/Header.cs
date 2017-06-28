@@ -64,7 +64,7 @@ namespace HabraMark
 
         public int LoweredLinkNumber { get; set; } = 0;
 
-        public string FullLoweredLinkNumber
+        public string FullLoweredLink
         {
             get
             {
@@ -90,9 +90,37 @@ namespace HabraMark
             Level = level;
         }
 
+        public string GetAppropriateLink(RelativeLinksKind kind)
+        {
+            switch (kind)
+            {
+                case RelativeLinksKind.GitHub:
+                    return FullLink;
+                case RelativeLinksKind.Habrahabr:
+                    return FullHabraLink;
+                case RelativeLinksKind.VisualCode:
+                default:
+                    return FullLoweredLink;
+            }
+        }
+
         public override string ToString()
         {
             return $"{new string('#', Level)} {Text}";
+        }
+
+        public static string GetAppropriateLink(RelativeLinksKind kind, string inputLink)
+        {
+            switch (kind)
+            {
+                case RelativeLinksKind.GitHub:
+                    return HeaderToLink(inputLink, false);
+                case RelativeLinksKind.Habrahabr:
+                    return HeaderToHabralink(inputLink);
+                case RelativeLinksKind.VisualCode:
+                default:
+                    return HeaderToLink(inputLink, true);
+            }
         }
 
         public static void AddHeader(List<Header> headers, string header, int level)

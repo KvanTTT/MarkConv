@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text;
 using System.Text.RegularExpressions;
 
 namespace HabraMark
@@ -9,28 +10,22 @@ namespace HabraMark
     {
         static string[] lineBreaks = new string[] { "\n", "\r\n" };
         static string space = @"[ \t]";
-        static Regex NotTextRegex = new Regex($@"^{space}*(>|\*{space}|-{space}|\d\.{space}|\|)", RegexOptions.Compiled);
+        static char[] spaceChars = new char[] { ' ', '\t' };
+        static Regex SpecialCharsRegex = new Regex($@"^(>|\*|-|\d+\.|\||=)$", RegexOptions.Compiled);
+        static Regex SpecialItemRegex = new Regex($@"^{space}*(>|\|)", RegexOptions.Compiled);
+        static Regex ListItemRegex = new Regex($@"^{space}*(\*|-|\d+\.){space}", RegexOptions.Compiled);
         static Regex CodeRegex = new Regex(@"^(~~~|```)", RegexOptions.Compiled);
         static Regex HeaderRegex = new Regex($@"^{space}*#+", RegexOptions.Compiled);
         static Regex HeaderLineRegex = new Regex($@"^{space}*(-+|=+){space}*$", RegexOptions.Compiled);
         static Regex DetailsOpenTagRegex = new Regex($@"<\s*details\s*>");
         static Regex DetailsCloseTagRegex = new Regex($@"<?\s*details\s*>");
 
-        /// <summary>
-        /// 0 - not change
-        /// -1 - concat lines
-        /// </summary>
-        public int LinesMaxLength { get; set; } = -1;
+        public ProcessorOptions Options { get; set; }
 
-        public bool RemoveTitleHeader { get; set; } = true;
-
-        public RelativeLinksKind RelativeLinksKind { get; set; } = RelativeLinksKind.Default;
-
-        public string HeaderImageLink { get; set; } = string.Empty;
-
-        public bool ReplaceSpoilers { get; set; } = true;
-
-        public bool Trim { get; set; } = true;
+        public Processor(ProcessorOptions options = null)
+        {
+            Options = options ?? new ProcessorOptions();
+        }
 
         public string Process(string original)
         {
@@ -38,11 +33,6 @@ namespace HabraMark
 
             List<Header> headers = ProcessLinesAndCollectHeaders(lines);
             ProcessLinks(lines, headers);
-
-            if (Trim)
-            {
-                lines = TrimLines(lines);
-            }
 
             string result = string.Join("\n", lines);
             return result;
@@ -53,60 +43,161 @@ namespace HabraMark
             int lineIndex = 0;
             bool codeSection = false;
             List<Header> headers = new List<Header>();
-            while (lineIndex < lines.Count)
+            while (lineIndex <= lines.Count)
             {
-                string line = lines[lineIndex];
-                string prevLine = lineIndex >= 1 ? lines[lineIndex - 1] : string.Empty;
+                string line = lineIndex < lines.Count ? lines[lineIndex] : string.Empty;
                 bool codeSectionMarker = CodeRegex.IsMatch(line);
-                bool headerRegex = HeaderRegex.IsMatch(line);
-                bool headerLineRegex = HeaderLineRegex.IsMatch(line);
-
-                if (LinesMaxLength == -1 &&
-                    !string.IsNullOrWhiteSpace(line) && !string.IsNullOrWhiteSpace(prevLine) &&
-                    !NotTextRegex.IsMatch(line) &&
-                    !headerRegex && !headerLineRegex && !codeSection)
+                if (codeSectionMarker)
                 {
-                    lines[lineIndex - 1] = $"{prevLine.TrimEnd()} {line.TrimStart()}";
-                    lines.RemoveAt(lineIndex);
-                    lineIndex--;
+                    codeSection = !codeSection;
+                    if (!codeSection)
+                    {
+                        lineIndex++;
+                        continue;
+                    }
                 }
-                else
+
+                if (!codeSection)
                 {
-                    if (headerRegex)
-                    {
-                        int textInd;
-                        for (textInd = 0; textInd < line.Length; textInd++)
-                            if (line[textInd] != '#' && line[textInd] != ' ' && line[textInd] != '\t')
-                                break;
+                    int prevLineIndex = lineIndex - 1;
+                    string prevLine = lineIndex >= 1 ? lines[prevLineIndex] : string.Empty;
 
-                        string header = line.Substring(textInd);
-                        if (!string.IsNullOrWhiteSpace(header))
-                        {
-                            AddHeader(lines, headers, ref lineIndex, header, line.Remove(textInd).Count(c => c == '#'));
-                        }
+                    if (Options.LinesMaxLength > 0 && prevLine.Length > Options.LinesMaxLength &&
+                        !string.IsNullOrWhiteSpace(prevLine) &&
+                        !HeaderRegex.IsMatch(prevLine) && !HeaderLineRegex.IsMatch(prevLine))
+                    {
+                        prevLine = WrapLines(lines, ref prevLineIndex, prevLine);
+                        prevLine = TrimLine(prevLine);
+                        lineIndex = prevLineIndex + 1;
                     }
 
-                    if (headerLineRegex)
+                    if (Options.RemoveUnwantedBreaks &&
+                        string.IsNullOrWhiteSpace(prevLine) && string.IsNullOrWhiteSpace(line))
                     {
-                        if (!string.IsNullOrWhiteSpace(prevLine))
-                        {
-                            AddHeader(lines, headers, ref lineIndex, prevLine, line.Contains('=') ? 1 : 2);
-                        }
+                        lines.RemoveAt(lineIndex < lines.Count ? lineIndex : prevLineIndex);
+                        lineIndex--;
                     }
-
-                    if (codeSectionMarker)
+                    else
                     {
-                        codeSection = !codeSection;
+                        bool headerRegex = HeaderRegex.IsMatch(line);
+                        bool headerLineRegex = HeaderLineRegex.IsMatch(line);
+
+                        if (Options.LinesMaxLength != 0 &&
+                            !string.IsNullOrWhiteSpace(line) && !string.IsNullOrWhiteSpace(prevLine) &&
+                            !HeaderRegex.IsMatch(prevLine) && !HeaderLineRegex.IsMatch(prevLine) &&
+                            !headerRegex && !headerLineRegex &&
+                            !SpecialItemRegex.IsMatch(line) && !ListItemRegex.IsMatch(line))
+                        {
+                            prevLine = WrapLines(lines, ref prevLineIndex, line.Trim(), prevLine);
+                            lineIndex = prevLineIndex + 1;
+                            lines.RemoveAt(lineIndex);
+                            lineIndex--;
+                        }
+                        else
+                        {
+                            if (headerRegex)
+                            {
+                                int textInd;
+                                for (textInd = 0; textInd < line.Length; textInd++)
+                                    if (line[textInd] != '#' && line[textInd] != ' ' && line[textInd] != '\t')
+                                        break;
+
+                                string header = line.Substring(textInd);
+                                if (!string.IsNullOrWhiteSpace(header))
+                                {
+                                    AddHeader(lines, headers, ref lineIndex, header, line.Remove(textInd).Count(c => c == '#'));
+                                }
+                            }
+                            else if (headerLineRegex)
+                            {
+                                if (!string.IsNullOrWhiteSpace(prevLine))
+                                {
+                                    AddHeader(lines, headers, ref lineIndex, prevLine, line.Contains('=') ? 1 : 2);
+                                }
+                            }
+                            if (Options.LinesMaxLength != 0 && lineIndex >= 0 && lineIndex < lines.Count)
+                            {
+                                lines[lineIndex] = TrimLine(line);
+                            }
+                        }
                     }
                 }
                 lineIndex++;
             }
+
             return headers;
+        }
+
+        private static string TrimLine(string line)
+        {
+            line = ListItemRegex.IsMatch(line) || SpecialItemRegex.IsMatch(line)
+                ? line.TrimEnd() : line.Trim();
+            return line;
+        }
+
+        private string WrapLines(List<string> lines, ref int lineIndex, string str, string initStr = "")
+        {
+            string lastLine = "";
+            string[] words = SplitForSoftWrap(str);
+            int linesMaxLength = Options.LinesMaxLength == -1 ? int.MaxValue : Options.LinesMaxLength;
+            var buffer = new StringBuilder(Options.LinesMaxLength == -1 ? str.Length : Options.LinesMaxLength);
+            if (initStr != "")
+            {
+                buffer.Append(initStr);
+                buffer.Append(' ');
+            }
+            lines.RemoveAt(lineIndex);
+            for (int i = 0; i < words.Length; i++)
+            {
+                if (buffer.Length + words[i].Length <= linesMaxLength)
+                {
+                    buffer.Append(words[i]);
+                    buffer.Append(' ');
+                }
+                else
+                {
+                    if (buffer.Length > 0)
+                    {
+                        buffer.Remove(buffer.Length - 1, 1);
+                        lastLine = buffer.ToString();
+                        lines.Insert(lineIndex++, lastLine);
+                        buffer.Clear();
+                    }
+                    buffer.Append(words[i]);
+                    buffer.Append(' ');
+                }
+            }
+            if (buffer.Length > 0)
+            {
+                buffer.Remove(buffer.Length - 1, 1);
+                lastLine = buffer.ToString();
+                lines.Insert(lineIndex++, lastLine);
+            }
+            lineIndex--;
+            return lastLine;
+        }
+
+        private string[] SplitForSoftWrap(string str)
+        {
+            string[] splitted = str.Split(spaceChars, StringSplitOptions.RemoveEmptyEntries);
+            var result = new List<string>();
+            foreach (string s in splitted)
+            {
+                if (SpecialCharsRegex.IsMatch(s) && result.Count > 0)
+                {
+                    result[result.Count - 1] = $"{result[result.Count - 1]} {s}";
+                }
+                else
+                {
+                    result.Add(s);
+                }
+            }
+            return result.ToArray();
         }
 
         private void AddHeader(List<string> lines, List<Header> headers, ref int lineIndex, string header, int level)
         {
-            if (RemoveTitleHeader && level == 1 && headers.Count == 0)
+            if (Options.RemoveTitleHeader && level == 1 && headers.Count == 0)
             {
                 lines.RemoveAt(lineIndex);
                 lineIndex--;
@@ -128,6 +219,11 @@ namespace HabraMark
                 if (CodeRegex.IsMatch(line))
                 {
                     codeSection = !codeSection;
+                    if (!codeSection)
+                    {
+                        lineIndex++;
+                        continue;
+                    }
                 }
 
                 if (!codeSection)
@@ -136,27 +232,23 @@ namespace HabraMark
                     Link link;
                     while ((link = Link.ParseNextLink(line, linkIndex)) != null)
                     {
-                        string lowerAddress = link.Address.ToLowerInvariant();
                         Header header;
                         int linkLength;
-                        if (RelativeLinksKind != RelativeLinksKind.Default && link.IsRelative && !link.IsImage &&
-                            (header = headers.FirstOrDefault(h => h.FullLoweredLinkNumber == lowerAddress)) != null)
+                        if (Options.OutputRelativeLinksKind != RelativeLinksKind.Default && link.IsRelative && !link.IsImage)
                         {
-                            string newLinkAddress = "";
-                            if (RelativeLinksKind == RelativeLinksKind.Habrahbr)
-                                newLinkAddress = header.FullHabraLink;
-                            else if (RelativeLinksKind == RelativeLinksKind.GitHub)
-                                newLinkAddress = header.FullLink;
-                            else if (RelativeLinksKind == RelativeLinksKind.VisualCode)
-                                newLinkAddress = header.FullLoweredLinkNumber;
-                            Link newLink = new Link(link.Title, newLinkAddress) { IsRelative = true };
+                            string inputAddress = Header.GetAppropriateLink(Options.InputRelativeLinksKind, link.Address);
+                            string outputAddress =
+                                (header = headers.FirstOrDefault(h => h.GetAppropriateLink(Options.InputRelativeLinksKind) == inputAddress)) != null
+                                ? header.GetAppropriateLink(Options.OutputRelativeLinksKind)
+                                : Header.GetAppropriateLink(Options.OutputRelativeLinksKind, inputAddress);
+                            Link newLink = new Link(link.Title, outputAddress) { IsRelative = true };
                             line = Replace(line, link, newLink, out linkLength);
                         }
                         else if (link.IsImage)
                         {
-                            if (imageLinkNumber == 0 && !string.IsNullOrWhiteSpace(HeaderImageLink))
+                            if (imageLinkNumber == 0 && !string.IsNullOrWhiteSpace(Options.HeaderImageLink))
                             {
-                                Link newLink = new Link(link.ToString(), HeaderImageLink);
+                                Link newLink = new Link(link.ToString(), Options.HeaderImageLink);
                                 line = Replace(line, link, newLink, out linkLength);
                             }
                             else
@@ -182,20 +274,6 @@ namespace HabraMark
             string newLinkString = newLink.ToString();
             newLinkLength = newLinkString.Length;
             return line.Remove(oldLink.Index, oldLink.ToString().Length).Insert(oldLink.Index, newLinkString);
-        }
-
-        private static List<string> TrimLines(List<string> lines)
-        {
-            int firstInd = 0;
-            while (firstInd < lines.Count && string.IsNullOrWhiteSpace(lines[firstInd]))
-                firstInd++;
-            int lastInd = lines.Count - 1;
-            while (lastInd >= 0 && string.IsNullOrWhiteSpace(lines[lastInd]))
-                lastInd--;
-
-            if (firstInd != 0 || lastInd != lines.Count - 1)
-                lines = lines.Skip(firstInd).Take(lastInd - firstInd + 1).ToList();
-            return lines;
         }
     }
 }

@@ -10,15 +10,16 @@ namespace HabraMark.Cli
             string fileName = Path.GetFileNameWithoutExtension(args[0]);
 
             var data = File.ReadAllText(args[0]);
-            var processor = new Processor
+            var options = new ProcessorOptions
             {
                 LinesMaxLength = -1,
-                RemoveTitleHeader = true,
-                RelativeLinksKind = RelativeLinksKind.VisualCode,
+                RemoveTitleHeader = false,
+                OutputRelativeLinksKind = RelativeLinksKind.VisualCode,
                 HeaderImageLink = "",
                 ReplaceSpoilers = true,
-                Trim = true
+                RemoveUnwantedBreaks = true
             };
+            var processor = new Processor(options);
             var converted = processor.Process(data);
 
             File.WriteAllText(Path.Combine(directory, $"{fileName}_habr.md"), converted);
