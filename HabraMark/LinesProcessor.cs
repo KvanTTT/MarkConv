@@ -12,43 +12,45 @@ namespace HabraMark
 
         public LinesProcessor(ProcessorOptions options) => Options = options ?? new ProcessorOptions();
 
-        public List<Header> Process(List<string> lines)
+        public LinesProcessorResult Process(IList<string> lines)
         {
-            int lineIndex = 0;
             bool codeSection = false;
-            List<Header> headers = new List<Header>();
-            while (lineIndex <= lines.Count)
+            var resultLines = new List<string>();
+            var headers = new List<Header>();
+            
+            for (int lineIndex = 0; lineIndex <= lines.Count; lineIndex++)
             {
                 string line = lineIndex < lines.Count ? lines[lineIndex] : string.Empty;
                 bool codeSectionMarker = CodeSectionRegex.IsMatch(line);
+
                 if (codeSectionMarker)
                 {
                     codeSection = !codeSection;
-                    if (!codeSection)
-                    {
-                        lineIndex++;
-                        continue;
-                    }
                 }
 
-                if (!codeSection)
+                if (codeSection)
                 {
-                    int prevLineIndex = lineIndex - 1;
-                    string prevLine = lineIndex >= 1 ? lines[prevLineIndex] : string.Empty;
+                    resultLines.Add(line);
+                }
+                else
+                {
+                    string lastResultLine = resultLines.Count > 0 ? resultLines[resultLines.Count - 1] : "";
 
-                    if (Options.LinesMaxLength > 0 && prevLine.Length > Options.LinesMaxLength &&
-                        !string.IsNullOrWhiteSpace(prevLine) &&
-                        !HeaderRegex.IsMatch(prevLine) && !HeaderLineRegex.IsMatch(prevLine))
+                    if (Options.LinesMaxLength > 0 && lastResultLine.Length > Options.LinesMaxLength &&
+                        !string.IsNullOrWhiteSpace(lastResultLine) &&
+                        !HeaderRegex.IsMatch(lastResultLine) && !HeaderLineRegex.IsMatch(lastResultLine))
                     {
-                        prevLine = WrapLines(lines, ref prevLineIndex, prevLine);
-                        lineIndex = prevLineIndex + 1;
+                        WrapLines(resultLines, lines, lastResultLine);
+                        lastResultLine = resultLines[resultLines.Count - 1];
                     }
 
                     if (Options.RemoveUnwantedBreaks &&
-                        string.IsNullOrWhiteSpace(prevLine) && string.IsNullOrWhiteSpace(line))
+                        string.IsNullOrWhiteSpace(lastResultLine) && string.IsNullOrWhiteSpace(line))
                     {
-                        lines.RemoveAt(lineIndex < lines.Count ? lineIndex : prevLineIndex);
-                        lineIndex--;
+                        if (resultLines.Count > 0 && lineIndex == lines.Count)
+                        {
+                            resultLines.RemoveAt(resultLines.Count - 1);
+                        }
                     }
                     else
                     {
@@ -58,21 +60,20 @@ namespace HabraMark
                         bool isSpecialItemMatch = SpecialItemRegex.IsMatch(line);
 
                         if (Options.LinesMaxLength != 0 &&
-                            !string.IsNullOrWhiteSpace(prevLine) &&
-                            !HeaderRegex.IsMatch(prevLine) && !HeaderLineRegex.IsMatch(prevLine) &&
-                            !CodeSectionRegex.IsMatch(prevLine) &&
+                            !string.IsNullOrWhiteSpace(lastResultLine) &&
+                            !HeaderRegex.IsMatch(lastResultLine) && !HeaderLineRegex.IsMatch(lastResultLine) &&
+                            !CodeSectionRegex.IsMatch(lastResultLine) &&
 
-                            !string.IsNullOrWhiteSpace(line)
-                            && !headerMatch.Success && !isHeaderLineMatch &&
+                            !string.IsNullOrWhiteSpace(line) &&
+                            !headerMatch.Success && !isHeaderLineMatch &&
+                            !CodeSectionRegex.IsMatch(line) &&
                             !SpecialItemRegex.IsMatch(line) && !listItemMatch.Success)
                         {
-                            prevLine = WrapLines(lines, ref prevLineIndex, line.Trim(), prevLine);
-                            lineIndex = prevLineIndex + 1;
-                            lines.RemoveAt(lineIndex);
-                            lineIndex--;
+                            WrapLines(resultLines, lines, line.Trim(), lastResultLine);
                         }
                         else
                         {
+                            string resultLine = line;
                             if (headerMatch.Success)
                             {
                                 string headerChars = headerMatch.Groups[1].Value;
@@ -80,38 +81,38 @@ namespace HabraMark
                                 if (Options.Normalize)
                                 {
                                     header = header.TrimEnd('#', ' ', '\t');
-                                    lines[lineIndex] = $"{headerChars} {header}";
+                                    resultLine = $"{headerChars} {header}";
                                 }
                                 else if (Options.LinesMaxLength != 0)
                                 {
-                                    lines[lineIndex] = line.Trim();
+                                    resultLine = line.Trim();
                                 }
 
-                                if (!string.IsNullOrWhiteSpace(header))
+                                int level = headerChars.Length;
+                                if (!AddHeader(headers, header, level))
                                 {
-                                    int level = headerChars.Length;
-                                    AddHeader(lines, headers, ref lineIndex, header, level);
+                                    resultLine = null;
                                 }
                             }
                             else if (isHeaderLineMatch)
                             {
                                 int level = line.Contains("=") ? 1 : 2;
-                                if (!string.IsNullOrWhiteSpace(prevLine))
+                                if (!AddHeader(headers, lastResultLine, level))
                                 {
-                                    AddHeader(lines, headers, ref lineIndex, prevLine, level);
+                                    resultLine = null;
                                 }
+
                                 if (Options.Normalize)
                                 {
-                                    lines[lineIndex] = $"{new string('#', level)} {prevLine}";
-                                    if (prevLineIndex >= 0)
+                                    if (resultLines.Count >= 0)
                                     {
-                                        lines.RemoveAt(prevLineIndex);
-                                        lineIndex--;
+                                        resultLines.RemoveAt(resultLines.Count - 1);
                                     }
+                                    resultLine = $"{new string('#', level)} {lastResultLine}";
                                 }
                                 else if (Options.LinesMaxLength != 0)
                                 {
-                                    lines[lineIndex] = line.Trim();
+                                    resultLine = line.Trim();
                                 }
                             }
                             else if (listItemMatch.Success)
@@ -121,29 +122,31 @@ namespace HabraMark
                                     string itemChar = listItemMatch.Groups[1].Value;
                                     if (!char.IsDigit(itemChar[0]))
                                         itemChar = "*";
-                                    lines[lineIndex] = $"{itemChar} {listItemMatch.Groups[2].Value}";
+                                    resultLine = $"{itemChar} {listItemMatch.Groups[2].Value}";
                                 }
                                 else if (Options.LinesMaxLength != 0)
                                 {
-                                    lines[lineIndex] = line.TrimEnd();
+                                    resultLine = line.TrimEnd();
                                 }
                             }
                             else if (Options.LinesMaxLength != 0 && lineIndex >= 0 && lineIndex < lines.Count)
                             {
-                                lines[lineIndex] = isSpecialItemMatch ? line.TrimEnd() : line.Trim();
+                                resultLine = isSpecialItemMatch ? line.TrimEnd() : line.Trim();
+                            }
+                            if (resultLine != null && lineIndex >= 0 && lineIndex < lines.Count)
+                            {
+                                resultLines.Add(resultLine);
                             }
                         }
                     }
                 }
-                lineIndex++;
             }
 
-            return headers;
+            return new LinesProcessorResult(resultLines, headers);
         }
 
-        private string WrapLines(List<string> lines, ref int lineIndex, string str, string initStr = "")
+        private void WrapLines(List<string> resultLines, IList<string> lines, string str, string initStr = "")
         {
-            string lastLine = "";
             string[] words = SplitForSoftWrap(str);
             int linesMaxLength = Options.LinesMaxLength == -1 ? int.MaxValue : Options.LinesMaxLength;
             var buffer = new StringBuilder(Options.LinesMaxLength == -1 ? str.Length : Options.LinesMaxLength);
@@ -152,7 +155,7 @@ namespace HabraMark
                 buffer.Append(initStr);
                 buffer.Append(' ');
             }
-            lines.RemoveAt(lineIndex);
+            resultLines.RemoveAt(resultLines.Count - 1);
             for (int i = 0; i < words.Length; i++)
             {
                 if (buffer.Length + words[i].Length <= linesMaxLength)
@@ -165,8 +168,7 @@ namespace HabraMark
                     if (buffer.Length > 0)
                     {
                         buffer.Remove(buffer.Length - 1, 1);
-                        lastLine = buffer.ToString();
-                        lines.Insert(lineIndex++, lastLine);
+                        resultLines.Add(buffer.ToString());
                         buffer.Clear();
                     }
                     buffer.Append(words[i]);
@@ -176,11 +178,8 @@ namespace HabraMark
             if (buffer.Length > 0)
             {
                 buffer.Remove(buffer.Length - 1, 1);
-                lastLine = buffer.ToString();
-                lines.Insert(lineIndex++, lastLine);
+                resultLines.Add(buffer.ToString());
             }
-            lineIndex--;
-            return lastLine;
         }
 
         private string[] SplitForSoftWrap(string str)
@@ -201,16 +200,19 @@ namespace HabraMark
             return result.ToArray();
         }
 
-        private void AddHeader(List<string> lines, List<Header> headers, ref int lineIndex, string header, int level)
+        private bool AddHeader(List<Header> headers, string header, int level)
         {
             if (Options.RemoveTitleHeader && level == 1 && headers.Count == 0)
             {
-                lines.RemoveAt(lineIndex);
-                lineIndex--;
+                return false;
             }
             else
             {
-                Header.AddHeader(headers, header, level);
+                if (!string.IsNullOrWhiteSpace(header))
+                {
+                    Header.AddHeader(headers, header, level);
+                }
+                return true;
             }
         }
     }
