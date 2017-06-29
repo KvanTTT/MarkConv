@@ -101,6 +101,23 @@ namespace HabraMark.Tests
         }
 
         [Test]
+        public void ShouldNotChangeLinksInsideCodeSection()
+        {
+            string expected =
+                "[header](#заголовок)\n" +
+                "```\n" +
+                "[header](#ЗАГОЛОВОК)\n" +
+                "```\n" +
+                "[header](#заголовок)\n" +
+                "## ЗАГОЛОВОК\n" +
+                "```\n" +
+                "[header](#ЗАГОЛОВОК)\n" +
+                "```";
+
+            Compare("RelativeLinksAndCode.md", expected, RelativeLinksKind.GitHub, RelativeLinksKind.VisualCode);
+        }
+
+        [Test]
         public void GenerateHabrahabrLink()
         {
             string header = @"АБВГДЕЁЖЗИЙКЛМНОПРСТУФХЦЧШЩЪЫЬЭЮЯ  ABCabc    0123456789!""№;%:?*() -+=`~<>@#$^&[]{}\/|'_";

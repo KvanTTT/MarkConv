@@ -14,7 +14,7 @@ namespace HabraMark
         static Regex SpecialCharsRegex = new Regex($@"^(>|\*|-|\+|\d+\.|\||=)$", RegexOptions.Compiled);
         static Regex SpecialItemRegex = new Regex($@"^{space}*(>|\|)", RegexOptions.Compiled);
         static Regex ListItemRegex = new Regex($@"^{space}*(\*|-|\+|\d+\.){space}(.+)", RegexOptions.Compiled);
-        static Regex CodeRegex = new Regex($@"^{space}*(~~~|```)", RegexOptions.Compiled);
+        static Regex CodeSectionRegex = new Regex($@"^{space}*(~~~|```)", RegexOptions.Compiled | RegexOptions.Multiline);
         static Regex HeaderRegex = new Regex($@"^{space}*(#+){space}*(.+)", RegexOptions.Compiled);
         static Regex HeaderLineRegex = new Regex($@"^{space}*(-+|=+){space}*$", RegexOptions.Compiled);
         static Regex DetailsOpenTagRegex = new Regex($@"<\s*details\s*>");
@@ -32,9 +32,8 @@ namespace HabraMark
             List<string> lines = original.Split(lineBreaks, StringSplitOptions.None).ToList();
 
             List<Header> headers = ProcessLinesAndCollectHeaders(lines);
-            ProcessLinks(lines, headers);
-
             string result = string.Join("\n", lines);
+            result = ProcessLinksAndHtmlElements(result, headers);
             return result;
         }
 
@@ -46,7 +45,7 @@ namespace HabraMark
             while (lineIndex <= lines.Count)
             {
                 string line = lineIndex < lines.Count ? lines[lineIndex] : string.Empty;
-                bool codeSectionMarker = CodeRegex.IsMatch(line);
+                bool codeSectionMarker = CodeSectionRegex.IsMatch(line);
                 if (codeSectionMarker)
                 {
                     codeSection = !codeSection;
@@ -84,9 +83,12 @@ namespace HabraMark
                         bool isSpecialItemMatch = SpecialItemRegex.IsMatch(line);
 
                         if (Options.LinesMaxLength != 0 &&
-                            !string.IsNullOrWhiteSpace(line) && !string.IsNullOrWhiteSpace(prevLine) &&
+                            !string.IsNullOrWhiteSpace(prevLine) &&
                             !HeaderRegex.IsMatch(prevLine) && !HeaderLineRegex.IsMatch(prevLine) &&
-                            !headerMatch.Success && !isHeaderLineMatch &&
+                            !CodeSectionRegex.IsMatch(prevLine) &&
+
+                            !string.IsNullOrWhiteSpace(line)
+                            && !headerMatch.Success && !isHeaderLineMatch &&
                             !SpecialItemRegex.IsMatch(line) && !listItemMatch.Success)
                         {
                             prevLine = WrapLines(lines, ref prevLineIndex, line.Trim(), prevLine);
@@ -237,65 +239,75 @@ namespace HabraMark
             }
         }
 
-        private void ProcessLinks(List<string> lines, List<Header> headers)
+        private string ProcessLinksAndHtmlElements(string text, List<Header> headers)
         {
-            int lineIndex = 0;
             int imageLinkNumber = 0;
-            bool codeSection = false;
-            while (lineIndex < lines.Count)
-            {
-                string line = lines[lineIndex];
-                if (CodeRegex.IsMatch(line))
-                {
-                    codeSection = !codeSection;
-                    if (!codeSection)
-                    {
-                        lineIndex++;
-                        continue;
-                    }
-                }
+            var result = new StringBuilder(text.Length);
 
-                if (!codeSection)
+            int index = 0;
+            while (index < text.Length)
+            {
+                Match startCodeFragmentMatch = CodeSectionRegex.Match(text, index);
+                int startCodeFragmentIndex = startCodeFragmentMatch.Success ? startCodeFragmentMatch.Index : text.Length;
+
+                Link link;
+                while ((link = Link.ParseNextLink(text, index, startCodeFragmentIndex - index)) != null)
                 {
-                    int linkIndex = 0;
-                    Link link;
-                    while ((link = Link.ParseNextLink(line, linkIndex)) != null)
+                    result.Append(text.Substring(index, link.Index - index));
+
+                    string linkString;
+                    if (Options.OutputRelativeLinksKind != RelativeLinksKind.Default && link.IsRelative && !link.IsImage)
                     {
                         Header header;
-                        int linkLength;
-                        if (Options.OutputRelativeLinksKind != RelativeLinksKind.Default && link.IsRelative && !link.IsImage)
+                        string inputAddress = Header.GetAppropriateLink(Options.InputRelativeLinksKind, link.Address);
+                        string outputAddress =
+                            (header = headers.FirstOrDefault(h => h.GetAppropriateLink(Options.InputRelativeLinksKind) == inputAddress)) != null
+                            ? header.GetAppropriateLink(Options.OutputRelativeLinksKind)
+                            : Header.GetAppropriateLink(Options.OutputRelativeLinksKind, inputAddress);
+
+                        Link newLink = new Link(link.Title, outputAddress) { IsRelative = true };
+                        linkString = newLink.ToString();
+                    }
+                    else if (link.IsImage)
+                    {
+                        if (imageLinkNumber == 0 && !string.IsNullOrWhiteSpace(Options.HeaderImageLink))
                         {
-                            string inputAddress = Header.GetAppropriateLink(Options.InputRelativeLinksKind, link.Address);
-                            string outputAddress =
-                                (header = headers.FirstOrDefault(h => h.GetAppropriateLink(Options.InputRelativeLinksKind) == inputAddress)) != null
-                                ? header.GetAppropriateLink(Options.OutputRelativeLinksKind)
-                                : Header.GetAppropriateLink(Options.OutputRelativeLinksKind, inputAddress);
-                            Link newLink = new Link(link.Title, outputAddress) { IsRelative = true };
-                            line = Replace(line, link, newLink, out linkLength);
-                        }
-                        else if (link.IsImage)
-                        {
-                            if (imageLinkNumber == 0 && !string.IsNullOrWhiteSpace(Options.HeaderImageLink))
-                            {
-                                Link newLink = new Link(link.ToString(), Options.HeaderImageLink);
-                                line = Replace(line, link, newLink, out linkLength);
-                            }
-                            else
-                            {
-                                linkLength = link.ToString().Length;
-                            }
-                            imageLinkNumber++;
+                            Link newLink = new Link(link.ToString(), Options.HeaderImageLink);
+                            linkString = newLink.ToString();
                         }
                         else
                         {
-                            linkLength = link.ToString().Length;
+                            linkString = link.ToString();
                         }
-                        linkIndex += linkLength;
+                        imageLinkNumber++;
                     }
-                    lines[lineIndex] = line;
+                    else
+                    {
+                        linkString = link.ToString();
+                    }
+
+                    result.Append(linkString);
+                    index = link.Index + link.Length;
                 }
-                lineIndex++;
+
+                result.Append(text.Substring(index, startCodeFragmentIndex - index));
+
+                if (startCodeFragmentMatch.Success)
+                {
+                    Match endCodeFragmentMatch = CodeSectionRegex.Match(text, startCodeFragmentMatch.Index + startCodeFragmentMatch.Length);
+                    index = endCodeFragmentMatch.Success
+                        ? endCodeFragmentMatch.Index + endCodeFragmentMatch.Length
+                        : text.Length;
+
+                    result.Append(text.Substring(startCodeFragmentMatch.Index, index - startCodeFragmentMatch.Index));
+                }
+                else
+                {
+                    index = text.Length;
+                }
             }
+
+            return result.ToString();
         }
 
         private string Replace(string line, Link oldLink, Link newLink, out int newLinkLength)

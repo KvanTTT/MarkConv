@@ -60,6 +60,7 @@
     <None Include="RelativeLinks.GitHub.md" />
     <None Include="RelativeLinks.Habrahabr.md" />
     <None Include="RelativeLinks.VisualCode.md" />
+    <None Include="RelativeLinksAndCode.md" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\HabraMark\HabraMark.csproj">

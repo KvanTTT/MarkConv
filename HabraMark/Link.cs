@@ -4,7 +4,11 @@ namespace HabraMark
 {
     public class Link
     {
-        private static readonly Regex LinkRegex = new Regex(@"(!?)\[(([^\[\]]|\\\])+)\]\((#?)([^\)]+)\)", RegexOptions.Compiled);
+        private static readonly Regex LinkRegex = new Regex(
+            @"(!?)" +
+            @"\[(([^\[\]]|\\\])+)\]" +
+            @"\((#?)([^\)]+)\)",
+        RegexOptions.Compiled);
 
         public string Title { get; set; }
 
@@ -15,6 +19,8 @@ namespace HabraMark
         public bool IsRelative { get; set; }
 
         public int Index { get; set; }
+
+        public int Length { get; set; }
 
         public Link()
         {
@@ -31,9 +37,9 @@ namespace HabraMark
             return $"{(IsImage ? "!" : "")}[{Title}]({(IsRelative ? "#" : "")}{Address})";
         }
 
-        public static Link ParseNextLink(string text, int index)
+        public static Link ParseNextLink(string text, int index, int length)
         {
-            Match match = LinkRegex.Match(text, index);
+            Match match = LinkRegex.Match(text, index, length);
             if (match.Success)
             {
                 Link link = new Link
@@ -43,6 +49,7 @@ namespace HabraMark
                     IsRelative = !string.IsNullOrEmpty(match.Groups[4].Value),
                     Address = match.Groups[5].Value,
                     Index = match.Index,
+                    Length = match.Length,
                 };
                 return link;
             }
