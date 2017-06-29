@@ -77,7 +77,7 @@ namespace HabraMark.Tests
 
         private static void Compare(int lineMaxLength, string sourceFileName, string expectedFileName)
         {
-            var options = new ProcessorOptions { LinesMaxLength = lineMaxLength };
+            var options = new ProcessorOptions { LinesMaxLength = lineMaxLength, Normalize = false };
             var processor = new Processor(options);
             string source = Utils.ReadFileFromProject(sourceFileName);
             string actual = processor.Process(source);

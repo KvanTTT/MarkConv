@@ -13,9 +13,9 @@ namespace HabraMark
         static char[] spaceChars = new char[] { ' ', '\t' };
         static Regex SpecialCharsRegex = new Regex($@"^(>|\*|-|\+|\d+\.|\||=)$", RegexOptions.Compiled);
         static Regex SpecialItemRegex = new Regex($@"^{space}*(>|\|)", RegexOptions.Compiled);
-        static Regex ListItemRegex = new Regex($@"^{space}*(\*|-|\+|\d+\.){space}", RegexOptions.Compiled);
-        static Regex CodeRegex = new Regex(@"^(~~~|```)", RegexOptions.Compiled);
-        static Regex HeaderRegex = new Regex($@"^{space}*#+", RegexOptions.Compiled);
+        static Regex ListItemRegex = new Regex($@"^{space}*(\*|-|\+|\d+\.){space}(.+)", RegexOptions.Compiled);
+        static Regex CodeRegex = new Regex($@"^{space}*(~~~|```)", RegexOptions.Compiled);
+        static Regex HeaderRegex = new Regex($@"^{space}*(#+){space}*(.+)", RegexOptions.Compiled);
         static Regex HeaderLineRegex = new Regex($@"^{space}*(-+|=+){space}*$", RegexOptions.Compiled);
         static Regex DetailsOpenTagRegex = new Regex($@"<\s*details\s*>");
         static Regex DetailsCloseTagRegex = new Regex($@"<\s*/details\s*>");
@@ -67,7 +67,6 @@ namespace HabraMark
                         !HeaderRegex.IsMatch(prevLine) && !HeaderLineRegex.IsMatch(prevLine))
                     {
                         prevLine = WrapLines(lines, ref prevLineIndex, prevLine);
-                        prevLine = TrimLine(prevLine);
                         lineIndex = prevLineIndex + 1;
                     }
 
@@ -79,14 +78,16 @@ namespace HabraMark
                     }
                     else
                     {
-                        bool headerRegex = HeaderRegex.IsMatch(line);
-                        bool headerLineRegex = HeaderLineRegex.IsMatch(line);
+                        Match headerMatch = HeaderRegex.Match(line);
+                        Match listItemMatch = ListItemRegex.Match(line);
+                        bool isHeaderLineMatch = HeaderLineRegex.IsMatch(line);
+                        bool isSpecialItemMatch = SpecialItemRegex.IsMatch(line);
 
                         if (Options.LinesMaxLength != 0 &&
                             !string.IsNullOrWhiteSpace(line) && !string.IsNullOrWhiteSpace(prevLine) &&
                             !HeaderRegex.IsMatch(prevLine) && !HeaderLineRegex.IsMatch(prevLine) &&
-                            !headerRegex && !headerLineRegex &&
-                            !SpecialItemRegex.IsMatch(line) && !ListItemRegex.IsMatch(line))
+                            !headerMatch.Success && !isHeaderLineMatch &&
+                            !SpecialItemRegex.IsMatch(line) && !listItemMatch.Success)
                         {
                             prevLine = WrapLines(lines, ref prevLineIndex, line.Trim(), prevLine);
                             lineIndex = prevLineIndex + 1;
@@ -95,29 +96,64 @@ namespace HabraMark
                         }
                         else
                         {
-                            if (headerRegex)
+                            if (headerMatch.Success)
                             {
-                                int textInd;
-                                for (textInd = 0; textInd < line.Length; textInd++)
-                                    if (line[textInd] != '#' && line[textInd] != ' ' && line[textInd] != '\t')
-                                        break;
+                                string headerChars = headerMatch.Groups[1].Value;
+                                string header = headerMatch.Groups[2].Value;
+                                if (Options.Normalize)
+                                {
+                                    header = header.TrimEnd('#', ' ', '\t');
+                                    lines[lineIndex] = $"{headerChars} {header}";
+                                }
+                                else if (Options.LinesMaxLength != 0)
+                                {
+                                    lines[lineIndex] = line.Trim();
+                                }
 
-                                string header = line.Substring(textInd);
                                 if (!string.IsNullOrWhiteSpace(header))
                                 {
-                                    AddHeader(lines, headers, ref lineIndex, header, line.Remove(textInd).Count(c => c == '#'));
+                                    int level = headerChars.Length;
+                                    AddHeader(lines, headers, ref lineIndex, header, level);
                                 }
                             }
-                            else if (headerLineRegex)
+                            else if (isHeaderLineMatch)
                             {
+                                int level = line.Contains('=') ? 1 : 2;
                                 if (!string.IsNullOrWhiteSpace(prevLine))
                                 {
-                                    AddHeader(lines, headers, ref lineIndex, prevLine, line.Contains('=') ? 1 : 2);
+                                    AddHeader(lines, headers, ref lineIndex, prevLine, level);
+                                }
+                                if (Options.Normalize)
+                                {
+                                    lines[lineIndex] = $"{new string('#', level)} {prevLine}";
+                                    if (prevLineIndex >= 0)
+                                    {
+                                        lines.RemoveAt(prevLineIndex);
+                                        lineIndex--;
+                                    }
+                                }
+                                else if (Options.LinesMaxLength != 0)
+                                {
+                                    lines[lineIndex] = line.Trim();
                                 }
                             }
-                            if (Options.LinesMaxLength != 0 && lineIndex >= 0 && lineIndex < lines.Count)
+                            else if (listItemMatch.Success)
                             {
-                                lines[lineIndex] = TrimLine(line);
+                                if (Options.Normalize)
+                                {
+                                    string itemChar = listItemMatch.Groups[1].Value;
+                                    if (!char.IsDigit(itemChar[0]))
+                                        itemChar = "*";
+                                    lines[lineIndex] = $"{itemChar} {listItemMatch.Groups[2].Value}";
+                                }
+                                else if (Options.LinesMaxLength != 0)
+                                {
+                                    lines[lineIndex] = line.TrimEnd();
+                                }
+                            }
+                            else if (Options.LinesMaxLength != 0 && lineIndex >= 0 && lineIndex < lines.Count)
+                            {
+                                lines[lineIndex] = isSpecialItemMatch ? line.TrimEnd() : line.Trim();
                             }
                         }
                     }
@@ -126,13 +162,6 @@ namespace HabraMark
             }
 
             return headers;
-        }
-
-        private static string TrimLine(string line)
-        {
-            line = ListItemRegex.IsMatch(line) || SpecialItemRegex.IsMatch(line)
-                ? line.TrimEnd() : line.Trim();
-            return line;
         }
 
         private string WrapLines(List<string> lines, ref int lineIndex, string str, string initStr = "")

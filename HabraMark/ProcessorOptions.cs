@@ -20,6 +20,8 @@
 
         public bool RemoveUnwantedBreaks { get; set; } = true;
 
+        public bool Normalize { get; set; } = false;
+
         public static ProcessorOptions FromOptions(ProcessorOptions options)
         {
             return (ProcessorOptions)options.MemberwiseClone();
