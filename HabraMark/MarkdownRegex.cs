@@ -2,7 +2,7 @@
 
 namespace HabraMark
 {
-    public static class MdRegex
+    public static class MarkdownRegex
     {
         private static string space = @"[ \t]";
         public static string[] LineBreaks = new string[] { "\n", "\r\n" };
@@ -13,8 +13,8 @@ namespace HabraMark
         public static Regex CodeSectionRegex = new Regex($@"^{space}*(~~~|```)", RegexOptions.Compiled | RegexOptions.Multiline);
         public static Regex HeaderRegex = new Regex($@"^{space}*(#+){space}*(.+)", RegexOptions.Compiled);
         public static Regex HeaderLineRegex = new Regex($@"^{space}*(-+|=+){space}*$", RegexOptions.Compiled);
-        public static Regex DetailsOpenTagRegex = new Regex($@"<\s*details\s*>");
-        public static Regex DetailsCloseTagRegex = new Regex($@"<\s*/details\s*>");
+        public static Regex DetailsTagRegex = new Regex(@"<\s*(/)?details\s*>", RegexOptions.Compiled);
+        public static Regex SummaryTagsRegex = new Regex(@"<\s*summary\s*>(.*?)<\s*/summary\s*>", RegexOptions.Compiled);
         public static Regex LinkRegex = new Regex(
             @"(!?)" +
             @"\[(([^\[\]]|\\\])+)\]" +

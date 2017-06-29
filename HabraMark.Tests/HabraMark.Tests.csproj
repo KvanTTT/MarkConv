@@ -54,13 +54,14 @@
     <Content Include="NotSplittingLines.md" />
     <Content Include="SpecialLines.Wrapped.80.md" />
     <Content Include="NotSplittingLines.Wrapped.md" />
+    <Content Include="DetailsSummary.md" />
     <None Include="packages.config" />
     <Content Include="SpecialLines.md" />
     <Content Include="SpecialLines.Unwrapped.md" />
-    <None Include="RelativeLinks.GitHub.md" />
-    <None Include="RelativeLinks.Habrahabr.md" />
-    <None Include="RelativeLinks.VisualCode.md" />
-    <None Include="RelativeLinksAndCode.md" />
+    <Content Include="RelativeLinks.GitHub.md" />
+    <Content Include="RelativeLinks.Habrahabr.md" />
+    <Content Include="RelativeLinks.VisualCode.md" />
+    <Content Include="RelativeLinksAndCode.md" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\HabraMark\HabraMark.csproj">

@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using static HabraMark.MdRegex;
+using static HabraMark.MarkdownRegex;
 
 namespace HabraMark
 {

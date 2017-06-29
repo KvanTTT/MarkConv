@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Text;
 using System.Text.RegularExpressions;
-using static HabraMark.MdRegex;
+using static HabraMark.MarkdownRegex;
 
 namespace HabraMark
 {
