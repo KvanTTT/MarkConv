@@ -4,12 +4,6 @@ namespace HabraMark
 {
     public class Link
     {
-        private static readonly Regex LinkRegex = new Regex(
-            @"(!?)" +
-            @"\[(([^\[\]]|\\\])+)\]" +
-            @"\((#?)([^\)]+)\)",
-        RegexOptions.Compiled);
-
         public string Title { get; set; }
 
         public string Address { get; set; }
@@ -39,7 +33,7 @@ namespace HabraMark
 
         public static Link ParseNextLink(string text, int index, int length)
         {
-            Match match = LinkRegex.Match(text, index, length);
+            Match match = MdRegex.LinkRegex.Match(text, index, length);
             if (match.Success)
             {
                 Link link = new Link
