@@ -11,14 +11,14 @@ namespace HabraMark
         static string[] lineBreaks = new string[] { "\n", "\r\n" };
         static string space = @"[ \t]";
         static char[] spaceChars = new char[] { ' ', '\t' };
-        static Regex SpecialCharsRegex = new Regex($@"^(>|\*|-|\d+\.|\||=)$", RegexOptions.Compiled);
+        static Regex SpecialCharsRegex = new Regex($@"^(>|\*|-|\+|\d+\.|\||=)$", RegexOptions.Compiled);
         static Regex SpecialItemRegex = new Regex($@"^{space}*(>|\|)", RegexOptions.Compiled);
-        static Regex ListItemRegex = new Regex($@"^{space}*(\*|-|\d+\.){space}", RegexOptions.Compiled);
+        static Regex ListItemRegex = new Regex($@"^{space}*(\*|-|\+|\d+\.){space}", RegexOptions.Compiled);
         static Regex CodeRegex = new Regex(@"^(~~~|```)", RegexOptions.Compiled);
         static Regex HeaderRegex = new Regex($@"^{space}*#+", RegexOptions.Compiled);
         static Regex HeaderLineRegex = new Regex($@"^{space}*(-+|=+){space}*$", RegexOptions.Compiled);
         static Regex DetailsOpenTagRegex = new Regex($@"<\s*details\s*>");
-        static Regex DetailsCloseTagRegex = new Regex($@"<?\s*details\s*>");
+        static Regex DetailsCloseTagRegex = new Regex($@"<\s*/details\s*>");
 
         public ProcessorOptions Options { get; set; }
 
