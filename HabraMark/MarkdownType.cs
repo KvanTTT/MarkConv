@@ -1,6 +1,6 @@
 ﻿namespace HabraMark
 {
-    public enum RelativeLinksKind
+    public enum MarkdownType
     {
         Default,
         GitHub,

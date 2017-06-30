@@ -10,13 +10,11 @@
 
         public bool RemoveTitleHeader { get; set; } = false;
 
-        public RelativeLinksKind InputRelativeLinksKind { get; set; } = RelativeLinksKind.Default;
+        public MarkdownType InputMarkdownType { get; set; } = MarkdownType.Default;
 
-        public RelativeLinksKind OutputRelativeLinksKind { get; set; } = RelativeLinksKind.Default;
+        public MarkdownType OutputMarkdownType { get; set; } = MarkdownType.Default;
 
         public string HeaderImageLink { get; set; } = string.Empty;
-
-        public bool ReplaceSpoilers { get; set; } = true;
 
         public bool RemoveUnwantedBreaks { get; set; } = true;
 
@@ -25,6 +23,47 @@
         public static ProcessorOptions FromOptions(ProcessorOptions options)
         {
             return (ProcessorOptions)options.MemberwiseClone();
+        }
+
+        public static ProcessorOptions CreateGitHubToHabrahabrOptions()
+        {
+            return new ProcessorOptions
+            {
+                LinesMaxLength = -1,
+                RemoveTitleHeader = true,
+                InputMarkdownType = MarkdownType.GitHub,
+                OutputMarkdownType = MarkdownType.Habrahabr,
+            };
+        }
+
+        public static ProcessorOptions CreateHabrahabrToGitHubOptions()
+        {
+            return new ProcessorOptions
+            {
+                LinesMaxLength = 80,
+                InputMarkdownType = MarkdownType.Habrahabr,
+                OutputMarkdownType = MarkdownType.GitHub,
+            };
+        }
+
+        public static ProcessorOptions CreateVisualCodeToGitHubOptions()
+        {
+            return new ProcessorOptions
+            {
+                LinesMaxLength = 0,
+                InputMarkdownType = MarkdownType.VisualCode,
+                OutputMarkdownType = MarkdownType.GitHub,
+            };
+        }
+
+        public static ProcessorOptions CreateGitHubToVisualCodeOptions()
+        {
+            return new ProcessorOptions
+            {
+                LinesMaxLength = 0,
+                InputMarkdownType = MarkdownType.GitHub,
+                OutputMarkdownType = MarkdownType.VisualCode,
+            };
         }
     }
 }

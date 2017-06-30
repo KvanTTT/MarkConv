@@ -22,7 +22,7 @@ namespace HabraMark.Tests
                 "### Заголовок 3\n" +
                 "### Заголовок Header 3";
 
-            Compare("RelativeLinks.VisualCode.md", expected, RelativeLinksKind.VisualCode, RelativeLinksKind.GitHub);
+            Compare("RelativeLinks.VisualCode.md", expected, MarkdownType.VisualCode, MarkdownType.GitHub);
         }
 
         [Test]
@@ -42,7 +42,7 @@ namespace HabraMark.Tests
                 "### Заголовок 3\n" +
                 "### Заголовок Header 3";
 
-            Compare("RelativeLinks.VisualCode.md", expected, RelativeLinksKind.VisualCode, RelativeLinksKind.Habrahabr);
+            Compare("RelativeLinks.VisualCode.md", expected, MarkdownType.VisualCode, MarkdownType.Habrahabr);
         }
 
         [Test]
@@ -73,7 +73,7 @@ namespace HabraMark.Tests
                 "### ЗАГОЛОВОК 3\n" +
                 "### Заголовок Header 3";
 
-            Compare("RelativeLinks.GitHub.md", expected, RelativeLinksKind.GitHub, RelativeLinksKind.Habrahabr);
+            Compare("RelativeLinks.GitHub.md", expected, MarkdownType.GitHub, MarkdownType.Habrahabr);
         }
 
         [Test]
@@ -97,7 +97,7 @@ namespace HabraMark.Tests
                 "### ЗАГОЛОВОК 3 1\n" +
                 "### Заголовок Header 3";
 
-            Compare("RelativeLinks.Habrahabr.md", expected, RelativeLinksKind.Habrahabr, RelativeLinksKind.GitHub);
+            Compare("RelativeLinks.Habrahabr.md", expected, MarkdownType.Habrahabr, MarkdownType.GitHub);
         }
 
         [Test]
@@ -114,7 +114,7 @@ namespace HabraMark.Tests
                 "[header](#ЗАГОЛОВОК)\n" +
                 "```";
 
-            Compare("RelativeLinksAndCode.md", expected, RelativeLinksKind.GitHub, RelativeLinksKind.VisualCode);
+            Compare("RelativeLinksAndCode.md", expected, MarkdownType.GitHub, MarkdownType.VisualCode);
         }
 
         [Test]
@@ -179,12 +179,12 @@ namespace HabraMark.Tests
                 "## Header 2", actual);
         }
 
-        private void Compare(string inputFileName, string outputResult, RelativeLinksKind inputKind, RelativeLinksKind outputKind)
+        private void Compare(string inputFileName, string outputResult, MarkdownType inputKind, MarkdownType outputKind)
         {
             var options = new ProcessorOptions
             {
-                InputRelativeLinksKind = inputKind,
-                OutputRelativeLinksKind = outputKind
+                InputMarkdownType = inputKind,
+                OutputMarkdownType = outputKind
             };
 
             var processor = new Processor(options);

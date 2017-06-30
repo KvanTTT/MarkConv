@@ -90,15 +90,15 @@ namespace HabraMark
             Level = level;
         }
 
-        public string GetAppropriateLink(RelativeLinksKind kind)
+        public string GetAppropriateLink(MarkdownType kind)
         {
             switch (kind)
             {
-                case RelativeLinksKind.GitHub:
+                case MarkdownType.GitHub:
                     return FullLink;
-                case RelativeLinksKind.Habrahabr:
+                case MarkdownType.Habrahabr:
                     return FullHabraLink;
-                case RelativeLinksKind.VisualCode:
+                case MarkdownType.VisualCode:
                 default:
                     return FullLoweredLink;
             }
@@ -109,15 +109,15 @@ namespace HabraMark
             return $"{new string('#', Level)} {Text}";
         }
 
-        public static string GetAppropriateLink(RelativeLinksKind kind, string inputLink)
+        public static string GetAppropriateLink(MarkdownType kind, string inputLink)
         {
             switch (kind)
             {
-                case RelativeLinksKind.GitHub:
+                case MarkdownType.GitHub:
                     return HeaderToLink(inputLink, false);
-                case RelativeLinksKind.Habrahabr:
+                case MarkdownType.Habrahabr:
                     return HeaderToHabralink(inputLink);
-                case RelativeLinksKind.VisualCode:
+                case MarkdownType.VisualCode:
                 default:
                     return HeaderToLink(inputLink, true);
             }
