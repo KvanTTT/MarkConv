@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
@@ -27,15 +28,30 @@ namespace HabraMark
                 Match startCodeFragmentMatch = CodeSectionRegex.Match(text, index);
                 int startCodeFragmentIndex = startCodeFragmentMatch.Success ? startCodeFragmentMatch.Index : text.Length;
 
-                string textFragment = text.Substring(index, startCodeFragmentIndex - index);
-                textFragment = ProcessElements(textFragment, ElementType.Link);
-                if (Options.ReplaceSpoilers)
-                {
-                    textFragment = ProcessElements(textFragment, ElementType.DetailsElement);
-                    textFragment = ProcessElements(textFragment, ElementType.SummaryElements);
-                }
+                Dictionary<ElementType, Match> matches = new Dictionary<ElementType, Match>();
+                Tuple<ElementType, Match> matchResult = null;
 
-                result.Append(textFragment);
+                while ((matchResult = NextMatch(text, index, startCodeFragmentIndex - index, matchResult, matches)) != null)
+                {
+                    ElementType elementType = matchResult.Item1;
+                    Match match = matchResult.Item2;
+                    result.Append(text.Substring(index, match.Index - index));
+
+                    string processedMatch
+                        = elementType == ElementType.Link ? ProcessLink(_headers, ref _imageLinkNumber, match)
+                        : elementType == ElementType.DetailsElement ? ProcessDetailsElement(match)
+                        : elementType == ElementType.SummaryElements ? ProcessSummaryElements(match)
+                        : "";
+
+                    result.Append(processedMatch);
+                    index = match.Index + match.Length;
+
+                    if (string.IsNullOrWhiteSpace(processedMatch) && index < text.Length && text[index] == '\n')
+                    {
+                        index++;
+                    }
+                }
+                result.Append(text.Substring(index, startCodeFragmentIndex - index));
 
                 if (startCodeFragmentMatch.Success)
                 {
@@ -55,43 +71,43 @@ namespace HabraMark
             return result.ToString();
         }
 
-        private string ProcessElements(string text, ElementType elementType)
+        private Tuple<ElementType, Match> NextMatch(string text, int index, int length,
+            Tuple<ElementType, Match> prevMatch, Dictionary<ElementType, Match> prevMatches)
         {
-            StringBuilder result = null;
-            int index = 0;
-            Match match;
+            if (prevMatch == null)
+            {
+                var elementTypes = (ElementType[])Enum.GetValues(typeof(ElementType));
+                foreach (ElementType elementType in elementTypes)
+                {
+                    prevMatches[elementType] = GetMatch(text, index, length, elementType);
+                }
+            }
+            else
+            {
+                prevMatches[prevMatch.Item1] = GetMatch(text, index, length, prevMatch.Item1);
+            }
+
+            Tuple<ElementType, Match> result = null;
+            foreach (KeyValuePair<ElementType, Match> match in prevMatches)
+            {
+                if (match.Value.Success && match.Value.Index < (result?.Item2.Index ?? int.MaxValue))
+                {
+                    result = new Tuple<ElementType, Match>(match.Key, match.Value);
+                }
+            }
+
+            return result;
+        }
+
+        private Match GetMatch(string text, int index, int length, ElementType elementType)
+        {
             Regex regex
                 = elementType == ElementType.Link ? LinkRegex
                 : elementType == ElementType.DetailsElement ? DetailsTagRegex
                 : elementType == ElementType.SummaryElements ? SummaryTagsRegex
-                : null;
-            while ((match = regex.Match(text, index)).Success)
-            {
-                if (result == null)
-                {
-                    result = new StringBuilder(text.Length);
-                }
-                result.Append(text.Substring(index, match.Index - index));
+                : throw new NotImplementedException($"Regex for {elementType} has not been found");
 
-                string processedMatch
-                    = elementType == ElementType.Link ? ProcessLink(_headers, ref _imageLinkNumber, match)
-                    : elementType == ElementType.DetailsElement ? ProcessDetailsElement(match)
-                    : elementType == ElementType.SummaryElements ? ProcessSummaryElements(match)
-                    : "";
-
-                result.Append(processedMatch);
-                index = match.Index + match.Length;
-
-                if (string.IsNullOrWhiteSpace(processedMatch) && index < text.Length && text[index] == '\n')
-                {
-                    index++;
-                }
-            }
-            if (index == 0)
-                return text;
-
-            result.Append(text.Substring(index));
-            return result.ToString();
+            return regex.Match(text, index, length);
         }
 
         private string ProcessLink(List<Header> headers, ref int imageLinkNumber, Match match)
