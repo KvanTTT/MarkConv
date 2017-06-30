@@ -29,9 +29,14 @@ namespace HabraMark.Tests
         }
 
         [Test]
-        public void ShouldConvertDetailsElementsToSpoilers()
+        public void ShouldConvertDetailsToSpoilers()
         {
-            var options = new ProcessorOptions { LinesMaxLength = 0, ReplaceSpoilers = true };
+            var options = new ProcessorOptions
+            {
+                LinesMaxLength = 0,
+                InputMarkdownType = MarkdownType.VisualCode,
+                OutputMarkdownType = MarkdownType.Habrahabr
+            };
             var processor = new Processor(options);
 
             string source = Utils.ReadFileFromProject("DetailsSummary.md");
@@ -47,6 +52,34 @@ namespace HabraMark.Tests
                 "Nested text\n" +
                 "</spoiler>\n" +
                 "</spoiler>", actual);
+        }
+
+        [Test]
+        public void ShouldConvertSpoilersToDetails()
+        {
+            var options = new ProcessorOptions
+            {
+                LinesMaxLength = 0,
+                InputMarkdownType = MarkdownType.Habrahabr,
+                OutputMarkdownType = MarkdownType.VisualCode
+            };
+            var processor = new Processor(options);
+
+            string source = Utils.ReadFileFromProject("Spoilers.md");
+            string actual = processor.Process(source);
+            Assert.AreEqual(
+                "<details>\n" +
+                "<summary>Spoiler header</summary>\n" +
+                "Content\n" +
+                "\n" +
+                "```\n" +
+                "Some code\n" +
+                "```\n" +
+                "<details>\n" +
+                "<summary>Nested spoiler</summary>\n" +
+                "Nested text\n" +
+                "</details>\n" +
+                "</details>", actual);
         }
     }
 }

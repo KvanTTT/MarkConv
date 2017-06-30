@@ -13,10 +13,9 @@ namespace HabraMark.Cli
             var options = new ProcessorOptions
             {
                 LinesMaxLength = -1,
-                RemoveTitleHeader = false,
-                OutputRelativeLinksKind = RelativeLinksKind.VisualCode,
+                RemoveTitleHeader = true,
+                OutputMarkdownType = MarkdownType.Habrahabr,
                 HeaderImageLink = "",
-                ReplaceSpoilers = true,
                 RemoveUnwantedBreaks = true
             };
             var processor = new Processor(options);

@@ -62,6 +62,7 @@
     <Content Include="RelativeLinks.Habrahabr.md" />
     <Content Include="RelativeLinks.VisualCode.md" />
     <Content Include="RelativeLinksAndCode.md" />
+    <Content Include="Spoilers.md" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\HabraMark\HabraMark.csproj">
