@@ -39,8 +39,10 @@ namespace HabraMark
 
                     string processedMatch
                         = elementType == ElementType.Link ? ProcessLink(_headers, ref _imageLinkNumber, match)
-                        : elementType == ElementType.DetailsElement ? ProcessDetailsElement(match)
-                        : elementType == ElementType.SummaryElements ? ProcessSummaryElements(match)
+                        : elementType == ElementType.DetailsElement ? ConvertDetailsElement(match)
+                        : elementType == ElementType.SummaryElements ? ConvertSummaryElements(match)
+                        : elementType == ElementType.SpoilerOpenElement ? ConvertSpoilerOpenElement(match)
+                        : elementType == ElementType.SpoilerCloseElement ? ConvertSpolierCloseElement(match)
                         : "";
 
                     result.Append(processedMatch);
@@ -79,10 +81,20 @@ namespace HabraMark
         {
             if (prevMatch == null)
             {
-                var elementTypes = (ElementType[])Enum.GetValues(typeof(ElementType));
-                foreach (ElementType elementType in elementTypes)
+                prevMatches[ElementType.Link] = GetMatch(text, index, length, ElementType.Link);
+                if (Options.InputMarkdownType != MarkdownType.Habrahabr &&
+                    Options.OutputMarkdownType == MarkdownType.Habrahabr)
                 {
-                    prevMatches[elementType] = GetMatch(text, index, length, elementType);
+                    prevMatches[ElementType.DetailsElement] = GetMatch(text, index, length, ElementType.DetailsElement);
+                    prevMatches[ElementType.SummaryElements] = GetMatch(text, index, length, ElementType.SummaryElements);
+                }
+                if ((Options.InputMarkdownType != MarkdownType.GitHub &&
+                    Options.InputMarkdownType != MarkdownType.VisualCode) &&
+                    (Options.OutputMarkdownType == MarkdownType.GitHub ||
+                     Options.OutputMarkdownType == MarkdownType.VisualCode))
+                {
+                    prevMatches[ElementType.SpoilerOpenElement] = GetMatch(text, index, length, ElementType.SpoilerOpenElement);
+                    prevMatches[ElementType.SpoilerCloseElement] = GetMatch(text, index, length, ElementType.SpoilerCloseElement);
                 }
             }
             else
@@ -108,6 +120,8 @@ namespace HabraMark
                 = elementType == ElementType.Link ? LinkRegex
                 : elementType == ElementType.DetailsElement ? DetailsTagRegex
                 : elementType == ElementType.SummaryElements ? SummaryTagsRegex
+                : elementType == ElementType.SpoilerOpenElement ? SpoilerOpenTagRegex
+                : elementType == ElementType.SpoilerCloseElement ? SpoilerCloseTagRegex
                 : throw new NotImplementedException($"Regex for {elementType} has not been found");
 
             return regex.Match(text, index, length);
@@ -121,14 +135,14 @@ namespace HabraMark
             string address = match.Groups[5].Value;
 
             string linkString;
-            if (Options.OutputRelativeLinksKind != RelativeLinksKind.Default && isRelative && !isImage)
+            if (Options.OutputMarkdownType != MarkdownType.Default && isRelative && !isImage)
             {
                 Header header;
-                string inputAddress = Header.GetAppropriateLink(Options.InputRelativeLinksKind, address);
+                string inputAddress = Header.GetAppropriateLink(Options.InputMarkdownType, address);
                 string outputAddress =
-                    (header = headers.FirstOrDefault(h => h.GetAppropriateLink(Options.InputRelativeLinksKind) == inputAddress)) != null
-                    ? header.GetAppropriateLink(Options.OutputRelativeLinksKind)
-                    : Header.GetAppropriateLink(Options.OutputRelativeLinksKind, inputAddress);
+                    (header = headers.FirstOrDefault(h => h.GetAppropriateLink(Options.InputMarkdownType) == inputAddress)) != null
+                    ? header.GetAppropriateLink(Options.OutputMarkdownType)
+                    : Header.GetAppropriateLink(Options.OutputMarkdownType, inputAddress);
 
                 Link newLink = new Link(title, outputAddress) { IsRelative = true };
                 linkString = newLink.ToString();
@@ -154,7 +168,7 @@ namespace HabraMark
             return linkString;
         }
 
-        private string ProcessDetailsElement(Match match)
+        private string ConvertDetailsElement(Match match)
         {
             if (string.IsNullOrEmpty(match.Groups[1].Value))
                 return "";
@@ -162,9 +176,20 @@ namespace HabraMark
                 return "</spoiler>";
         }
 
-        private string ProcessSummaryElements(Match match)
+        private string ConvertSummaryElements(Match match)
         {
             return $"<spoiler title=\"{match.Groups[1].Value.Trim()}\">";
+        }
+
+        private string ConvertSpoilerOpenElement(Match match)
+        {
+            return  "<details>\n" +
+                   $"<summary>{match.Groups[1].Value}</summary>";
+        }
+
+        private string ConvertSpolierCloseElement(Match match)
+        {
+            return "</details>";
         }
     }
 }

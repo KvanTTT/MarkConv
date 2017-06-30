@@ -4,6 +4,8 @@
     {
         Link,
         DetailsElement,
-        SummaryElements
+        SummaryElements,
+        SpoilerOpenElement,
+        SpoilerCloseElement
     }
 }

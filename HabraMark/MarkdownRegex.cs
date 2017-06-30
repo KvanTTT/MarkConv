@@ -15,6 +15,8 @@ namespace HabraMark
         public static Regex HeaderLineRegex = new Regex($@"^{space}*(-+|=+){space}*$", RegexOptions.Compiled);
         public static Regex DetailsTagRegex = new Regex(@"<\s*(/)?details\s*>", RegexOptions.Compiled);
         public static Regex SummaryTagsRegex = new Regex(@"<\s*summary\s*>(.*?)<\s*/summary\s*>", RegexOptions.Compiled);
+        public static Regex SpoilerOpenTagRegex = new Regex(@"<\s*spoiler\s*title\s*=\s*""(.*?)""\s*>", RegexOptions.Compiled);
+        public static Regex SpoilerCloseTagRegex = new Regex(@"<\s*/spoiler\s*>", RegexOptions.Compiled);
         public static Regex LinkRegex = new Regex(
             @"(!?)" +
             @"\[(([^\[\]]|\\\])+)\]" +
