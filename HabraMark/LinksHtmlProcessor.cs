@@ -46,9 +46,12 @@ namespace HabraMark
                     result.Append(processedMatch);
                     index = match.Index + match.Length;
 
-                    if (string.IsNullOrWhiteSpace(processedMatch) && index < text.Length && text[index] == '\n')
+                    if (string.IsNullOrWhiteSpace(processedMatch))
                     {
-                        index++;
+                        while (index < text.Length && char.IsWhiteSpace(text[index]))
+                            index++;
+                        while (result.Length > 0 && (SpaceChars.Contains(result[result.Length - 1])))
+                            result.Remove(result.Length - 1, 1);
                     }
                 }
                 result.Append(text.Substring(index, startCodeFragmentIndex - index));
