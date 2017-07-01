@@ -5,4 +5,4 @@
 *.sln eol=crlf
 *.csproj eol=crlf
 *.config eol=crlf
-*.md=lf
+*.md eol=lf

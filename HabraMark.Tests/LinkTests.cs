@@ -53,6 +53,7 @@ namespace HabraMark.Tests
                 "    * [header-3](#header-3)\n" +
                 "    * [header-3-1](#header-3-1)\n" +
                 "    * [header-3-1-1](#header-3-1-1)\n" +
+                "    * [header-3-1-2](#header-3-1-2)\n" +
                 "* [Заголовок-2](#zagolovok-2)\n" +
                 "    * [Заголовок-3](#zagolovok-3)\n" +
                 "    * [Заголовок-3-1](#zagolovok-3-1)\n" +
@@ -64,6 +65,7 @@ namespace HabraMark.Tests
                 "## Header 2\n" +
                 "### Header 3\n" +
                 "### Header 3\n" +
+                "### Header 3 1\n" +
                 "### Header 3 1\n" +
                 "\n" +
                 "## Заголовок 2\n" +
@@ -112,7 +114,8 @@ namespace HabraMark.Tests
                 "## ЗАГОЛОВОК\n" +
                 "```\n" +
                 "[header](#ЗАГОЛОВОК)\n" +
-                "```";
+                "```\n" +
+                "[missing](#missing)";
 
             Compare("RelativeLinksAndCode.md", expected, MarkdownType.GitHub, MarkdownType.VisualCode);
         }
@@ -121,7 +124,7 @@ namespace HabraMark.Tests
         public void GenerateHabrahabrLink()
         {
             string header = @"АБВГДЕЁЖЗИЙКЛМНОПРСТУФХЦЧШЩЪЫЬЭЮЯ  ABCabc    0123456789!""№;%:?*() -+=`~<>@#$^&[]{}\/|'_";
-            string habraLink = Header.HeaderToHabralink(header);
+            string habraLink = Header.HeaderToTranslitLink(header);
             Assert.AreEqual(@"abvgdeyozhziyklmnoprstufhcchshschyeyuya--abcabc----0123456789--_", habraLink);
         }
 
@@ -187,10 +190,12 @@ namespace HabraMark.Tests
                 OutputMarkdownType = outputKind
             };
 
-            var processor = new Processor(options);
+            var logger = new Logger();
+            var processor = new Processor(options) { Logger = logger };
             string source = Utils.ReadFileFromProject(inputFileName);
             string actual = processor.Process(source);
 
+            Assert.AreEqual(1, logger.WarningMessages.Count);
             Assert.AreEqual(outputResult, actual);
         }
     }
