@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
 using static HabraMark.MarkdownRegex;
@@ -12,7 +13,12 @@ namespace HabraMark
 
         public ProcessorOptions Options { get; set; }
 
-        public LinesProcessor(ProcessorOptions options) => Options = options ?? new ProcessorOptions();
+        public LinesProcessor(ProcessorOptions options = null) => Options = options ?? new ProcessorOptions();
+
+        public LinesProcessorResult Process(string text)
+        {
+            return Process(text.Split(LineBreaks, StringSplitOptions.None));
+        }
 
         public LinesProcessorResult Process(IList<string> lines)
         {
@@ -91,7 +97,7 @@ namespace HabraMark
                                 }
 
                                 int level = headerChars.Length;
-                                if (!AddHeader(headers, header, level))
+                                if (!AddHeader(headers, header, level, lineIndex, resultLines.Count - 1))
                                 {
                                     resultLine = null;
                                 }
@@ -99,7 +105,7 @@ namespace HabraMark
                             else if (isHeaderLineMatch)
                             {
                                 int level = line.Contains("=") ? 1 : 2;
-                                if (!AddHeader(headers, lastResultLine, level))
+                                if (!AddHeader(headers, lastResultLine, level, lineIndex, resultLines.Count - 2))
                                 {
                                     resultLine = null;
                                 }
@@ -145,6 +151,24 @@ namespace HabraMark
             }
 
             return new LinesProcessorResult(resultLines, headers);
+        }
+
+        public List<string> GenerateTableOfContents(LinesProcessorResult linesProcessorResult)
+        {
+            List<Header> headers = linesProcessorResult.Headers;
+            var tableOfContents = new List<string>();
+
+            if (headers.Count == 0)
+                return tableOfContents;
+
+            int firstLevel = headers[0].Level;
+            foreach (Header header in headers)
+            {
+                string indent = Repeat(Options.IndentString, header.Level - firstLevel);
+                Link link = new Link(header.Title, header.Links[Options.OutputMarkdownType].FullLink, isRelative: true);
+                tableOfContents.Add($"{indent}{link}");
+            }
+            return tableOfContents;
         }
 
         private void WrapLines(List<string> resultLines, IList<string> lines, string str, string initStr = "")
@@ -202,7 +226,7 @@ namespace HabraMark
             return result.ToArray();
         }
 
-        private bool AddHeader(List<Header> headers, string header, int level)
+        private bool AddHeader(List<Header> headers, string header, int level, int sourceLineIndex, int destLineIndex)
         {
             if (Options.RemoveTitleHeader && level == 1 && headers.Count == 0)
             {
@@ -212,10 +236,26 @@ namespace HabraMark
             {
                 if (!string.IsNullOrWhiteSpace(header))
                 {
-                    headers.Add(new Header(header, level, headers));
+                    if (headers.Any() && level < headers.Min(h => h.Level))
+                    {
+                        Logger?.LogWarning($"Header \"{header}\" level {level} at line {sourceLineIndex + 1} is incorrect");
+                    }
+                    headers.Add(new Header(header, level, headers)
+                    {
+                        SourceLineIndex = sourceLineIndex,
+                        DestLineIndex = destLineIndex >= 0 ? destLineIndex : 0
+                    });
                 }
                 return true;
             }
+        }
+
+        private static string Repeat(string value, int count)
+        {
+            if (count <= 0)
+                return "";
+
+            return new StringBuilder(value.Length * count).Insert(0, value, count).ToString();
         }
     }
 }

@@ -10,10 +10,12 @@
 
         public bool IsRelative { get; set; }
 
-        public Link(string title, string address)
+        public Link(string title, string address, bool isImage = false, bool isRelative = false)
         {
             Title = title;
             Address = address;
+            IsImage = isImage;
+            IsRelative = isRelative;
         }
 
         public override string ToString()

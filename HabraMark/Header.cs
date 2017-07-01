@@ -50,6 +50,10 @@ namespace HabraMark
 
         public int Level { get; set; } = 1;
 
+        public int SourceLineIndex { get; set; } = 0;
+
+        public int DestLineIndex { get; set; } = 0;
+
         public Dictionary<MarkdownType, HeaderLink> Links = new Dictionary<MarkdownType, HeaderLink>();
 
         public Header(string headerTitle, int level, List<Header> existingHeaders)
@@ -59,6 +63,10 @@ namespace HabraMark
 
             foreach (MarkdownType markdownType in MarkdownTypes)
                 Links[markdownType] = CalculateHeaderLink(existingHeaders, markdownType, headerTitle);
+        }
+
+        protected Header()
+        {
         }
 
         private static HeaderLink CalculateHeaderLink(List<Header> headers, MarkdownType linkType, string headerTitle)

@@ -20,6 +20,8 @@
 
         public bool Normalize { get; set; } = false;
 
+        public string IndentString { get; set; } = "    ";
+
         public static ProcessorOptions FromOptions(ProcessorOptions options)
         {
             return (ProcessorOptions)options.MemberwiseClone();
