@@ -8,7 +8,7 @@ init:
 - ps: (New-Object Net.WebClient).DownloadFile('https://raw.githubusercontent.com/appveyor/ci/master/scripts/xamarin-vs2017-151-fixed.targets', "C:\Program Files (x86)\Microsoft Visual Studio\2017\Community\MSBuild\15.0\Microsoft.Common.Targets\ImportAfter\Xamarin.Common.targets")
 before_build:
 - cmd: >-
-  nuget restore HabraMark.sln
+    nuget restore HabraMark.sln
 build:
   project: HabraMark.sln
 test:
