@@ -150,7 +150,7 @@ namespace HabraMark
                 {
                     outputAddress = Header.GenerateLink(Options.OutputMarkdownType, inputAddress);
                     var link = new Link(title, inputAddress, isRelative: true);
-                    Logger?.LogWarning($"Link {link} is broken");
+                    Logger?.Warn($"Link {link} is broken");
                 }
 
                 Link newLink = new Link(title, outputAddress, isRelative: true);

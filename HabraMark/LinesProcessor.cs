@@ -238,7 +238,7 @@ namespace HabraMark
                 {
                     if (headers.Any() && level < headers.Min(h => h.Level))
                     {
-                        Logger?.LogWarning($"Header \"{header}\" level {level} at line {sourceLineIndex + 1} is incorrect");
+                        Logger?.Warn($"Header \"{header}\" level {level} at line {sourceLineIndex + 1} is incorrect");
                     }
                     headers.Add(new Header(header, level, headers)
                     {

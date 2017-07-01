@@ -4,12 +4,12 @@ namespace HabraMark
 {
     public class ConsoleLogger : ILogger
     {
-        public void LogInfo(string message)
+        public void Info(string message)
         {
             Console.WriteLine($"[INFO] {message}");
         }
 
-        public void LogWarning(string message)
+        public void Warn(string message)
         {
             Console.WriteLine($"[WARNING] {message}");
         }

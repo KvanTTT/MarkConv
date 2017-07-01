@@ -14,12 +14,12 @@ namespace HabraMark
             WarningMessages = new List<string>();
         }
 
-        public void LogInfo(string message)
+        public void Info(string message)
         {
             InfoMessages.Add(message);
         }
 
-        public void LogWarning(string message)
+        public void Warn(string message)
         {
             WarningMessages.Add(message);
         }
