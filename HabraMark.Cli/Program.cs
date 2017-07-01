@@ -14,11 +14,15 @@ namespace HabraMark.Cli
             {
                 LinesMaxLength = -1,
                 RemoveTitleHeader = true,
+                InputMarkdownType = MarkdownType.Default,
                 OutputMarkdownType = MarkdownType.Habrahabr,
                 HeaderImageLink = "",
                 RemoveUnwantedBreaks = true
             };
-            var processor = new Processor(options);
+            var processor = new Processor(options)
+            {
+                Logger = new ConsoleLogger()
+            };
             var converted = processor.Process(data);
 
             File.WriteAllText(Path.Combine(directory, $"{fileName}_habr.md"), converted);

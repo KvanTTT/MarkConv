@@ -1,12 +1,12 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
 using static HabraMark.MarkdownRegex;
 
 namespace HabraMark
 {
     public class Processor
     {
+        public ILogger Logger { get; set; } = new Logger();
+
         public ProcessorOptions Options { get; set; }
 
         public Processor(ProcessorOptions options = null)
@@ -14,8 +14,14 @@ namespace HabraMark
 
         public string Process(string original)
         {
-            var linesProcessor = new LinesProcessor(Options);
-            var linksHtmlProcessor = new LinksHtmlProcessor(Options);
+            var linesProcessor = new LinesProcessor(Options)
+            {
+                Logger = Logger
+            };
+            var linksHtmlProcessor = new LinksHtmlProcessor(Options)
+            {
+                Logger = Logger
+            };
 
             string[] lines = original.Split(LineBreaks, StringSplitOptions.None);
             LinesProcessorResult linesProcessorResult = linesProcessor.Process(lines);
