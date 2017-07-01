@@ -1,4 +1,5 @@
 ﻿using NUnit.Framework;
+using System.Collections.Generic;
 
 namespace HabraMark.Tests
 {
@@ -26,6 +27,46 @@ namespace HabraMark.Tests
                 "* List item 2\n" +
                 "* List item 3\n" +
                 "25. Ordered list item", actual);
+        }
+
+        [Test]
+        public void ShouldWarnIncorrectHeaderLevel()
+        {
+            var options = new ProcessorOptions();
+            var logger = new Logger();
+            var processor = new Processor(options) { Logger = logger };
+            string actual = processor.Process(
+                "## Header 2\n" +
+                "### Header 3\n" +
+                "### Header 3 1\n" +
+                "## Header 2 1\n" +
+                "# Header 1\n");
+
+            Assert.AreEqual(1, logger.WarningMessages.Count);
+        }
+
+        [Test]
+        public void ShouldGenerateTableOfContents()
+        {
+            string source = Utils.ReadFileFromProject("RelativeLinks.GitHub.md");
+
+            var linesProcessor = new LinesProcessor();
+            LinesProcessorResult linesProcessorResult = linesProcessor.Process(source);
+            List<string> tableOfContents = linesProcessor.GenerateTableOfContents(linesProcessorResult);
+            string actual = string.Join("\n", tableOfContents);
+
+            Assert.AreEqual(
+                "[Header 2](#header-2)\n" +
+                "    [Header 3](#header-3)\n" +
+                "    [Header 3](#header-3-1)\n" +
+                "    [Header 3 1](#header-3-1-1)\n" +
+                "    [Header 3 1](#header-3-1-2)\n" +
+                "[Заголовок 2](#заголовок-2)\n" +
+                "    [Заголовок 3](#заголовок-3)\n" +
+                "    [Заголовок 3](#заголовок-3-1)\n" +
+                "    [Заголовок 3 1](#заголовок-3-1-1)\n" +
+                "    [ЗАГОЛОВОК 3](#заголовок-3-2)\n" +
+                "    [Заголовок Header 3](#заголовок-header-3)", actual);
         }
 
         [Test]
