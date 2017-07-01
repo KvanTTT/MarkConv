@@ -8,6 +8,8 @@ namespace HabraMark
 {
     public class LinesProcessor
     {
+        public ILogger Logger { get; set; }
+
         public ProcessorOptions Options { get; set; }
 
         public LinesProcessor(ProcessorOptions options) => Options = options ?? new ProcessorOptions();
@@ -210,7 +212,7 @@ namespace HabraMark
             {
                 if (!string.IsNullOrWhiteSpace(header))
                 {
-                    Header.AddHeader(headers, header, level);
+                    headers.Add(new Header(header, level, headers));
                 }
                 return true;
             }

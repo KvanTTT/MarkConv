@@ -1,12 +1,14 @@
 ﻿using System.Collections.Generic;
 using System.Text;
 using System.Linq;
+using System;
 
 namespace HabraMark
 {
     public class Header
     {
-        private static readonly Dictionary<char, string> HabraHeaderReplacement = new Dictionary<char, string>
+        private static readonly MarkdownType[] MarkdownTypes = (MarkdownType[]) Enum.GetValues(typeof(MarkdownType));
+        private static readonly Dictionary<char, string> RussianTranslitMap = new Dictionary<char, string>
         {
             ['а'] = "a",
             ['б'] = "b",
@@ -44,109 +46,66 @@ namespace HabraMark
             [' '] = "-"
         };
 
-        public string Text { get; set; } = "";
+        public string Title { get; set; } = "";
 
         public int Level { get; set; } = 1;
 
-        public string Link { get; set; } = "";
+        public Dictionary<MarkdownType, HeaderLink> Links = new Dictionary<MarkdownType, HeaderLink>();
 
-        public int LinkNumber { get; set; } = 0;
-
-        public string FullLink
+        public Header(string headerTitle, int level, List<Header> existingHeaders)
         {
-            get
-            {
-                return LinkNumber == 0 ? Link : $"{Link}-{LinkNumber}";
-            }
-        }
-
-        public string LoweredLink { get; set; } = "";
-
-        public int LoweredLinkNumber { get; set; } = 0;
-
-        public string FullLoweredLink
-        {
-            get
-            {
-                return LoweredLinkNumber == 0 ? LoweredLink : $"{LoweredLink}-{LoweredLinkNumber}";
-            }
-        }
-
-        public string HabraLink { get; set; } = "";
-
-        public int HabraLinkNumber { get; set; } = 0;
-
-        public string FullHabraLink
-        {
-            get
-            {
-                return HabraLinkNumber == 0 ? HabraLink : $"{HabraLink}-{HabraLinkNumber}";
-            }
-        }
-
-        public Header(string text, int level)
-        {
-            Text = text;
+            Title = headerTitle;
             Level = level;
+
+            foreach (MarkdownType markdownType in MarkdownTypes)
+                Links[markdownType] = CalculateHeaderLink(existingHeaders, markdownType, headerTitle);
         }
 
-        public string GetAppropriateLink(MarkdownType kind)
+        private static HeaderLink CalculateHeaderLink(List<Header> headers, MarkdownType linkType, string headerTitle)
         {
-            switch (kind)
+            string headerLink = GenerateLink(linkType, headerTitle);
+
+            var sameLinkHeaders = headers.Where(h => h.Links[linkType].Link == headerLink);
+            int linkNumber = 0;
+            if (sameLinkHeaders.Any())
             {
-                case MarkdownType.GitHub:
-                    return FullLink;
-                case MarkdownType.Habrahabr:
-                    return FullHabraLink;
-                case MarkdownType.VisualCode:
-                default:
-                    return FullLoweredLink;
+                linkNumber = sameLinkHeaders.Max(h => h.Links[linkType].LinkNumber) + 1;
             }
+            else if (headers.Any(h => h.Links[linkType].FullLink == headerLink))
+            {
+                linkNumber = 1;
+            }
+
+            return new HeaderLink(headerLink, linkNumber);
         }
 
         public override string ToString()
         {
-            return $"{new string('#', Level)} {Text}";
+            return $"{new string('#', Level)} {Title}";
         }
 
-        public static string GetAppropriateLink(MarkdownType kind, string inputLink)
+        public static string GenerateLink(MarkdownType linkType, string headerTitle)
         {
-            switch (kind)
+            switch (linkType)
             {
                 case MarkdownType.GitHub:
-                    return HeaderToLink(inputLink, false);
+                    return HeaderToLink(headerTitle, false);
                 case MarkdownType.Habrahabr:
-                    return HeaderToHabralink(inputLink);
+                    return HeaderToTranslitLink(headerTitle);
                 case MarkdownType.VisualCode:
                 default:
-                    return HeaderToLink(inputLink, true);
+                    return HeaderToLink(headerTitle, true);
             }
         }
 
-        public static void AddHeader(List<Header> headers, string header, int level)
-        {
-            string headerLink = HeaderToLink(header, false);
-            string loweredHeaderLink = HeaderToLink(header, true);
-            string headerHabraLink = HeaderToHabralink(header);
-            headers.Add(new Header(header, level)
-            {
-                Link = headerLink,
-                LinkNumber = headers.Count(h => h.Link == headerLink),
-                LoweredLink = loweredHeaderLink,
-                LoweredLinkNumber = headers.Count(h => h.LoweredLink == loweredHeaderLink),
-                HabraLink = headerHabraLink,
-                HabraLinkNumber = headers.Count(h => h.HabraLink == headerHabraLink)
-            });
-        }
-
-        public static string HeaderToLink(string header, bool lower)
+        public static string HeaderToLink(string header, bool loweredNotLatin)
         {
             var link = new StringBuilder(header.Length);
             foreach (char c in header)
             {
                 if (char.IsLetterOrDigit(c))
                 {
-                    link.Append(lower || (c >= 'A' && c <= 'Z') ? char.ToLowerInvariant(c) : c);
+                    link.Append(loweredNotLatin || (c >= 'A' && c <= 'Z') ? char.ToLowerInvariant(c) : c);
                 }
                 else
                 {
@@ -159,7 +118,7 @@ namespace HabraMark
             return link.ToString();
         }
 
-        public static string HeaderToHabralink(string header)
+        public static string HeaderToTranslitLink(string header)
         {
             string lower = header.ToLowerInvariant();
             var link = new StringBuilder(lower.Length);
@@ -169,7 +128,7 @@ namespace HabraMark
                 {
                     link.Append(c);
                 }
-                else if (HabraHeaderReplacement.TryGetValue(c, out string replacement))
+                else if (RussianTranslitMap.TryGetValue(c, out string replacement))
                 {
                     link.Append(replacement);
                 }

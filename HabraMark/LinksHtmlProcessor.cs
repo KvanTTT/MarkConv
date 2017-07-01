@@ -14,6 +14,8 @@ namespace HabraMark
 
         public ProcessorOptions Options { get; set; }
 
+        public ILogger Logger { get; set; }
+
         public LinksHtmlProcessor(ProcessorOptions options) => Options = options ?? new ProcessorOptions();
 
         public string Process(string text, List<Header> headers)
@@ -89,7 +91,7 @@ namespace HabraMark
                     prevMatches[ElementType.SummaryElements] = GetMatch(text, index, length, ElementType.SummaryElements);
                 }
                 if ((Options.InputMarkdownType != MarkdownType.GitHub &&
-                    Options.InputMarkdownType != MarkdownType.VisualCode) &&
+                     Options.InputMarkdownType != MarkdownType.VisualCode) &&
                     (Options.OutputMarkdownType == MarkdownType.GitHub ||
                      Options.OutputMarkdownType == MarkdownType.VisualCode))
                 {
@@ -137,12 +139,19 @@ namespace HabraMark
             string linkString;
             if (Options.OutputMarkdownType != MarkdownType.Default && isRelative && !isImage)
             {
-                Header header;
-                string inputAddress = Header.GetAppropriateLink(Options.InputMarkdownType, address);
-                string outputAddress =
-                    (header = headers.FirstOrDefault(h => h.GetAppropriateLink(Options.InputMarkdownType) == inputAddress)) != null
-                    ? header.GetAppropriateLink(Options.OutputMarkdownType)
-                    : Header.GetAppropriateLink(Options.OutputMarkdownType, inputAddress);
+                string inputAddress = Header.GenerateLink(Options.InputMarkdownType, address);
+                Header header = headers.FirstOrDefault(h => h.Links[Options.InputMarkdownType].FullLink == inputAddress);
+                string outputAddress;
+                if (header != null)
+                {
+                    outputAddress = header.Links[Options.OutputMarkdownType].FullLink;
+                }
+                else
+                {
+                    outputAddress = Header.GenerateLink(Options.OutputMarkdownType, inputAddress);
+                    var link = new Link(title, inputAddress) { IsRelative = true };
+                    Logger?.LogWarning($"Link {link} is broken");
+                }
 
                 Link newLink = new Link(title, outputAddress) { IsRelative = true };
                 linkString = newLink.ToString();

@@ -10,10 +10,6 @@
 
         public bool IsRelative { get; set; }
 
-        public Link()
-        {
-        }
-
         public Link(string title, string address)
         {
             Title = title;
