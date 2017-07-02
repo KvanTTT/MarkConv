@@ -6,7 +6,7 @@ configuration:
 - Release
 before_build:
 - cmd: >-
-    - dotnet restore
+    dotnet restore
 build_script:
   - dotnet build -c %CONFIGURATION%
 test_script:
