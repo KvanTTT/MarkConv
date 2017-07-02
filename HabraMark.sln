@@ -7,7 +7,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "HabraMark", "HabraMark\Habr
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "HabraMark.Cli", "HabraMark.Cli\HabraMark.Cli.csproj", "{A5ADDDBE-3E0D-4C12-82F3-A4D1F4278A02}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "HabraMark.Tests", "HabraMark.Tests\HabraMark.Tests.csproj", "{1AF1F24C-273F-48AB-8A91-7C0857AF299E}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "HabraMark.Tests", "HabraMark.Tests\HabraMark.Tests.csproj", "{DEF17271-8583-4554-B5DE-54FCB594DC2E}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -23,10 +23,10 @@ Global
 		{A5ADDDBE-3E0D-4C12-82F3-A4D1F4278A02}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{A5ADDDBE-3E0D-4C12-82F3-A4D1F4278A02}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{A5ADDDBE-3E0D-4C12-82F3-A4D1F4278A02}.Release|Any CPU.Build.0 = Release|Any CPU
-		{1AF1F24C-273F-48AB-8A91-7C0857AF299E}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{1AF1F24C-273F-48AB-8A91-7C0857AF299E}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{1AF1F24C-273F-48AB-8A91-7C0857AF299E}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{1AF1F24C-273F-48AB-8A91-7C0857AF299E}.Release|Any CPU.Build.0 = Release|Any CPU
+		{DEF17271-8583-4554-B5DE-54FCB594DC2E}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{DEF17271-8583-4554-B5DE-54FCB594DC2E}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{DEF17271-8583-4554-B5DE-54FCB594DC2E}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{DEF17271-8583-4554-B5DE-54FCB594DC2E}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

@@ -13,4 +13,4 @@ build:
   project: HabraMark.sln
 test:
   assemblies:
-  - HabraMark.Tests\bin\$(configuration)\*.Tests.dll
+  - HabraMark.Tests\bin\$(configuration)\netcoreapp1.1\*.Tests.dll
