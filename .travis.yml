@@ -1,0 +1,10 @@
+language: csharp
+os:
+  - linux
+  - osx
+dist: trusty
+dotnet: 1.0.1
+script:
+    - dotnet restore
+    - dotnet build -c Release
+    - dotnet test "HabraMark.Tests/HabraMark.Tests.csproj" -c Release

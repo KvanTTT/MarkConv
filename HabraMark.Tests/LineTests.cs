@@ -1,35 +1,34 @@
-﻿using NUnit.Framework;
+﻿using Xunit;
 
 namespace HabraMark.Tests
 {
-    [TestFixture]
     public class LineTests
     {
-        [Test]
+        [Fact]
         public void ShouldNotSplitSpecialLines()
         {
             Compare(4, "NotSplittingLines.md", "NotSplittingLines.Wrapped.md");
         }
 
-        [Test]
+        [Fact]
         public void ShouldNotChangeLines()
         {
             Compare(0, "SpecialLines.md", "SpecialLines.md");
         }
 
-        [Test]
+        [Fact]
         public void ShouldUnwrap()
         {
             Compare(-1, "SpecialLines.md", "SpecialLines.Unwrapped.md");
         }
 
-        [Test]
+        [Fact]
         public void ShouldWrapToDefinedWidth()
         {
             Compare(80, "SpecialLines.md", "SpecialLines.Wrapped.80.md");
         }
 
-        [Test]
+        [Fact]
         public void ShouldRemoveUnwantedLineBreaks()
         {
             var options = new ProcessorOptions { RemoveUnwantedBreaks = true };
@@ -43,14 +42,14 @@ namespace HabraMark.Tests
                 "\n" +
                 "\n");
 
-            Assert.AreEqual(
+            Assert.Equal(
                 "# Header\n" +
                 "\n" +
                 "Paragraph"
                 , actual);
         }
 
-        [Test]
+        [Fact]
         public void ShouldNotRemoveUnwantedLineBreaks()
         {
             var options = new ProcessorOptions { RemoveUnwantedBreaks = false };
@@ -64,7 +63,7 @@ namespace HabraMark.Tests
                 "\n" +
                 "\n");
 
-            Assert.AreEqual(
+            Assert.Equal(
                 "\n" +
                 "# Header\n" +
                 "\n" +
@@ -83,7 +82,7 @@ namespace HabraMark.Tests
             string actual = processor.Process(source);
             string expected = Utils.ReadFileFromProject(expectedFileName);
 
-            Assert.AreEqual(expected, actual);
+            Assert.Equal(expected, actual);
         }
     }
 }
