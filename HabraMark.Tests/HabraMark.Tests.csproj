@@ -4,7 +4,7 @@
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
-    <ProjectGuid>{BFBCC3DF-5DF1-4DEA-9C5B-B081A5E47BAD}</ProjectGuid>
+    <ProjectGuid>{1AF1F24C-273F-48AB-8A91-7C0857AF299E}</ProjectGuid>
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
     <RootNamespace>HabraMark.Tests</RootNamespace>
@@ -44,31 +44,74 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="LineTests.cs" />
-    <Compile Include="LinkTests.cs" />
-    <Compile Include="MiscTests.cs" />
+    <Compile Include="..\HabraMark.NetCore.Tests\LineTests.cs">
+      <Link>LineTests.cs</Link>
+    </Compile>
+    <Compile Include="..\HabraMark.NetCore.Tests\LinkTests.cs">
+      <Link>LinkTests.cs</Link>
+    </Compile>
+    <Compile Include="..\HabraMark.NetCore.Tests\MiscTests.cs">
+      <Link>MiscTests.cs</Link>
+    </Compile>
+    <Compile Include="..\HabraMark.NetCore.Tests\Utils.cs">
+      <Link>Utils.cs</Link>
+    </Compile>
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="Utils.cs" />
-  </ItemGroup>
-  <ItemGroup>
-    <Content Include="NotSplittingLines.md" />
-    <Content Include="SpecialLines.Wrapped.80.md" />
-    <Content Include="NotSplittingLines.Wrapped.md" />
-    <Content Include="DetailsSummary.md" />
-    <None Include="packages.config" />
-    <Content Include="SpecialLines.md" />
-    <Content Include="SpecialLines.Unwrapped.md" />
-    <Content Include="RelativeLinks.GitHub.md" />
-    <Content Include="RelativeLinks.Habrahabr.md" />
-    <Content Include="RelativeLinks.VisualCode.md" />
-    <Content Include="RelativeLinksAndCode.md" />
-    <Content Include="Spoilers.md" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\HabraMark\HabraMark.csproj">
       <Project>{b4a2769a-b1a6-4c75-a692-7414f37ff758}</Project>
       <Name>HabraMark</Name>
     </ProjectReference>
+  </ItemGroup>
+  <ItemGroup>
+    <Content Include="..\HabraMark.NetCore.Tests\DetailsSummary.md">
+      <Link>DetailsSummary.md</Link>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="..\HabraMark.NetCore.Tests\NotSplittingLines.md">
+      <Link>NotSplittingLines.md</Link>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="..\HabraMark.NetCore.Tests\NotSplittingLines.Wrapped.md">
+      <Link>NotSplittingLines.Wrapped.md</Link>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="..\HabraMark.NetCore.Tests\RelativeLinks.GitHub.md">
+      <Link>RelativeLinks.GitHub.md</Link>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="..\HabraMark.NetCore.Tests\RelativeLinks.Habrahabr.md">
+      <Link>RelativeLinks.Habrahabr.md</Link>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="..\HabraMark.NetCore.Tests\RelativeLinks.VisualCode.md">
+      <Link>RelativeLinks.VisualCode.md</Link>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="..\HabraMark.NetCore.Tests\RelativeLinksAndCode.md">
+      <Link>RelativeLinksAndCode.md</Link>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="..\HabraMark.NetCore.Tests\SpecialLines.md">
+      <Link>SpecialLines.md</Link>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="..\HabraMark.NetCore.Tests\SpecialLines.Unwrapped.md">
+      <Link>SpecialLines.Unwrapped.md</Link>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="..\HabraMark.NetCore.Tests\SpecialLines.Wrapped.80.md">
+      <Link>SpecialLines.Wrapped.80.md</Link>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="..\HabraMark.NetCore.Tests\Spoilers.md">
+      <Link>Spoilers.md</Link>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="packages.config" />
   </ItemGroup>
   <ItemGroup>
     <Service Include="{82A7F48D-3B50-4B1E-B82E-3ADA8210C358}" />
