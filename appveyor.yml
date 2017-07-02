@@ -4,13 +4,10 @@ platform:
 skip_branch_with_pr: true
 configuration:
 - Release
-init:
-- ps: (New-Object Net.WebClient).DownloadFile('https://raw.githubusercontent.com/appveyor/ci/master/scripts/xamarin-vs2017-151-fixed.targets', "C:\Program Files (x86)\Microsoft Visual Studio\2017\Community\MSBuild\15.0\Microsoft.Common.Targets\ImportAfter\Xamarin.Common.targets")
 before_build:
 - cmd: >-
-    nuget restore HabraMark.sln
-build:
-  project: HabraMark.sln
-test:
-  assemblies:
-  - HabraMark.Tests\bin\$(configuration)\netcoreapp1.1\*.Tests.dll
+    - dotnet restore
+build_script:
+  - dotnet build -c %CONFIGURATION%
+test_script:
+  - dotnet test "HabraMark.Tests\HabraMark.Tests.csproj" -c %CONFIGURATION%
