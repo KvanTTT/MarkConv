@@ -1,0 +1,13 @@
+language: csharp
+os:
+  - linux
+  - osx
+dist: trusty
+mono:
+  - latest
+dotnet: 1.0.1
+install:
+    - nuget restore HabraMark.sln
+script:
+    - xbuild /p:Configuration=Release HabraMark.sln
+    - mono "packages/NUnit.ConsoleRunner.3.6.1/tools/nunit3-console.exe" "HabraMark.Tests/bin/Release/*.Tests.dll"
