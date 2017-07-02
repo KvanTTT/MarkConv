@@ -1,7 +1,6 @@
 language: csharp
 os:
   - linux
-  - osx
 dist: trusty
 dotnet: 1.0.1
 script:
