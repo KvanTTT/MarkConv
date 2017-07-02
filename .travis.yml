@@ -5,6 +5,6 @@ os:
 dist: trusty
 dotnet: 1.0.1
 script:
-    - dotnet restore
-    - dotnet build -c Release
+    - dotnet restore HabraMark.NetCore.sln
+    - dotnet build HabraMark.NetCore.sln -c Release
     - dotnet test "HabraMark.Tests/HabraMark.Tests.csproj" -c Release
