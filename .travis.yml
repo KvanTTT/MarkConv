@@ -6,7 +6,8 @@ dist: trusty
 mono:
     - latest
 dotnet: 1.0.1
+install:
+    - nuget restore HabraMark.sln
 script:
-    - dotnet restore
-    - dotnet build -c Release
-    - dotnet test "HabraMark.Tests/HabraMark.Tests.csproj" -a "packages/NUnit3TestAdapter.3.7.0/tools"
+    - msbuild /p:Configuration=Release HabraMark.sln
+    - mono "packages/NUnit.ConsoleRunner.3.6.1/tools/nunit3-console.exe" "HabraMark.Tests/bin/Release/*.Tests.dll"
