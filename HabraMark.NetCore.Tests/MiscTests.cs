@@ -1,12 +1,11 @@
-﻿using NUnit.Framework;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
+using Xunit;
 
 namespace HabraMark.Tests
 {
-    [TestFixture]
     public class MiscTests
     {
-        [Test]
+        [Fact]
         public void ShouldNormalizeHeadersAndListItems()
         {
             var options = new ProcessorOptions { Normalize = true };
@@ -20,7 +19,7 @@ namespace HabraMark.Tests
                 "- List item 3\n" +
                 "25. Ordered list item");
 
-            Assert.AreEqual(
+            Assert.Equal(
                 "## Head # er\n" +
                 "## Header 2\n" +
                 "* List item 1\n" +
@@ -29,7 +28,7 @@ namespace HabraMark.Tests
                 "25. Ordered list item", actual);
         }
 
-        [Test]
+        [Fact]
         public void ShouldWarnIncorrectHeaderLevel()
         {
             var options = new ProcessorOptions();
@@ -42,10 +41,10 @@ namespace HabraMark.Tests
                 "## Header 2 1\n" +
                 "# Header 1\n");
 
-            Assert.AreEqual(1, logger.WarningMessages.Count);
+            Assert.Equal(1, logger.WarningMessages.Count);
         }
 
-        [Test]
+        [Fact]
         public void ShouldGenerateTableOfContents()
         {
             string source = Utils.ReadFileFromProject("RelativeLinks.GitHub.md");
@@ -55,7 +54,7 @@ namespace HabraMark.Tests
             List<string> tableOfContents = linesProcessor.GenerateTableOfContents(linesProcessorResult);
             string actual = string.Join("\n", tableOfContents);
 
-            Assert.AreEqual(
+            Assert.Equal(
                 "[Header 2](#header-2)\n" +
                 "    [Header 3](#header-3)\n" +
                 "    [Header 3](#header-3-1)\n" +
@@ -69,7 +68,7 @@ namespace HabraMark.Tests
                 "    [Заголовок Header 3](#заголовок-header-3)", actual);
         }
 
-        [Test]
+        [Fact]
         public void ShouldConvertDetailsToSpoilers()
         {
             var options = new ProcessorOptions
@@ -82,7 +81,7 @@ namespace HabraMark.Tests
 
             string source = Utils.ReadFileFromProject("DetailsSummary.md");
             string actual = processor.Process(source);
-            Assert.AreEqual(
+            Assert.Equal(
                 "<spoiler title=\"Details\">\n" +
                 "Content\n" +
                 "\n" +
@@ -95,7 +94,7 @@ namespace HabraMark.Tests
                 "</spoiler>", actual);
         }
 
-        [Test]
+        [Fact]
         public void ShouldConvertSpoilersToDetails()
         {
             var options = new ProcessorOptions
@@ -108,7 +107,7 @@ namespace HabraMark.Tests
 
             string source = Utils.ReadFileFromProject("Spoilers.md");
             string actual = processor.Process(source);
-            Assert.AreEqual(
+            Assert.Equal(
                 "<details>\n" +
                 "<summary>Spoiler header</summary>\n" +
                 "Content\n" +

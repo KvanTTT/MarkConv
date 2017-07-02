@@ -1,11 +1,10 @@
-﻿using NUnit.Framework;
+﻿using Xunit;
 
 namespace HabraMark.Tests
 {
-    [TestFixture]
     public class LinkTests
     {
-        [Test]
+        [Fact]
         public void ConvertVisualCodeToGitHubRelativeLinks()
         {
             string expected =
@@ -25,7 +24,7 @@ namespace HabraMark.Tests
             Compare("RelativeLinks.VisualCode.md", expected, MarkdownType.VisualCode, MarkdownType.GitHub);
         }
 
-        [Test]
+        [Fact]
         public void ConvertVisualCodeToHabrahabrRelativeLinks()
         {
             string expected =
@@ -45,7 +44,7 @@ namespace HabraMark.Tests
             Compare("RelativeLinks.VisualCode.md", expected, MarkdownType.VisualCode, MarkdownType.Habrahabr);
         }
 
-        [Test]
+        [Fact]
         public void ConvertGitHubToHabrahabrRelativeLinks()
         {
             string expected =
@@ -78,7 +77,7 @@ namespace HabraMark.Tests
             Compare("RelativeLinks.GitHub.md", expected, MarkdownType.GitHub, MarkdownType.Habrahabr);
         }
 
-        [Test]
+        [Fact]
         public void ConvertHabrahabrToGitHubRelativeLinks()
         {
             string expected =
@@ -102,7 +101,7 @@ namespace HabraMark.Tests
             Compare("RelativeLinks.Habrahabr.md", expected, MarkdownType.Habrahabr, MarkdownType.GitHub);
         }
 
-        [Test]
+        [Fact]
         public void ShouldNotChangeLinksInsideCodeSection()
         {
             string expected =
@@ -120,31 +119,31 @@ namespace HabraMark.Tests
             Compare("RelativeLinksAndCode.md", expected, MarkdownType.GitHub, MarkdownType.VisualCode);
         }
 
-        [Test]
+        [Fact]
         public void GenerateHabrahabrLink()
         {
             string header = @"АБВГДЕЁЖЗИЙКЛМНОПРСТУФХЦЧШЩЪЫЬЭЮЯ  ABCabc    0123456789!""№;%:?*() -+=`~<>@#$^&[]{}\/|'_";
             string habraLink = Header.HeaderToTranslitLink(header);
-            Assert.AreEqual(@"abvgdeyozhziyklmnoprstufhcchshschyeyuya--abcabc----0123456789--_", habraLink);
+            Assert.Equal(@"abvgdeyozhziyklmnoprstufhcchshschyeyuya--abcabc----0123456789--_", habraLink);
         }
 
-        [Test]
+        [Fact]
         public void GenerateVisualCodeLink()
         {
             string header = @"ABCabc АБВгде    0123456789!""№;%:?*() -+=`~<>@#$^&[]{}\/|'_";
             string resultLink = Header.HeaderToLink(header, true);
-            Assert.AreEqual(@"abcabc-абвгде----0123456789--_", resultLink);
+            Assert.Equal(@"abcabc-абвгде----0123456789--_", resultLink);
         }
 
-        [Test]
+        [Fact]
         public void GenerateGitHubLink()
         {
             string header = @"ABCabc АБВгде    0123456789!""№;%:?*() -+=`~<>@#$^&[]{}\/|'_";
             string resultLink = Header.HeaderToLink(header, false);
-            Assert.AreEqual(@"abcabc-АБВгде----0123456789--_", resultLink);
+            Assert.Equal(@"abcabc-АБВгде----0123456789--_", resultLink);
         }
 
-        [Test]
+        [Fact]
         public void ShouldAddHeaderImageLink()
         {
             var options = new ProcessorOptions { HeaderImageLink = "https://github.com/KvanTTT/HabraMark" };
@@ -156,7 +155,7 @@ namespace HabraMark.Tests
                 "\n" +
                 "![Header Image](https://hsto.org/storage3/20b/eb7/170/20beb7170a61ec7cf9f4c02f8271f49c.jpg)");
 
-            Assert.AreEqual("# Header\n" +
+            Assert.Equal("# Header\n" +
                 "\n" +
                 "Paragraph [Some link](https://google.com)\n" +
                 "\n" +
@@ -164,7 +163,7 @@ namespace HabraMark.Tests
                 actual);
         }
 
-        [Test]
+        [Fact]
         public void ShouldRemoveFirstLevelHeader()
         {
             var options = new ProcessorOptions { RemoveTitleHeader = true };
@@ -176,7 +175,7 @@ namespace HabraMark.Tests
                 "\n" +
                 "## Header 2");
 
-            Assert.AreEqual(
+            Assert.Equal(
                 "Paragraph text\n" +
                 "\n" +
                 "## Header 2", actual);
@@ -195,8 +194,8 @@ namespace HabraMark.Tests
             string source = Utils.ReadFileFromProject(inputFileName);
             string actual = processor.Process(source);
 
-            Assert.AreEqual(1, logger.WarningMessages.Count);
-            Assert.AreEqual(outputResult, actual);
+            Assert.Equal(1, logger.WarningMessages.Count);
+            Assert.Equal(outputResult, actual);
         }
     }
 }
