@@ -5,6 +5,8 @@ Content
 Some code
 ```
 <spoiler title="Nested spoiler">
-Nested text
+```
+Nested code
+```
 </spoiler>
 </spoiler>

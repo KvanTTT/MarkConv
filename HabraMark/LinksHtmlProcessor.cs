@@ -45,6 +45,7 @@ namespace HabraMark
                         : elementType == ElementType.SummaryElements ? ConvertSummaryElements(match)
                         : elementType == ElementType.SpoilerOpenElement ? ConvertSpoilerOpenElement(match)
                         : elementType == ElementType.SpoilerCloseElement ? ConvertSpolierCloseElement(match)
+                        : elementType == ElementType.AnchorElement ? ConvertAnchorElement(match)
                         : "";
 
                     result.Append(processedMatch);
@@ -97,6 +98,7 @@ namespace HabraMark
                 {
                     prevMatches[ElementType.SpoilerOpenElement] = GetMatch(text, index, length, ElementType.SpoilerOpenElement);
                     prevMatches[ElementType.SpoilerCloseElement] = GetMatch(text, index, length, ElementType.SpoilerCloseElement);
+                    prevMatches[ElementType.AnchorElement] = GetMatch(text, index, length, ElementType.AnchorElement);
                 }
             }
             else
@@ -124,6 +126,7 @@ namespace HabraMark
                 : elementType == ElementType.SummaryElements ? SummaryTagsRegex
                 : elementType == ElementType.SpoilerOpenElement ? SpoilerOpenTagRegex
                 : elementType == ElementType.SpoilerCloseElement ? SpoilerCloseTagRegex
+                : elementType == ElementType.AnchorElement ? AnchorTagRegex
                 : throw new NotImplementedException($"Regex for {elementType} has not been found");
 
             return regex.Match(text, index, length);
@@ -193,12 +196,17 @@ namespace HabraMark
         private string ConvertSpoilerOpenElement(Match match)
         {
             return  "<details>\n" +
-                   $"<summary>{match.Groups[1].Value}</summary>";
+                   $"<summary>{match.Groups[1].Value}</summary>\n";
         }
 
         private string ConvertSpolierCloseElement(Match match)
         {
             return "</details>";
+        }
+
+        private string ConvertAnchorElement(Match match)
+        {
+            return "";
         }
     }
 }

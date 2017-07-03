@@ -166,7 +166,7 @@ namespace HabraMark
             {
                 string indent = Repeat(Options.IndentString, header.Level - firstLevel);
                 Link link = new Link(header.Title, header.Links[Options.OutputMarkdownType].FullLink, isRelative: true);
-                tableOfContents.Add($"{indent}{link}");
+                tableOfContents.Add($"{indent}* {link}");
             }
             return tableOfContents;
         }

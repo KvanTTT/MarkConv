@@ -6,6 +6,7 @@
         DetailsElement,
         SummaryElements,
         SpoilerOpenElement,
-        SpoilerCloseElement
+        SpoilerCloseElement,
+        AnchorElement
     }
 }

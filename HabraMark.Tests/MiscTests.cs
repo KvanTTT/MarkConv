@@ -55,71 +55,17 @@ namespace HabraMark.Tests
             string actual = string.Join("\n", tableOfContents);
 
             Assert.Equal(
-                "[Header 2](#header-2)\n" +
-                "    [Header 3](#header-3)\n" +
-                "    [Header 3](#header-3-1)\n" +
-                "    [Header 3 1](#header-3-1-1)\n" +
-                "    [Header 3 1](#header-3-1-2)\n" +
-                "[Заголовок 2](#заголовок-2)\n" +
-                "    [Заголовок 3](#заголовок-3)\n" +
-                "    [Заголовок 3](#заголовок-3-1)\n" +
-                "    [Заголовок 3 1](#заголовок-3-1-1)\n" +
-                "    [ЗАГОЛОВОК 3](#заголовок-3-2)\n" +
-                "    [Заголовок Header 3](#заголовок-header-3)", actual);
-        }
-
-        [Fact]
-        public void ShouldConvertDetailsToSpoilers()
-        {
-            var options = new ProcessorOptions
-            {
-                LinesMaxLength = 0,
-                InputMarkdownType = MarkdownType.VisualCode,
-                OutputMarkdownType = MarkdownType.Habrahabr
-            };
-            var processor = new Processor(options);
-
-            string source = Utils.ReadFileFromProject("DetailsSummary.md");
-            string actual = processor.Process(source);
-            Assert.Equal(
-                "<spoiler title=\"Details\">\n" +
-                "Content\n" +
-                "\n" +
-                "```\n" +
-                "Some code\n" +
-                "```\n" +
-                "<spoiler title=\"Nested Details\">\n" +
-                "Nested text\n" +
-                "</spoiler>\n" +
-                "</spoiler>", actual);
-        }
-
-        [Fact]
-        public void ShouldConvertSpoilersToDetails()
-        {
-            var options = new ProcessorOptions
-            {
-                LinesMaxLength = 0,
-                InputMarkdownType = MarkdownType.Habrahabr,
-                OutputMarkdownType = MarkdownType.VisualCode
-            };
-            var processor = new Processor(options);
-
-            string source = Utils.ReadFileFromProject("Spoilers.md");
-            string actual = processor.Process(source);
-            Assert.Equal(
-                "<details>\n" +
-                "<summary>Spoiler header</summary>\n" +
-                "Content\n" +
-                "\n" +
-                "```\n" +
-                "Some code\n" +
-                "```\n" +
-                "<details>\n" +
-                "<summary>Nested spoiler</summary>\n" +
-                "Nested text\n" +
-                "</details>\n" +
-                "</details>", actual);
+                "* [Header 2](#header-2)\n" +
+                "    * [Header 3](#header-3)\n" +
+                "    * [Header 3](#header-3-1)\n" +
+                "    * [Header 3 1](#header-3-1-1)\n" +
+                "    * [Header 3 1](#header-3-1-2)\n" +
+                "* [Заголовок 2](#заголовок-2)\n" +
+                "    * [Заголовок 3](#заголовок-3)\n" +
+                "    * [Заголовок 3](#заголовок-3-1)\n" +
+                "    * [Заголовок 3 1](#заголовок-3-1-1)\n" +
+                "    * [ЗАГОЛОВОК 3](#заголовок-3-2)\n" +
+                "    * [Заголовок Header 3](#заголовок-header-3)", actual);
         }
     }
 }
