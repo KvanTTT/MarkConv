@@ -12,6 +12,9 @@ namespace HabraMark
         private int _imageLinkNumber;
         private List<Header> _headers;
 
+        private Dictionary<string, byte[]> _imageHashes = new Dictionary<string, byte[]>();
+        private Dictionary<string, bool> _urlStates = new Dictionary<string, bool>();
+
         public ProcessorOptions Options { get; set; }
 
         public ILogger Logger { get; set; }
@@ -161,20 +164,56 @@ namespace HabraMark
             }
             else if (isImage)
             {
+                byte[] hash = null;
+                string newLink = address;
+                if (Options.CheckLinks)
+                {
+                    if (!_imageHashes.TryGetValue(address, out hash))
+                    {
+                        hash = Link.GetImageHash(address, Options.RootDirectory);
+                        _imageHashes[address] = hash;
+                    }
+
+                    if (hash == null)
+                    {
+                        Logger?.Warn($"Link {address} probably broken");
+                    }
+                }
+
+                if (Options.ImagesMap.TryGetValue(address, out ImageHash replacement))
+                {
+                    if (hash != null && replacement.Hash != null && !Link.CompareHashes(hash, replacement.Hash))
+                    {
+                        Logger?.Warn($"Images {address} and {replacement.Path} are different");
+                    }
+                    newLink = replacement.Path;
+                }
+                linkString = new Link(title, newLink, true).ToString();
+
                 if (imageLinkNumber == 0 && !string.IsNullOrWhiteSpace(Options.HeaderImageLink))
                 {
-                    Link newLink = new Link(match.Value, Options.HeaderImageLink);
-                    linkString = newLink.ToString();
+                    linkString = new Link(linkString, Options.HeaderImageLink).ToString();
                 }
-                else
-                {
-                    linkString = match.Value;
-                }
+
                 imageLinkNumber++;
             }
             else
             {
                 linkString = match.Value;
+                if (Options.CheckLinks)
+                {
+                    bool isValid;
+                    if (!_urlStates.TryGetValue(address, out isValid))
+                    {
+                        isValid = Link.IsUrlValid(address);
+                        _urlStates[address] = isValid;
+                    }
+
+                    if (!isValid)
+                    {
+                        Logger?.Warn($"Link {address} probably broken");
+                    }
+                }
             }
 
             return linkString;
