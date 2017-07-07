@@ -136,11 +136,11 @@ namespace HabraMark
         {
             bool isImage = !string.IsNullOrEmpty(match.Groups[1].Value);
             string title = match.Groups[2].Value;
-            bool isRelative = !string.IsNullOrEmpty(match.Groups[4].Value);
-            string address = match.Groups[5].Value;
+            string address = match.Groups[4].Value;
+            LinkType linkType = Link.DetectLinkType(address);
 
             string linkString;
-            if (Options.OutputMarkdownType != MarkdownType.Default && isRelative && !isImage)
+            if (Options.OutputMarkdownType != MarkdownType.Default && linkType == LinkType.Relative && !isImage)
             {
                 string inputAddress = Header.GenerateLink(Options.InputMarkdownType, address);
                 Header header = headers.FirstOrDefault(h => h.Links[Options.InputMarkdownType].FullLink == inputAddress);
@@ -152,11 +152,11 @@ namespace HabraMark
                 else
                 {
                     outputAddress = Header.GenerateLink(Options.OutputMarkdownType, inputAddress);
-                    var link = new Link(title, inputAddress, isRelative: true);
+                    var link = new Link(title, inputAddress, linkType: LinkType.Relative);
                     Logger?.Warn($"Link {link} is broken");
                 }
 
-                Link newLink = new Link(title, outputAddress, isRelative: true);
+                Link newLink = new Link(title, outputAddress, linkType: LinkType.Relative);
                 linkString = newLink.ToString();
             }
             else if (isImage)

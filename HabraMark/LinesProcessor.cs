@@ -165,7 +165,7 @@ namespace HabraMark
             foreach (Header header in headers)
             {
                 string indent = Repeat(Options.IndentString, header.Level - firstLevel);
-                Link link = new Link(header.Title, header.Links[Options.OutputMarkdownType].FullLink, isRelative: true);
+                Link link = new Link(header.Title, header.Links[Options.OutputMarkdownType].FullLink, linkType: LinkType.Relative);
                 tableOfContents.Add($"{indent}* {link}");
             }
             return tableOfContents;
