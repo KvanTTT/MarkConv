@@ -1,4 +1,6 @@
-﻿namespace HabraMark
+﻿using System.Collections.Generic;
+
+namespace HabraMark
 {
     public class ProcessorOptions
     {
@@ -21,6 +23,12 @@
         public bool Normalize { get; set; } = false;
 
         public string IndentString { get; set; } = "    ";
+
+        public bool CheckLinks { get; set; } = true;
+
+        public string RootDirectory { get; set; } = "";
+
+        public Dictionary<string, ImageHash> ImagesMap = new Dictionary<string, ImageHash>();
 
         public static ProcessorOptions FromOptions(ProcessorOptions options)
         {
