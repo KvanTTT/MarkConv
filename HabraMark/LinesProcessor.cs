@@ -23,7 +23,7 @@ namespace HabraMark
         public LinesProcessorResult Process(IList<string> lines)
         {
             bool codeSection = false;
-            var resultLines = new List<string>();
+            var resultLines = new List<string>(lines.Count);
             var headers = new List<Header>();
             
             for (int lineIndex = 0; lineIndex <= lines.Count; lineIndex++)
@@ -156,7 +156,7 @@ namespace HabraMark
         public List<string> GenerateTableOfContents(LinesProcessorResult linesProcessorResult)
         {
             List<Header> headers = linesProcessorResult.Headers;
-            var tableOfContents = new List<string>();
+            var tableOfContents = new List<string>(headers.Count);
 
             if (headers.Count == 0)
                 return tableOfContents;
@@ -211,7 +211,7 @@ namespace HabraMark
         private string[] SplitForSoftWrap(string str)
         {
             string[] splitted = str.Split(SpaceChars, StringSplitOptions.RemoveEmptyEntries);
-            var result = new List<string>();
+            var result = new List<string>(splitted.Length);
             foreach (string s in splitted)
             {
                 if (SpecialCharsRegex.IsMatch(s) && result.Count > 0)
