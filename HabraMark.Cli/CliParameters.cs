@@ -30,5 +30,8 @@ namespace HabraMark.Cli
 
         [Option]
         public bool Normalize { get; set; } = false;
+
+        [Option]
+        public bool CheckLinks { get; set; } = true;
     }
 }

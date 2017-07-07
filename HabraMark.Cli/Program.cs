@@ -1,5 +1,6 @@
 ﻿using CommandLine;
 using System;
+using System.Collections.Generic;
 using System.IO;
 
 namespace HabraMark.Cli
@@ -8,11 +9,12 @@ namespace HabraMark.Cli
     {
         static int Main(string[] args)
         {
-            ParserResult<CliParameters> parserResult = Parser.Default.ParseArguments<CliParameters>(args);
+            var parser = new Parser(config => config.HelpWriter = Console.Out);
+            ParserResult<CliParameters> parserResult = parser.ParseArguments<CliParameters>(args);
 
             return parserResult.MapResult(
                 cliParams => Convert(cliParams),
-                errs => 1);
+                errors => ProcessErrors(errors));
         }
 
         private static int Convert(CliParameters parameters)
@@ -22,6 +24,7 @@ namespace HabraMark.Cli
 
             string data = File.ReadAllText(parameters.InputFileName);
             var options = ProcessorOptions.GetDefaultOptions(parameters.InputMarkdownType, parameters.OutputMarkdownType);
+            options.CheckLinks = parameters.CheckLinks;
 
             if (parameters.LinesMaxLength.HasValue)
                 options.LinesMaxLength = parameters.LinesMaxLength.Value;
@@ -43,9 +46,14 @@ namespace HabraMark.Cli
             var converted = processor.ProcessAndGetTableOfContents(data);
             //string tableOfContents = string.Join("\n", converted.TableOfContents);
 
-            File.WriteAllText(Path.Combine(directory, $"{fileName}-{options.InputMarkdownType}->{options.OutputMarkdownType}.md"), converted.Result);
+            File.WriteAllText(Path.Combine(directory, $"{fileName}-{options.InputMarkdownType}-{options.OutputMarkdownType}.md"), converted.Result);
 
             return 0;
+        }
+
+        private static int ProcessErrors(IEnumerable<Error> errors)
+        {
+            return 1;
         }
     }
 }
