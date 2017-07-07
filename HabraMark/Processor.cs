@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using static HabraMark.MarkdownRegex;
 
 namespace HabraMark
@@ -14,6 +15,11 @@ namespace HabraMark
 
         public string Process(string original)
         {
+            return ProcessAndGetTableOfContents(original).Result;
+        }
+
+        public ProcessorResult ProcessAndGetTableOfContents(string original)
+        {
             var linesProcessor = new LinesProcessor(Options)
             {
                 Logger = Logger
@@ -27,8 +33,9 @@ namespace HabraMark
             LinesProcessorResult linesProcessorResult = linesProcessor.Process(lines);
             string result = string.Join("\n", linesProcessorResult.Lines);
             result = linksHtmlProcessor.Process(result, linesProcessorResult.Headers);
+            List<string> tableOfContents = linesProcessor.GenerateTableOfContents(linesProcessorResult);
 
-            return result;
+            return new ProcessorResult(result, tableOfContents);
         }
     }
 }
