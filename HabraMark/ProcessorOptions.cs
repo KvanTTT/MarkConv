@@ -6,15 +6,15 @@
         /// 0 - not change
         /// -1 - concat lines
         /// </summary>
-        public int LinesMaxLength { get; set; } = -1;
-
-        public bool RemoveTitleHeader { get; set; } = false;
+        public int LinesMaxLength { get; set; } = 0;
 
         public MarkdownType InputMarkdownType { get; set; } = MarkdownType.Default;
 
         public MarkdownType OutputMarkdownType { get; set; } = MarkdownType.Default;
 
         public string HeaderImageLink { get; set; } = string.Empty;
+
+        public bool RemoveTitleHeader { get; set; } = false;
 
         public bool RemoveUnwantedBreaks { get; set; } = true;
 
@@ -27,45 +27,38 @@
             return (ProcessorOptions)options.MemberwiseClone();
         }
 
-        public static ProcessorOptions CreateGitHubToHabrahabrOptions()
+        public static ProcessorOptions GetDefaultOptions(MarkdownType inputMarkdownType, MarkdownType outputMarkdownType)
         {
-            return new ProcessorOptions
+            var options = new ProcessorOptions
             {
-                LinesMaxLength = -1,
-                RemoveTitleHeader = true,
-                InputMarkdownType = MarkdownType.GitHub,
-                OutputMarkdownType = MarkdownType.Habrahabr,
+                InputMarkdownType = inputMarkdownType,
+                OutputMarkdownType = outputMarkdownType
             };
-        }
-
-        public static ProcessorOptions CreateHabrahabrToGitHubOptions()
-        {
-            return new ProcessorOptions
+            switch (inputMarkdownType)
             {
-                LinesMaxLength = 80,
-                InputMarkdownType = MarkdownType.Habrahabr,
-                OutputMarkdownType = MarkdownType.GitHub,
-            };
-        }
-
-        public static ProcessorOptions CreateVisualCodeToGitHubOptions()
-        {
-            return new ProcessorOptions
-            {
-                LinesMaxLength = 0,
-                InputMarkdownType = MarkdownType.VisualCode,
-                OutputMarkdownType = MarkdownType.GitHub,
-            };
-        }
-
-        public static ProcessorOptions CreateGitHubToVisualCodeOptions()
-        {
-            return new ProcessorOptions
-            {
-                LinesMaxLength = 0,
-                InputMarkdownType = MarkdownType.GitHub,
-                OutputMarkdownType = MarkdownType.VisualCode,
-            };
+                case MarkdownType.Habrahabr:
+                    if (outputMarkdownType != MarkdownType.Habrahabr)
+                    {
+                        options.LinesMaxLength = 80;
+                    }
+                    options.RemoveTitleHeader = true;
+                    break;
+                case MarkdownType.GitHub:
+                case MarkdownType.VisualCode:
+                    if (outputMarkdownType == MarkdownType.Habrahabr)
+                    {
+                        options.LinesMaxLength = -1;
+                    }
+                    else
+                    {
+                        options.LinesMaxLength = 0;
+                    }
+                    break;
+                default:
+                case MarkdownType.Default:
+                    break;
+            }
+            return options;
         }
     }
 }
