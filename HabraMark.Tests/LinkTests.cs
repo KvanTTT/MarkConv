@@ -1,4 +1,5 @@
-﻿using Xunit;
+﻿using System.IO;
+using Xunit;
 
 namespace HabraMark.Tests
 {
@@ -179,6 +180,30 @@ namespace HabraMark.Tests
                 "Paragraph text\n" +
                 "\n" +
                 "## Header 2", actual);
+        }
+
+        [Fact]
+        public void ShouldMapImageLinks()
+        {
+            var logger = new Logger();
+            var options = new ProcessorOptions
+            {
+                CheckLinks = true,
+                ImagesMap = ImagesMap.Load(Path.Combine(Utils.ProjectDir, "ImagesMap"), true, logger, Utils.ProjectDir),
+                RootDirectory = Utils.ProjectDir
+            };
+
+            var processor = new Processor(options);
+            var actual = processor.Process(Utils.ReadFileFromProject("Images.md"));
+
+            Assert.Equal(
+                "![GitHub](https://habrastorage.org/web/dcd/2e2/016/dcd2e201667847a1932eab96b60c0086.jpg)\n" +
+                "\n" +
+                "![Markdown](https://habrastorage.org/web/4bf/3c9/eaf/4bf3c9eaffe447ccb472240698033d3f.png)\n" +
+                "\n" +
+                "![Habrahabr](https://habrastorage.org/web/4bf/3c9/eaf/4bf3c9eaffe447ccb472240698033d3f.png)\n" +
+                "\n" +
+                "![Invalid](https://habrastorage-1.org/not-existed.png)", actual);
         }
 
         private void Compare(string inputFileName, string outputResult, MarkdownType inputKind, MarkdownType outputKind)
