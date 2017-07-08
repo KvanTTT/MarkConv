@@ -26,6 +26,8 @@ namespace HabraMark
 
         public bool CheckLinks { get; set; } = true;
 
+        public bool CompareImageHashes { get; set; } = false;
+
         public string RootDirectory { get; set; } = "";
 
         public Dictionary<string, ImageHash> ImagesMap = new Dictionary<string, ImageHash>();

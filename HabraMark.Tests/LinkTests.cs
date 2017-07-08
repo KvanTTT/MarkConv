@@ -1,4 +1,5 @@
 ﻿using System.IO;
+using System.Linq;
 using Xunit;
 
 namespace HabraMark.Tests
@@ -189,11 +190,11 @@ namespace HabraMark.Tests
             var options = new ProcessorOptions
             {
                 CheckLinks = true,
-                ImagesMap = ImagesMap.Load(Path.Combine(Utils.ProjectDir, "ImagesMap"), true, logger, Utils.ProjectDir),
+                ImagesMap = ImagesMap.Load(Path.Combine(Utils.ProjectDir, "ImagesMap"), Utils.ProjectDir, logger),
                 RootDirectory = Utils.ProjectDir
             };
 
-            var processor = new Processor(options);
+            var processor = new Processor(options) { Logger = logger };
             var actual = processor.Process(Utils.ReadFileFromProject("Images.md"));
 
             Assert.Equal(
@@ -204,6 +205,18 @@ namespace HabraMark.Tests
                 "![Habrahabr](https://habrastorage.org/web/4bf/3c9/eaf/4bf3c9eaffe447ccb472240698033d3f.png)\n" +
                 "\n" +
                 "![Invalid](https://habrastorage-1.org/not-existed.png)", actual);
+
+            Assert.Equal(1, logger.WarningMessages.Count(message => message.Contains("Duplicated")));
+            Assert.Equal(1, logger.WarningMessages.Count(message => message.Contains("Incorrect mapping")));
+            Assert.Equal(1, logger.WarningMessages.Count(message => message.Contains("Link Invalid.png")));
+            Assert.Equal(1, logger.WarningMessages.Count(message => message.Contains("Replacement link")));
+        }
+
+        [Fact]
+        public void CheckValidInvalidUrls()
+        {
+            Assert.True(Link.IsUrlValid("https://github.com/KvanTTT/HabraMark"));
+            Assert.False(Link.IsUrlValid("https://github.com/KvanTTT/HabraMark1"));
         }
 
         private void Compare(string inputFileName, string outputResult, MarkdownType inputKind, MarkdownType outputKind)

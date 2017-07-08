@@ -25,6 +25,7 @@ namespace HabraMark.Cli
             string data = File.ReadAllText(parameters.InputFileName);
             var options = ProcessorOptions.GetDefaultOptions(parameters.InputMarkdownType, parameters.OutputMarkdownType);
             options.CheckLinks = parameters.CheckLinks;
+            options.CompareImageHashes = parameters.CompareImages;
 
             if (parameters.LinesMaxLength.HasValue)
                 options.LinesMaxLength = parameters.LinesMaxLength.Value;
@@ -39,7 +40,7 @@ namespace HabraMark.Cli
                 options.RemoveUnwantedBreaks = parameters.RemoveUnwantedBreaks.Value;
 
             var logger = new ConsoleLogger();
-            options.ImagesMap = ImagesMap.Load(parameters.ImagesMapFileName, options.CheckLinks, logger, directory);
+            options.ImagesMap = ImagesMap.Load(parameters.ImagesMapFileName, directory, logger);
             options.RootDirectory = directory;
 
             var processor = new Processor(options) { Logger = logger };

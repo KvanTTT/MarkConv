@@ -182,7 +182,12 @@ namespace HabraMark
 
                 if (Options.ImagesMap.TryGetValue(address, out ImageHash replacement))
                 {
-                    if (hash != null && replacement.Hash != null && !Link.CompareHashes(hash, replacement.Hash))
+                    if (Options.CheckLinks && replacement.Hash.Value == null)
+                    {
+                        Logger?.Warn($"Replacement link {replacement.Path} probably broken");
+                    }
+                    if (Options.CompareImageHashes &&
+                        hash != null && replacement.Hash.Value != null && !Link.CompareHashes(hash, replacement.Hash.Value))
                     {
                         Logger?.Warn($"Images {address} and {replacement.Path} are different");
                     }
@@ -202,8 +207,7 @@ namespace HabraMark
                 linkString = match.Value;
                 if (Options.CheckLinks)
                 {
-                    bool isValid;
-                    if (!_urlStates.TryGetValue(address, out isValid))
+                    if (!_urlStates.TryGetValue(address, out bool isValid))
                     {
                         isValid = Link.IsUrlValid(address);
                         _urlStates[address] = isValid;

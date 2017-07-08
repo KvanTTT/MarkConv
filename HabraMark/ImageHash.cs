@@ -1,15 +1,19 @@
-﻿namespace HabraMark
+﻿using System;
+
+namespace HabraMark
 {
     public class ImageHash
     {
         public string Path { get; set; }
 
-        public byte[] Hash { get; set; }
+        public string RootDir { get; set; }
 
-        public ImageHash(string path, byte[] hash)
+        public Lazy<byte[]> Hash => new Lazy<byte[]>(() => Link.GetImageHash(Path, RootDir));
+
+        public ImageHash(string path, string rootDir)
         {
             Path = path;
-            Hash = hash;
+            RootDir = rootDir;
         }
 
         public override string ToString() => Path;

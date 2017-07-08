@@ -33,5 +33,8 @@ namespace HabraMark.Cli
 
         [Option]
         public bool CheckLinks { get; set; } = true;
+
+        [Option]
+        public bool CompareImages { get; set; } = false;
     }
 }
