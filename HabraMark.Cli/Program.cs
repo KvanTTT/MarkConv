@@ -1,4 +1,5 @@
 ﻿using CommandLine;
+using System;
 using System.IO;
 
 namespace HabraMark.Cli
@@ -36,7 +37,14 @@ namespace HabraMark.Cli
 
             var processor = new Processor(options) { Logger = new ConsoleLogger() };
             var converted = processor.ProcessAndGetTableOfContents(data);
-            //string tableOfContents = string.Join("\n", converted.TableOfContents);
+
+            if (parameters.TableOfContents)
+            {
+                string tableOfContents = string.Join("\n", converted.TableOfContents);
+                Console.WriteLine("Table of Contents");
+                Console.WriteLine(tableOfContents);
+                File.WriteAllText(Path.Combine(directory, $"{fileName}-table-of-contents.md"), tableOfContents);
+            }
 
             File.WriteAllText(Path.Combine(directory, $"{fileName}-{options.InputMarkdownType}-{options.OutputMarkdownType}.md"), converted.Result);
 

@@ -27,5 +27,8 @@ namespace HabraMark.Cli
 
         [Option]
         public bool Normalize { get; set; } = false;
+
+        [Option]
+        public bool TableOfContents { get; set; } = false;
     }
 }
