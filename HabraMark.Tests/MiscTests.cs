@@ -6,7 +6,7 @@ namespace HabraMark.Tests
     public class MiscTests
     {
         [Fact]
-        public void ShouldNormalizeHeadersAndListItems()
+        public void ShouldNormalize()
         {
             var options = new ProcessorOptions { Normalize = true };
             var processor = new Processor(options);
@@ -17,7 +17,8 @@ namespace HabraMark.Tests
                 "* List item 1\n" +
                 "+ List item 2\n" +
                 "- List item 3\n" +
-                "25. Ordered list item");
+                "25. Ordered list item\n" +
+                "```single-line-code```");
 
             Assert.Equal(
                 "## Head # er\n" +
@@ -25,7 +26,8 @@ namespace HabraMark.Tests
                 "* List item 1\n" +
                 "* List item 2\n" +
                 "* List item 3\n" +
-                "25. Ordered list item", actual);
+                "25. Ordered list item\n" +
+                "`single-line-code`", actual);
         }
 
         [Fact]

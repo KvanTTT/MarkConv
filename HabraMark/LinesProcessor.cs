@@ -45,6 +45,10 @@ namespace HabraMark
                 {
                     if (codeSection)
                     {
+                        if (Options.Normalize)
+                        {
+                            line = line.Replace("```", "`");
+                        }
                         codeSection = false;
                     }
 
