@@ -29,19 +29,25 @@ namespace HabraMark
             for (int lineIndex = 0; lineIndex <= lines.Count; lineIndex++)
             {
                 string line = lineIndex < lines.Count ? lines[lineIndex] : string.Empty;
-                bool codeSectionMarker = CodeSectionRegex.IsMatch(line);
+                Match codeSectionMarkerMatch = CodeSectionRegex.Match(line);
 
-                if (codeSectionMarker)
+                if (codeSectionMarkerMatch.Success)
                 {
                     codeSection = !codeSection;
                 }
 
-                if (codeSection)
+                if ((codeSection && line.IndexOf("```", codeSectionMarkerMatch.Length) == -1) ||
+                    (!codeSection && codeSectionMarkerMatch.Success))
                 {
                     resultLines.Add(line);
                 }
                 else
                 {
+                    if (codeSection)
+                    {
+                        codeSection = false;
+                    }
+
                     string lastResultLine = resultLines.Count > 0 ? resultLines[resultLines.Count - 1] : "";
 
                     if (Options.LinesMaxLength > 0 && lastResultLine.Length > Options.LinesMaxLength &&
@@ -74,7 +80,6 @@ namespace HabraMark
 
                             !string.IsNullOrWhiteSpace(line) &&
                             !headerMatch.Success && !isHeaderLineMatch &&
-                            !CodeSectionRegex.IsMatch(line) &&
                             !SpecialItemRegex.IsMatch(line) && !listItemMatch.Success)
                         {
                             WrapLines(resultLines, lines, line.Trim(), lastResultLine);
@@ -210,19 +215,50 @@ namespace HabraMark
 
         private string[] SplitForSoftWrap(string str)
         {
-            string[] splitted = str.Split(SpaceChars, StringSplitOptions.RemoveEmptyEntries);
-            var result = new List<string>(splitted.Length);
-            foreach (string s in splitted)
+            var result = new List<string>(str.Length / 2);
+
+            int lastNotWsIndex = 0;
+            bool codeSection = false;
+            char[] chars = str.ToCharArray();
+            int i = 0;
+            while (i <= chars.Length)
             {
-                if (SpecialCharsRegex.IsMatch(s) && result.Count > 0)
+                if (i + 2 < chars.Length &&
+                    chars[i] == '`' && chars[i + 1] == '`' && chars[i + 2] == '`')
                 {
-                    result[result.Count - 1] = $"{result[result.Count - 1]} {s}";
+                    codeSection = !codeSection;
+                    i += 3;
+                }
+                else if (!codeSection)
+                {
+                    if (i == chars.Length || chars[i] == ' ' || chars[i] == '\t')
+                    {
+                        int wordLength = i - lastNotWsIndex;
+                        if (wordLength != 0)
+                        {
+                            string word = new string(chars, lastNotWsIndex, wordLength);
+                            if (SpecialCharsRegex.IsMatch(word) && result.Count > 0)
+                            {
+                                result[result.Count - 1] = $"{result[result.Count - 1]} {word}";
+                            }
+                            else
+                            {
+                                result.Add(word);
+                            }
+                        }
+                    }
+                    else if (i - 1 >= 0 && (chars[i - 1] == ' ' || chars[i - 1] == '\t'))
+                    {
+                        lastNotWsIndex = i;
+                    }
+                    i++;
                 }
                 else
                 {
-                    result.Add(s);
+                    i++;
                 }
             }
+
             return result.ToArray();
         }
 
