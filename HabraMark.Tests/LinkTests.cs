@@ -186,7 +186,8 @@ namespace HabraMark.Tests
             var options = new ProcessorOptions
             {
                 InputMarkdownType = inputKind,
-                OutputMarkdownType = outputKind
+                OutputMarkdownType = outputKind,
+                NormalizeBreaks = false
             };
 
             var logger = new Logger();

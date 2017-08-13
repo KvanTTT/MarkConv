@@ -22,7 +22,9 @@ namespace HabraMark.Tests
 
             Assert.Equal(
                 "## Head # er\n" +
+                "\n" +
                 "## Header 2\n" +
+                "\n" +
                 "* List item 1\n" +
                 "* List item 2\n" +
                 "* List item 3\n" +

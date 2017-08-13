@@ -62,7 +62,7 @@ namespace HabraMark
                         lastResultLine = resultLines[resultLines.Count - 1];
                     }
 
-                    if (Options.RemoveUnwantedBreaks &&
+                    if (Options.NormalizeBreaks &&
                         string.IsNullOrWhiteSpace(lastResultLine) && string.IsNullOrWhiteSpace(line))
                     {
                         if (resultLines.Count > 0 && lineIndex == lines.Count)
@@ -77,19 +77,43 @@ namespace HabraMark
                         bool isHeaderLineMatch = HeaderLineRegex.IsMatch(line);
                         bool isSpecialItemMatch = SpecialItemRegex.IsMatch(line);
 
-                        if (Options.LinesMaxLength != 0 &&
-                            !string.IsNullOrWhiteSpace(lastResultLine) &&
-                            !HeaderRegex.IsMatch(lastResultLine) && !HeaderLineRegex.IsMatch(lastResultLine) &&
-                            !CodeSectionRegex.IsMatch(lastResultLine) &&
+                        bool isLastResultLineHeaderOrCodeSection =
+                            HeaderRegex.IsMatch(lastResultLine) ||
+                            HeaderLineRegex.IsMatch(lastResultLine) ||
+                            CodeSectionRegex.IsMatch(lastResultLine);
 
-                            !string.IsNullOrWhiteSpace(line) &&
-                            !headerMatch.Success && !isHeaderLineMatch &&
-                            !SpecialItemRegex.IsMatch(line) && !listItemMatch.Success)
+                        bool isLastLineHeader = headerMatch.Success;
+                        bool isLastLineSpecial =
+                            isLastLineHeader || isHeaderLineMatch ||
+                            SpecialItemRegex.IsMatch(line) || listItemMatch.Success;
+
+                        bool isLastResultLineWhiteSpace =
+                            string.IsNullOrWhiteSpace(lastResultLine);
+
+                        bool isLastLineWhiteSpace =
+                            string.IsNullOrWhiteSpace(line);
+
+                        if (Options.LinesMaxLength != 0 &&
+                            !isLastResultLineHeaderOrCodeSection &&
+                            !isLastResultLineWhiteSpace &&
+                            !isLastLineSpecial &&
+                            !isLastLineWhiteSpace)
                         {
                             WrapLines(resultLines, lines, line.Trim(), lastResultLine);
                         }
                         else
                         {
+                            if (Options.NormalizeBreaks)
+                            {
+                                if ((isLastResultLineHeaderOrCodeSection &&
+                                    !isLastLineWhiteSpace) ||
+                                    (isLastLineHeader &&
+                                    !isLastResultLineWhiteSpace))
+                                {
+                                    resultLines.Add("");
+                                }
+                            }
+
                             string resultLine = line;
                             if (headerMatch.Success)
                             {

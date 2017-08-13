@@ -24,6 +24,7 @@ namespace HabraMark.Tests
                 "```\n" +
                 "Some code\n" +
                 "```\n" +
+                "\n" +
                 "<spoiler title=\"Nested Details\">\n" +
                 "Nested text\n" +
                 "</spoiler>\n" +
@@ -52,12 +53,14 @@ namespace HabraMark.Tests
                 "```\n" +
                 "Some code\n" +
                 "```\n" +
+                "\n" +
                 "<details>\n" +
                 "<summary>Nested spoiler</summary>\n" +
                 "\n" +
                 "```\n" +
                 "Nested code\n" +
                 "```\n" +
+                "\n" +
                 "</details>\n" +
                 "</details>", actual);
         }
