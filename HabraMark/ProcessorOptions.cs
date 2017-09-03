@@ -51,7 +51,6 @@ namespace HabraMark
                     {
                         options.LinesMaxLength = 80;
                     }
-                    options.RemoveTitleHeader = true;
                     break;
                 case MarkdownType.GitHub:
                 case MarkdownType.VisualCode:
@@ -67,6 +66,10 @@ namespace HabraMark
                 default:
                 case MarkdownType.Default:
                     break;
+            }
+            if (outputMarkdownType == MarkdownType.Habrahabr)
+            {
+                options.RemoveTitleHeader = true;
             }
             return options;
         }
