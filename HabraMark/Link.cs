@@ -86,10 +86,10 @@ namespace HabraMark
             return LinkType.Local;
         }
 
-        public static bool IsUrlValid(string url, int timeout = 5000) =>
+        public static bool IsUrlValid(string url, int timeout = 2000) =>
             DownloadData(url, timeout) != null;
 
-        public static byte[] DownloadData(string url, int timeout = 5000)
+        public static byte[] DownloadData(string url, int timeout = 2000)
         {
             HttpClient client = new HttpClient();
             byte[] data = null;

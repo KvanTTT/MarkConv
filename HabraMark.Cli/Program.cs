@@ -1,6 +1,7 @@
 ﻿using CommandLine;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 
 namespace HabraMark.Cli
@@ -12,9 +13,17 @@ namespace HabraMark.Cli
             var parser = new Parser(config => config.HelpWriter = Console.Out);
             ParserResult<CliParameters> parserResult = parser.ParseArguments<CliParameters>(args);
 
-            return parserResult.MapResult(
+            var result = parserResult.MapResult(
                 cliParams => Convert(cliParams),
                 errors => ProcessErrors(errors));
+
+            if (Debugger.IsAttached)
+            {
+                Console.WriteLine("Press Enter to exit");
+                Console.ReadLine();
+            }
+
+            return result;
         }
 
         private static int Convert(CliParameters parameters)
