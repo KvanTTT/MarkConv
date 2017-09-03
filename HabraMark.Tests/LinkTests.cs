@@ -204,7 +204,9 @@ namespace HabraMark.Tests
                 "\n" +
                 "![Habrahabr](https://habrastorage.org/web/4bf/3c9/eaf/4bf3c9eaffe447ccb472240698033d3f.png)\n" +
                 "\n" +
-                "![Invalid](https://habrastorage-1.org/not-existed.png)", actual);
+                "![Invalid](https://habrastorage-1.org/not-existed.png)\n" +
+                "\n" +
+                "<img align=\"left\" src=\"https://habrastorage.org/web/dcd/2e2/016/dcd2e201667847a1932eab96b60c0086.jpg\" alt=\"GitHub Logo\" />", actual);
 
             Assert.Equal(1, logger.WarningMessages.Count(message => message.Contains("Duplicated")));
             Assert.Equal(1, logger.WarningMessages.Count(message => message.Contains("Incorrect mapping")));

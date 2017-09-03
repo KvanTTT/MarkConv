@@ -19,6 +19,7 @@ namespace HabraMark
         public static Regex SpoilerCloseTagRegex = new Regex(@"<\s*/spoiler\s*>", RegexOptions.Compiled);
         public static Regex AnchorTagRegex = new Regex(@"<\s*anchor\s*>(.*?)<\s*/anchor\s*>", RegexOptions.Compiled);
         public static Regex UrlRegex = new Regex(@"^http(s)?://", RegexOptions.Compiled);
+        public static Regex SrcUrlRegex = new Regex(@"src\s*=\s*([^\s]+)", RegexOptions.Compiled);
         public static Regex LinkRegex = new Regex(
             @"(!?)" +
             @"\[(([^\[\]]|\\\])+)\]" +

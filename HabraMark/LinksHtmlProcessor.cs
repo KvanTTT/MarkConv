@@ -49,6 +49,7 @@ namespace HabraMark
                         : elementType == ElementType.SpoilerOpenElement ? ConvertSpoilerOpenElement(match)
                         : elementType == ElementType.SpoilerCloseElement ? ConvertSpolierCloseElement(match)
                         : elementType == ElementType.AnchorElement ? ConvertAnchorElement(match)
+                        : elementType == ElementType.HtmlLink ? ConvertHtmlLink(match)
                         : "";
 
                     result.Append(processedMatch);
@@ -88,6 +89,7 @@ namespace HabraMark
             if (prevMatch == null)
             {
                 prevMatches[ElementType.Link] = GetMatch(text, index, length, ElementType.Link);
+                prevMatches[ElementType.HtmlLink] = GetMatch(text, index, length, ElementType.HtmlLink);
                 if (Options.InputMarkdownType != MarkdownType.Habrahabr &&
                     Options.OutputMarkdownType == MarkdownType.Habrahabr)
                 {
@@ -130,6 +132,7 @@ namespace HabraMark
                 : elementType == ElementType.SpoilerOpenElement ? SpoilerOpenTagRegex
                 : elementType == ElementType.SpoilerCloseElement ? SpoilerCloseTagRegex
                 : elementType == ElementType.AnchorElement ? AnchorTagRegex
+                : elementType == ElementType.HtmlLink ? SrcUrlRegex
                 : throw new NotImplementedException($"Regex for {elementType} has not been found");
 
             return regex.Match(text, index, length);
@@ -164,43 +167,16 @@ namespace HabraMark
             }
             else if (isImage)
             {
-                byte[] hash = null;
-                string newLink = address;
-                if (Options.CheckLinks)
-                {
-                    if (!_imageHashes.TryGetValue(address, out hash))
-                    {
-                        hash = Link.GetImageHash(address, Options.RootDirectory);
-                        _imageHashes[address] = hash;
-                    }
+                string newLink = ProcessImageLink(address);
 
-                    if (hash == null)
-                    {
-                        Logger?.Warn($"Link {address} probably broken");
-                    }
-                }
-
-                if (Options.ImagesMap.TryGetValue(address, out ImageHash replacement))
-                {
-                    if (Options.CheckLinks && replacement.Hash.Value == null)
-                    {
-                        Logger?.Warn($"Replacement link {replacement.Path} probably broken");
-                    }
-                    if (Options.CompareImageHashes &&
-                        hash != null && replacement.Hash.Value != null && !Link.CompareHashes(hash, replacement.Hash.Value))
-                    {
-                        Logger?.Warn($"Images {address} and {replacement.Path} are different");
-                    }
-                    newLink = replacement.Path;
-                }
                 linkString = new Link(title, newLink, true).ToString();
-
                 if (imageLinkNumber == 0 && !string.IsNullOrWhiteSpace(Options.HeaderImageLink))
                 {
                     linkString = new Link(linkString, Options.HeaderImageLink).ToString();
                 }
 
                 imageLinkNumber++;
+                return linkString;
             }
             else
             {
@@ -250,6 +226,47 @@ namespace HabraMark
         private string ConvertAnchorElement(Match match)
         {
             return "";
+        }
+
+        private string ConvertHtmlLink(Match match)
+        {
+            return $"src=\"{ProcessImageLink(match.Groups[1].Value)}\"";
+        }
+
+        private string ProcessImageLink(string address)
+        {
+            byte[] hash = null;
+            address = address.Trim('"');
+            string newLink = address;
+            if (Options.CheckLinks)
+            {
+                if (!_imageHashes.TryGetValue(address, out hash))
+                {
+                    hash = Link.GetImageHash(address, Options.RootDirectory);
+                    _imageHashes[address] = hash;
+                }
+
+                if (hash == null)
+                {
+                    Logger?.Warn($"Link {address} probably broken");
+                }
+            }
+
+            if (Options.ImagesMap.TryGetValue(address, out ImageHash replacement))
+            {
+                if (Options.CheckLinks && replacement.Hash.Value == null)
+                {
+                    Logger?.Warn($"Replacement link {replacement.Path} probably broken");
+                }
+                if (Options.CompareImageHashes &&
+                    hash != null && replacement.Hash.Value != null && !Link.CompareHashes(hash, replacement.Hash.Value))
+                {
+                    Logger?.Warn($"Images {address} and {replacement.Path} are different");
+                }
+                newLink = replacement.Path;
+            }
+
+            return newLink;
         }
     }
 }
