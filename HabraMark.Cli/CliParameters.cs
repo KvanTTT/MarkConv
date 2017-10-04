@@ -36,5 +36,8 @@ namespace HabraMark.Cli
 
         [Option]
         public bool CompareImages { get; set; } = false;
+
+        [Option]
+        public bool TableOfContents { get; set; } = false;
     }
 }

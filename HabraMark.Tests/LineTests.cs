@@ -29,9 +29,9 @@ namespace HabraMark.Tests
         }
 
         [Fact]
-        public void ShouldRemoveUnwantedLineBreaks()
+        public void ShouldNormalizeLineBreaks()
         {
-            var options = new ProcessorOptions { RemoveUnwantedBreaks = true };
+            var options = new ProcessorOptions { NormalizeBreaks = true };
             var processor = new Processor(options);
             string actual = processor.Process(
                 "\n" +
@@ -39,20 +39,26 @@ namespace HabraMark.Tests
                 "\n" +
                 "\n" +
                 "Paragraph\n" +
+                "## Header 2\n" +
+                "Paragraph 2\n" +
                 "\n" +
                 "\n");
 
             Assert.Equal(
                 "# Header\n" +
                 "\n" +
-                "Paragraph"
+                "Paragraph\n" +
+                "\n" +
+                "## Header 2\n" +
+                "\n" +
+                "Paragraph 2"
                 , actual);
         }
 
         [Fact]
         public void ShouldNotRemoveUnwantedLineBreaks()
         {
-            var options = new ProcessorOptions { RemoveUnwantedBreaks = false };
+            var options = new ProcessorOptions { NormalizeBreaks = false };
             var processor = new Processor(options);
             string actual = processor.Process(
                 "\n" +
@@ -76,7 +82,12 @@ namespace HabraMark.Tests
 
         private static void Compare(int lineMaxLength, string sourceFileName, string expectedFileName)
         {
-            var options = new ProcessorOptions { LinesMaxLength = lineMaxLength, Normalize = false };
+            var options = new ProcessorOptions
+            {
+                LinesMaxLength = lineMaxLength,
+                Normalize = false,
+                NormalizeBreaks = false
+            };
             var processor = new Processor(options);
             string source = Utils.ReadFileFromProject(sourceFileName);
             string actual = processor.Process(source);

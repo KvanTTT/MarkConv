@@ -18,7 +18,7 @@ namespace HabraMark
 
         public bool RemoveTitleHeader { get; set; } = false;
 
-        public bool RemoveUnwantedBreaks { get; set; } = true;
+        public bool NormalizeBreaks { get; set; } = true;
 
         public bool Normalize { get; set; } = false;
 

@@ -5,6 +5,7 @@ Content
 ```
 Some code
 ```
+
 <details>
 <summary>Nested Details</summary>
 Nested text

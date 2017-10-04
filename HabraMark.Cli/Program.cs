@@ -46,7 +46,7 @@ namespace HabraMark.Cli
                 options.RemoveTitleHeader = parameters.RemoveTitleHeader.Value;
 
             if (parameters.RemoveUnwantedBreaks.HasValue)
-                options.RemoveUnwantedBreaks = parameters.RemoveUnwantedBreaks.Value;
+                options.NormalizeBreaks = parameters.RemoveUnwantedBreaks.Value;
 
             var logger = new ConsoleLogger();
             options.ImagesMap = ImagesMap.Load(parameters.ImagesMapFileName, directory, logger);
@@ -54,7 +54,14 @@ namespace HabraMark.Cli
 
             var processor = new Processor(options) { Logger = logger };
             var converted = processor.ProcessAndGetTableOfContents(data);
-            //string tableOfContents = string.Join("\n", converted.TableOfContents);
+
+            if (parameters.TableOfContents)
+            {
+                string tableOfContents = string.Join("\n", converted.TableOfContents);
+                Console.WriteLine("Table of Contents:");
+                Console.WriteLine(tableOfContents);
+                File.WriteAllText(Path.Combine(directory, $"{fileName}-table-of-contents.md"), tableOfContents);
+            }
 
             File.WriteAllText(Path.Combine(directory, $"{fileName}-{options.InputMarkdownType}-{options.OutputMarkdownType}.md"), converted.Result);
 
