@@ -240,7 +240,7 @@ namespace HabraMark.Tests
             string source = Utils.ReadFileFromProject(inputFileName);
             string actual = processor.Process(source);
 
-            Assert.Equal(1, logger.WarningMessages.Count);
+            Assert.Single(logger.WarningMessages);
             Assert.Equal(outputResult, actual);
         }
     }

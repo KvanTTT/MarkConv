@@ -45,7 +45,7 @@ namespace HabraMark.Tests
                 "## Header 2 1\n" +
                 "# Header 1\n");
 
-            Assert.Equal(1, logger.WarningMessages.Count);
+            Assert.Single(logger.WarningMessages);
         }
 
         [Fact]
