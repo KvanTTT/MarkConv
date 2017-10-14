@@ -11,7 +11,7 @@ namespace HabraMark.Tests
         {
             InitProjectDir();
         }
-        
+
         public static string ReadFileFromProject(string fileName)
         {
             return File.ReadAllText(Path.Combine(ProjectDir, fileName));

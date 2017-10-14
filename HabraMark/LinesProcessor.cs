@@ -25,7 +25,8 @@ namespace HabraMark
             bool codeSection = false;
             var resultLines = new List<string>(lines.Count);
             var headers = new List<Header>();
-            
+            int processedHeadersCount = 0;
+
             for (int lineIndex = 0; lineIndex <= lines.Count; lineIndex++)
             {
                 string line = lineIndex < lines.Count ? lines[lineIndex] : string.Empty;
@@ -130,15 +131,16 @@ namespace HabraMark
                                 }
 
                                 int level = headerChars.Length;
-                                if (!AddHeader(headers, header, level, lineIndex, resultLines.Count - 1))
+                                if (!AddHeader(headers, processedHeadersCount, header, level, lineIndex, resultLines.Count - 1))
                                 {
                                     resultLine = null;
                                 }
+                                processedHeadersCount++;
                             }
                             else if (isHeaderLineMatch)
                             {
                                 int level = line.Contains("=") ? 1 : 2;
-                                if (!AddHeader(headers, lastResultLine, level, lineIndex, resultLines.Count - 2))
+                                if (!AddHeader(headers, processedHeadersCount, lastResultLine, level, lineIndex, resultLines.Count - 2))
                                 {
                                     resultLine = null;
                                 }
@@ -155,6 +157,7 @@ namespace HabraMark
                                 {
                                     resultLine = line.Trim();
                                 }
+                                processedHeadersCount++;
                             }
                             else if (listItemMatch.Success)
                             {
@@ -198,7 +201,7 @@ namespace HabraMark
             foreach (Header header in headers)
             {
                 string indent = Repeat(Options.IndentString, header.Level - firstLevel);
-                Link link = new Link(header.Title, header.Links[Options.OutputMarkdownType].FullLink, isRelative: true);
+                Link link = new Link(header.Title, header.Links[Options.OutputMarkdownType].FullLink, linkType: LinkType.Relative);
                 tableOfContents.Add($"{indent}* {link}");
             }
             return tableOfContents;
@@ -290,9 +293,9 @@ namespace HabraMark
             return result.ToArray();
         }
 
-        private bool AddHeader(List<Header> headers, string header, int level, int sourceLineIndex, int destLineIndex)
+        private bool AddHeader(List<Header> headers, int processedHeadersCount, string header, int level, int sourceLineIndex, int destLineIndex)
         {
-            if (Options.RemoveTitleHeader && level == 1 && headers.Count == 0)
+            if (Options.RemoveTitleHeader && level == 1 && processedHeadersCount == 0)
             {
                 return false;
             }

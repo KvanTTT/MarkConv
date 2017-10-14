@@ -1,5 +1,7 @@
 ﻿using CommandLine;
 using System;
+using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 
 namespace HabraMark.Cli
@@ -8,11 +10,20 @@ namespace HabraMark.Cli
     {
         static int Main(string[] args)
         {
-            ParserResult<CliParameters> parserResult = Parser.Default.ParseArguments<CliParameters>(args);
+            var parser = new Parser(config => config.HelpWriter = Console.Out);
+            ParserResult<CliParameters> parserResult = parser.ParseArguments<CliParameters>(args);
 
-            return parserResult.MapResult(
+            var result = parserResult.MapResult(
                 cliParams => Convert(cliParams),
-                errs => 1);
+                errors => ProcessErrors(errors));
+
+            if (Debugger.IsAttached)
+            {
+                Console.WriteLine("Press Enter to exit");
+                Console.ReadLine();
+            }
+
+            return result;
         }
 
         private static int Convert(CliParameters parameters)
@@ -20,8 +31,10 @@ namespace HabraMark.Cli
             string directory = Path.GetDirectoryName(parameters.InputFileName);
             string fileName = Path.GetFileNameWithoutExtension(parameters.InputFileName);
 
-            var data = File.ReadAllText(parameters.InputFileName);
+            string data = File.ReadAllText(parameters.InputFileName);
             var options = ProcessorOptions.GetDefaultOptions(parameters.InputMarkdownType, parameters.OutputMarkdownType);
+            options.CheckLinks = parameters.CheckLinks;
+            options.CompareImageHashes = parameters.CompareImages;
 
             if (parameters.LinesMaxLength.HasValue)
                 options.LinesMaxLength = parameters.LinesMaxLength.Value;
@@ -35,7 +48,11 @@ namespace HabraMark.Cli
             if (parameters.RemoveUnwantedBreaks.HasValue)
                 options.NormalizeBreaks = parameters.RemoveUnwantedBreaks.Value;
 
-            var processor = new Processor(options) { Logger = new ConsoleLogger() };
+            var logger = new ConsoleLogger();
+            options.ImagesMap = ImagesMap.Load(parameters.ImagesMapFileName, directory, logger);
+            options.RootDirectory = directory;
+
+            var processor = new Processor(options) { Logger = logger };
             var converted = processor.ProcessAndGetTableOfContents(data);
 
             if (parameters.TableOfContents)
@@ -49,6 +66,11 @@ namespace HabraMark.Cli
             File.WriteAllText(Path.Combine(directory, $"{fileName}-{options.InputMarkdownType}-{options.OutputMarkdownType}.md"), converted.Result);
 
             return 0;
+        }
+
+        private static int ProcessErrors(IEnumerable<Error> errors)
+        {
+            return 1;
         }
     }
 }

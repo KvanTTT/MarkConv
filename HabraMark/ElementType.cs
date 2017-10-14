@@ -7,6 +7,7 @@
         SummaryElements,
         SpoilerOpenElement,
         SpoilerCloseElement,
-        AnchorElement
+        AnchorElement,
+        HtmlLink
     }
 }

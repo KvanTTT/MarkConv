@@ -58,7 +58,7 @@ namespace HabraMark
 
         public Header(string headerTitle, int level, List<Header> existingHeaders)
         {
-            Title = headerTitle;
+            Title = headerTitle.ExtractLinkTitle();
             Level = level;
 
             foreach (MarkdownType markdownType in MarkdownTypes)
@@ -97,12 +97,12 @@ namespace HabraMark
             switch (linkType)
             {
                 case MarkdownType.GitHub:
-                    return HeaderToLink(headerTitle, false);
+                    return HeaderToLink(headerTitle.ExtractLinkTitle(), false);
                 case MarkdownType.Habrahabr:
                     return HeaderToTranslitLink(headerTitle);
                 case MarkdownType.VisualCode:
                 default:
-                    return HeaderToLink(headerTitle, true);
+                    return HeaderToLink(headerTitle.ExtractLinkTitle(), true);
             }
         }
 

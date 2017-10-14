@@ -1,4 +1,6 @@
-﻿using Xunit;
+﻿using System.IO;
+using System.Linq;
+using Xunit;
 
 namespace HabraMark.Tests
 {
@@ -59,6 +61,7 @@ namespace HabraMark.Tests
                 "    * [Заголовок-3-1-1](#zagolovok-3-1-1)\n" +
                 "    * [ЗАГОЛОВОК-3](#zagolovok-3-2)\n" +
                 "    * [Заголовок-header-3](#zagolovok-header-3)\n" +
+                "* [Header With Link](#header-with-linkhttpsgithubcom)\n" +
                 "* [Missing-Пропущенный](#missing-propuschennyy)\n" +
                 "\n" +
                 "## Header 2\n" +
@@ -72,7 +75,9 @@ namespace HabraMark.Tests
                 "### Заголовок 3\n" +
                 "### Заголовок 3 1\n" +
                 "### ЗАГОЛОВОК 3\n" +
-                "### Заголовок Header 3";
+                "### Заголовок Header 3\n" +
+                "\n" +
+                "## [Header With Link](https://github.com/)";
 
             Compare("RelativeLinks.GitHub.md", expected, MarkdownType.GitHub, MarkdownType.Habrahabr);
         }
@@ -88,6 +93,7 @@ namespace HabraMark.Tests
                 "    * [zagolovok-3](#Заголовок-3)\n" +
                 "    * [zagolovok-3-1](#ЗАГОЛОВОК-3-1)\n" +
                 "    * [zagolovok-header-3](#Заголовок-header-3)\n" +
+                "* [Header With Link](#header-with-link)\n" +
                 "* [missing-propuschennyy](#missing-propuschennyy)\n" +
                 "\n" +
                 "## Header 2\n" +
@@ -96,7 +102,8 @@ namespace HabraMark.Tests
                 "## Заголовок 2\n" +
                 "### Заголовок 3\n" +
                 "### ЗАГОЛОВОК 3 1\n" +
-                "### Заголовок Header 3";
+                "### Заголовок Header 3\n" +
+                "## [Header With Link](https://github.com/)";
 
             Compare("RelativeLinks.Habrahabr.md", expected, MarkdownType.Habrahabr, MarkdownType.GitHub);
         }
@@ -181,6 +188,44 @@ namespace HabraMark.Tests
                 "## Header 2", actual);
         }
 
+        [Fact]
+        public void ShouldMapImageLinks()
+        {
+            var logger = new Logger();
+            var options = new ProcessorOptions
+            {
+                CheckLinks = true,
+                ImagesMap = ImagesMap.Load(Path.Combine(Utils.ProjectDir, "ImagesMap"), Utils.ProjectDir, logger),
+                RootDirectory = Utils.ProjectDir
+            };
+
+            var processor = new Processor(options) { Logger = logger };
+            var actual = processor.Process(Utils.ReadFileFromProject("Images.md"));
+
+            Assert.Equal(
+                "![GitHub](https://habrastorage.org/web/dcd/2e2/016/dcd2e201667847a1932eab96b60c0086.jpg)\n" +
+                "\n" +
+                "![Markdown](https://habrastorage.org/web/4bf/3c9/eaf/4bf3c9eaffe447ccb472240698033d3f.png)\n" +
+                "\n" +
+                "![Habrahabr](https://habrastorage.org/web/4bf/3c9/eaf/4bf3c9eaffe447ccb472240698033d3f.png)\n" +
+                "\n" +
+                "![Invalid](https://habrastorage-1.org/not-existed.png)\n" +
+                "\n" +
+                "<img align=\"left\" src=\"https://habrastorage.org/web/dcd/2e2/016/dcd2e201667847a1932eab96b60c0086.jpg\" alt=\"GitHub Logo\" />", actual);
+
+            Assert.Equal(1, logger.WarningMessages.Count(message => message.Contains("Duplicated")));
+            Assert.Equal(1, logger.WarningMessages.Count(message => message.Contains("Incorrect mapping")));
+            Assert.Equal(1, logger.WarningMessages.Count(message => message.Contains("File Invalid.png does not exist")));
+            Assert.Equal(1, logger.WarningMessages.Count(message => message.Contains("Replacement link")));
+        }
+
+        [Fact]
+        public void CheckValidInvalidUrls()
+        {
+            Assert.True(Link.IsUrlValid("https://github.com/KvanTTT/HabraMark"));
+            Assert.False(Link.IsUrlValid("https://github.com/KvanTTT/HabraMark1"));
+        }
+
         private void Compare(string inputFileName, string outputResult, MarkdownType inputKind, MarkdownType outputKind)
         {
             var options = new ProcessorOptions
@@ -195,7 +240,7 @@ namespace HabraMark.Tests
             string source = Utils.ReadFileFromProject(inputFileName);
             string actual = processor.Process(source);
 
-            Assert.Equal(1, logger.WarningMessages.Count);
+            Assert.Single(logger.WarningMessages);
             Assert.Equal(outputResult, actual);
         }
     }

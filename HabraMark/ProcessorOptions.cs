@@ -1,4 +1,6 @@
-﻿namespace HabraMark
+﻿using System.Collections.Generic;
+
+namespace HabraMark
 {
     public class ProcessorOptions
     {
@@ -22,6 +24,14 @@
 
         public string IndentString { get; set; } = "    ";
 
+        public bool CheckLinks { get; set; } = true;
+
+        public bool CompareImageHashes { get; set; } = false;
+
+        public string RootDirectory { get; set; } = "";
+
+        public Dictionary<string, ImageHash> ImagesMap = new Dictionary<string, ImageHash>();
+
         public static ProcessorOptions FromOptions(ProcessorOptions options)
         {
             return (ProcessorOptions)options.MemberwiseClone();
@@ -41,7 +51,6 @@
                     {
                         options.LinesMaxLength = 80;
                     }
-                    options.RemoveTitleHeader = true;
                     break;
                 case MarkdownType.GitHub:
                 case MarkdownType.VisualCode:
@@ -57,6 +66,10 @@
                 default:
                 case MarkdownType.Default:
                     break;
+            }
+            if (outputMarkdownType == MarkdownType.Habrahabr)
+            {
+                options.RemoveTitleHeader = true;
             }
             return options;
         }

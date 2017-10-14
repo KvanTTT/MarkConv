@@ -5,6 +5,7 @@ namespace HabraMark
     public static class MarkdownRegex
     {
         private static string space = @"[ \t]";
+
         public static string[] LineBreaks = new string[] { "\n", "\r\n" };
         public static char[] SpaceChars = new char[] { ' ', '\t' };
 
@@ -20,9 +21,11 @@ namespace HabraMark
         public static Regex SpoilerOpenTagRegex = new Regex(@"<\s*spoiler\s*title\s*=\s*""(.*?)""\s*>", RegexOptions.Compiled);
         public static Regex SpoilerCloseTagRegex = new Regex(@"<\s*/spoiler\s*>", RegexOptions.Compiled);
         public static Regex AnchorTagRegex = new Regex(@"<\s*anchor\s*>(.*?)<\s*/anchor\s*>", RegexOptions.Compiled);
+        public static Regex UrlRegex = new Regex(@"^http(s)?://", RegexOptions.Compiled);
+        public static Regex SrcUrlRegex = new Regex(@"src\s*=\s*([^\s]+)", RegexOptions.Compiled);
         public static Regex LinkRegex = new Regex(
             @"(!?)" +
             @"\[(([^\[\]]|\\\])+)\]" +
-            @"\((#?)([^\)]+)\)", RegexOptions.Compiled);
+            @"\(([^\)]+)\)", RegexOptions.Compiled);
     }
 }

@@ -45,7 +45,7 @@ namespace HabraMark.Tests
                 "## Header 2 1\n" +
                 "# Header 1\n");
 
-            Assert.Equal(1, logger.WarningMessages.Count);
+            Assert.Single(logger.WarningMessages);
         }
 
         [Fact]
@@ -69,7 +69,8 @@ namespace HabraMark.Tests
                 "    * [Заголовок 3](#заголовок-3-1)\n" +
                 "    * [Заголовок 3 1](#заголовок-3-1-1)\n" +
                 "    * [ЗАГОЛОВОК 3](#заголовок-3-2)\n" +
-                "    * [Заголовок Header 3](#заголовок-header-3)", actual);
+                "    * [Заголовок Header 3](#заголовок-header-3)\n" +
+                "* [Header With Link](#header-with-link)", actual);
         }
     }
 }
