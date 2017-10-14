@@ -5,6 +5,7 @@ namespace HabraMark
     public static class MarkdownRegex
     {
         private static string space = @"[ \t]";
+
         public static string[] LineBreaks = new string[] { "\n", "\r\n" };
         public static char[] SpaceChars = new char[] { ' ', '\t' };
 
