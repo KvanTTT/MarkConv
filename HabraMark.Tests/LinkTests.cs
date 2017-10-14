@@ -61,6 +61,7 @@ namespace HabraMark.Tests
                 "    * [Заголовок-3-1-1](#zagolovok-3-1-1)\n" +
                 "    * [ЗАГОЛОВОК-3](#zagolovok-3-2)\n" +
                 "    * [Заголовок-header-3](#zagolovok-header-3)\n" +
+                "* [Header With Link](#header-with-linkhttpsgithubcom)\n" +
                 "* [Missing-Пропущенный](#missing-propuschennyy)\n" +
                 "\n" +
                 "## Header 2\n" +
@@ -74,7 +75,9 @@ namespace HabraMark.Tests
                 "### Заголовок 3\n" +
                 "### Заголовок 3 1\n" +
                 "### ЗАГОЛОВОК 3\n" +
-                "### Заголовок Header 3";
+                "### Заголовок Header 3\n" +
+                "\n" +
+                "## [Header With Link](https://github.com/)";
 
             Compare("RelativeLinks.GitHub.md", expected, MarkdownType.GitHub, MarkdownType.Habrahabr);
         }
@@ -90,6 +93,7 @@ namespace HabraMark.Tests
                 "    * [zagolovok-3](#Заголовок-3)\n" +
                 "    * [zagolovok-3-1](#ЗАГОЛОВОК-3-1)\n" +
                 "    * [zagolovok-header-3](#Заголовок-header-3)\n" +
+                "* [Header With Link](#header-with-link)\n" +
                 "* [missing-propuschennyy](#missing-propuschennyy)\n" +
                 "\n" +
                 "## Header 2\n" +
@@ -98,7 +102,8 @@ namespace HabraMark.Tests
                 "## Заголовок 2\n" +
                 "### Заголовок 3\n" +
                 "### ЗАГОЛОВОК 3 1\n" +
-                "### Заголовок Header 3";
+                "### Заголовок Header 3\n" +
+                "## [Header With Link](https://github.com/)";
 
             Compare("RelativeLinks.Habrahabr.md", expected, MarkdownType.Habrahabr, MarkdownType.GitHub);
         }
