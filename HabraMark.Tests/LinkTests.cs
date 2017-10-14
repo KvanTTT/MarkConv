@@ -215,7 +215,7 @@ namespace HabraMark.Tests
 
             Assert.Equal(1, logger.WarningMessages.Count(message => message.Contains("Duplicated")));
             Assert.Equal(1, logger.WarningMessages.Count(message => message.Contains("Incorrect mapping")));
-            Assert.Equal(1, logger.WarningMessages.Count(message => message.Contains("Link Invalid.png")));
+            Assert.Equal(1, logger.WarningMessages.Count(message => message.Contains("File Invalid.png does not exist")));
             Assert.Equal(1, logger.WarningMessages.Count(message => message.Contains("Replacement link")));
         }
 

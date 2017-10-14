@@ -248,7 +248,11 @@ namespace HabraMark
 
                 if (hash == null)
                 {
-                    Logger?.Warn($"Link {address} probably broken");
+                    LinkType linkType = Link.DetectLinkType(address);
+                    string warnMessage = linkType == LinkType.Local
+                        ? $"File {address} does not exist"
+                        : $"Link {address} probably broken";
+                    Logger?.Warn(warnMessage);
                 }
             }
 

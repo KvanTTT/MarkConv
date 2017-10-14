@@ -30,7 +30,7 @@ namespace HabraMark
 
                     if (imagesMap.ContainsKey(source))
                     {
-                        logger?.Warn($"Duplicated {source} image ar line {i + 1}");
+                        logger?.Warn($"Duplicated {source} image at line {i + 1}");
                     }
 
                     imagesMap[source] = new ImageHash(replacement, rootDir);
