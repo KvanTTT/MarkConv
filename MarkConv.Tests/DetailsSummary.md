@@ -1,4 +1,4 @@
-  <details>
+<details>
 <summary>Details</summary>
 Content
 

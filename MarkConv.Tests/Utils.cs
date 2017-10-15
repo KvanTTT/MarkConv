@@ -1,5 +1,6 @@
 ﻿using System.IO;
 using System.Runtime.CompilerServices;
+using Xunit;
 
 namespace MarkConv.Tests
 {
@@ -20,6 +21,17 @@ namespace MarkConv.Tests
         private static void InitProjectDir([CallerFilePath]string thisFilePath = null)
         {
             ProjectDir = Path.GetDirectoryName(thisFilePath);
+        }
+
+        public static void CompareFiles(string inputFileName, string outputFileName, ProcessorOptions options,
+            Logger logger = null)
+        {
+            var processor = new Processor(options) { Logger = logger };
+            string source = ReadFileFromProject(inputFileName);
+            string actual = processor.Process(source);
+            string expected = ReadFileFromProject(outputFileName);
+
+            Assert.Equal(expected, actual);
         }
     }
 }

@@ -88,12 +88,8 @@ namespace MarkConv.Tests
                 Normalize = false,
                 NormalizeBreaks = false
             };
-            var processor = new Processor(options);
-            string source = Utils.ReadFileFromProject(sourceFileName);
-            string actual = processor.Process(source);
-            string expected = Utils.ReadFileFromProject(expectedFileName);
 
-            Assert.Equal(expected, actual);
+            Utils.CompareFiles(sourceFileName, expectedFileName, options);
         }
     }
 }

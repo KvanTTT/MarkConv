@@ -9,121 +9,36 @@ namespace MarkConv.Tests
         [Fact]
         public void ConvertVisualCodeToGitHubRelativeLinks()
         {
-            string expected =
-                "* [header-2](#header-2)\n" +
-                "    * [header-3](#header-3)\n" +
-                "* [заголовок-2](#Заголовок-2)\n" +
-                "    * [заголовок-3](#Заголовок-3)\n" +
-                "    * [заголовок-header-3](#Заголовок-header-3)\n" +
-                "* [missing-отсутствует](#missing-отсутствует)\n" +
-                "\n" +
-                "## Header 2\n" +
-                "### Header 3\n" +
-                "## Заголовок 2\n" +
-                "### Заголовок 3\n" +
-                "### Заголовок Header 3";
-
-            Compare("RelativeLinks.VisualCode.md", expected, MarkdownType.VisualCode, MarkdownType.GitHub);
+            Compare("RelativeLinks.VisualCode.md", "RelativeLinks.VisualCode-to-GitHub.md",
+                MarkdownType.VisualCode, MarkdownType.GitHub);
         }
 
         [Fact]
         public void ConvertVisualCodeToHabrahabrRelativeLinks()
         {
-            string expected =
-                "* [header-2](#header-2)\n" +
-                "    * [header-3](#header-3)\n" +
-                "* [заголовок-2](#zagolovok-2)\n" +
-                "    * [заголовок-3](#zagolovok-3)\n" +
-                "    * [заголовок-header-3](#zagolovok-header-3)\n" +
-                "* [missing-отсутствует](#missing-otsutstvuet)\n" +
-                "\n" +
-                "## Header 2\n" +
-                "### Header 3\n" +
-                "## Заголовок 2\n" +
-                "### Заголовок 3\n" +
-                "### Заголовок Header 3";
-
-            Compare("RelativeLinks.VisualCode.md", expected, MarkdownType.VisualCode, MarkdownType.Habrahabr);
+            Compare("RelativeLinks.VisualCode.md", "RelativeLinks.VisualCode-to-Habrahabr.md",
+                MarkdownType.VisualCode, MarkdownType.Habrahabr);
         }
 
         [Fact]
         public void ConvertGitHubToHabrahabrRelativeLinks()
         {
-            string expected =
-                "* [header-2](#header-2)\n" +
-                "    * [header-3](#header-3)\n" +
-                "    * [header-3-1](#header-3-1)\n" +
-                "    * [header-3-1-1](#header-3-1-1)\n" +
-                "    * [header-3-1-2](#header-3-1-2)\n" +
-                "* [Заголовок-2](#zagolovok-2)\n" +
-                "    * [Заголовок-3](#zagolovok-3)\n" +
-                "    * [Заголовок-3-1](#zagolovok-3-1)\n" +
-                "    * [Заголовок-3-1-1](#zagolovok-3-1-1)\n" +
-                "    * [ЗАГОЛОВОК-3](#zagolovok-3-2)\n" +
-                "    * [Заголовок-header-3](#zagolovok-header-3)\n" +
-                "* [Header With Link](#header-with-linkhttpsgithubcom)\n" +
-                "* [Missing-Пропущенный](#missing-propuschennyy)\n" +
-                "\n" +
-                "## Header 2\n" +
-                "### Header 3\n" +
-                "### Header 3\n" +
-                "### Header 3 1\n" +
-                "### Header 3 1\n" +
-                "\n" +
-                "## Заголовок 2\n" +
-                "### Заголовок 3\n" +
-                "### Заголовок 3\n" +
-                "### Заголовок 3 1\n" +
-                "### ЗАГОЛОВОК 3\n" +
-                "### Заголовок Header 3\n" +
-                "\n" +
-                "## [Header With Link](https://github.com/)";
-
-            Compare("RelativeLinks.GitHub.md", expected, MarkdownType.GitHub, MarkdownType.Habrahabr);
+            Compare("RelativeLinks.GitHub.md", "RelativeLinks.GitHub-to-Habrahabr.md",
+                MarkdownType.GitHub, MarkdownType.Habrahabr);
         }
 
         [Fact]
         public void ConvertHabrahabrToGitHubRelativeLinks()
         {
-            string expected =
-                "* [header-2](#header-2)\n" +
-                "    * [header-3](#header-3)\n" +
-                "    * [header-3-1](#header-3-1)\n" +
-                "* [zagolovok-2](#Заголовок-2)\n" +
-                "    * [zagolovok-3](#Заголовок-3)\n" +
-                "    * [zagolovok-3-1](#ЗАГОЛОВОК-3-1)\n" +
-                "    * [zagolovok-header-3](#Заголовок-header-3)\n" +
-                "* [Header With Link](#header-with-link)\n" +
-                "* [missing-propuschennyy](#missing-propuschennyy)\n" +
-                "\n" +
-                "## Header 2\n" +
-                "### Header 3\n" +
-                "### Header 3\n" +
-                "## Заголовок 2\n" +
-                "### Заголовок 3\n" +
-                "### ЗАГОЛОВОК 3 1\n" +
-                "### Заголовок Header 3\n" +
-                "## [Header With Link](https://github.com/)";
-
-            Compare("RelativeLinks.Habrahabr.md", expected, MarkdownType.Habrahabr, MarkdownType.GitHub);
+            Compare("RelativeLinks.Habrahabr.md", "RelativeLinks.Habrahabr-to-GitHub.md",
+                MarkdownType.Habrahabr, MarkdownType.GitHub);
         }
 
         [Fact]
         public void ShouldNotChangeLinksInsideCodeSection()
         {
-            string expected =
-                "[header](#заголовок)\n" +
-                "```\n" +
-                "[header](#ЗАГОЛОВОК)\n" +
-                "```\n" +
-                "[header](#заголовок)\n" +
-                "## ЗАГОЛОВОК\n" +
-                "```\n" +
-                "[header](#ЗАГОЛОВОК)\n" +
-                "```\n" +
-                "[missing](#missing)";
-
-            Compare("RelativeLinksAndCode.md", expected, MarkdownType.GitHub, MarkdownType.VisualCode);
+            Compare("RelativeLinksAndCode.md", "RelativeLinksAndCode-VisualCode.md",
+                MarkdownType.GitHub, MarkdownType.VisualCode);
         }
 
         [Fact]
@@ -199,19 +114,7 @@ namespace MarkConv.Tests
                 RootDirectory = Utils.ProjectDir
             };
 
-            var processor = new Processor(options) { Logger = logger };
-            var actual = processor.Process(Utils.ReadFileFromProject("Images.md"));
-
-            Assert.Equal(
-                "![GitHub](https://habrastorage.org/web/dcd/2e2/016/dcd2e201667847a1932eab96b60c0086.jpg)\n" +
-                "\n" +
-                "![Markdown](https://habrastorage.org/web/4bf/3c9/eaf/4bf3c9eaffe447ccb472240698033d3f.png)\n" +
-                "\n" +
-                "![Habrahabr](https://habrastorage.org/web/4bf/3c9/eaf/4bf3c9eaffe447ccb472240698033d3f.png)\n" +
-                "\n" +
-                "![Invalid](https://habrastorage-1.org/not-existed.png)\n" +
-                "\n" +
-                "<img align=\"left\" src=\"https://habrastorage.org/web/dcd/2e2/016/dcd2e201667847a1932eab96b60c0086.jpg\" alt=\"GitHub Logo\" />", actual);
+            Utils.CompareFiles("Images.md", "Images-Mapped.md", options, logger);
 
             Assert.Equal(1, logger.WarningMessages.Count(message => message.Contains("Duplicated")));
             Assert.Equal(1, logger.WarningMessages.Count(message => message.Contains("Incorrect mapping")));
@@ -226,7 +129,7 @@ namespace MarkConv.Tests
             Assert.False(Link.IsUrlValid("https://github.com/KvanTTT/MarkConv1"));
         }
 
-        private void Compare(string inputFileName, string outputResult, MarkdownType inputKind, MarkdownType outputKind)
+        private void Compare(string inputFileName, string outputFileName, MarkdownType inputKind, MarkdownType outputKind)
         {
             var options = new ProcessorOptions
             {
@@ -236,12 +139,9 @@ namespace MarkConv.Tests
             };
 
             var logger = new Logger();
-            var processor = new Processor(options) { Logger = logger };
-            string source = Utils.ReadFileFromProject(inputFileName);
-            string actual = processor.Process(source);
+            Utils.CompareFiles(inputFileName, outputFileName, options, logger);
 
             Assert.Single(logger.WarningMessages);
-            Assert.Equal(outputResult, actual);
         }
     }
 }

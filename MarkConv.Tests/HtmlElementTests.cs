@@ -13,22 +13,8 @@ namespace MarkConv.Tests
                 InputMarkdownType = MarkdownType.VisualCode,
                 OutputMarkdownType = MarkdownType.Habrahabr
             };
-            var processor = new Processor(options);
 
-            string source = Utils.ReadFileFromProject("DetailsSummary.md");
-            string actual = processor.Process(source);
-            Assert.Equal(
-                "<spoiler title=\"Details\">\n" +
-                "Content\n" +
-                "\n" +
-                "```\n" +
-                "Some code\n" +
-                "```\n" +
-                "\n" +
-                "<spoiler title=\"Nested Details\">\n" +
-                "Nested text\n" +
-                "</spoiler>\n" +
-                "</spoiler>", actual);
+            Utils.CompareFiles("DetailsSummary.md", "DetailsSummary-to-Spoilers.md", options);
         }
 
         [Fact]
@@ -40,29 +26,8 @@ namespace MarkConv.Tests
                 InputMarkdownType = MarkdownType.Habrahabr,
                 OutputMarkdownType = MarkdownType.VisualCode
             };
-            var processor = new Processor(options);
 
-            string source = Utils.ReadFileFromProject("Spoilers.md");
-            string actual = processor.Process(source);
-            Assert.Equal(
-                "<details>\n" +
-                "<summary>Spoiler header</summary>\n" +
-                "\n" +
-                "Content\n" +
-                "\n" +
-                "```\n" +
-                "Some code\n" +
-                "```\n" +
-                "\n" +
-                "<details>\n" +
-                "<summary>Nested spoiler</summary>\n" +
-                "\n" +
-                "```\n" +
-                "Nested code\n" +
-                "```\n" +
-                "\n" +
-                "</details>\n" +
-                "</details>", actual);
+            Utils.CompareFiles("Spoilers.md", "Spoilers-to-DetailsSummary.md", options);
         }
 
         [Fact]
