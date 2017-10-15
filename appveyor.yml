@@ -10,4 +10,4 @@ before_build:
 build_script:
   - dotnet build -c %CONFIGURATION%
 test_script:
-  - dotnet test "HabraMark.Tests\HabraMark.Tests.csproj" -c %CONFIGURATION%
+  - dotnet test "MarkConv.Tests\MarkConv.Tests.csproj" -c %CONFIGURATION%
