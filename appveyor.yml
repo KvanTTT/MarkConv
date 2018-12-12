@@ -12,11 +12,11 @@ assembly_info:
   assembly_informational_version: '{version}'
 build_script:
 - ps: |
-    dotnet build -c %CONFIGURATION%
+    dotnet build -c Release
 
-    dotnet publish MarkConv/MarkConv.csproj -c %CONFIGURATION% -o ../bin/netcoreapp2.1 -f netcoreapp2.1
+    dotnet publish MarkConv.Cli/MarkConv.Cli.csproj -c Release -o ../bin/netcoreapp2.1 -f netcoreapp2.1
 test_script:
-  - dotnet test "MarkConv.Tests/MarkConv.Tests.csproj" -c %CONFIGURATION%
+  - dotnet test "MarkConv.Tests/MarkConv.Tests.csproj" -c Release
 after_test:
 - ps: |
     cd bin/netcoreapp2.1
