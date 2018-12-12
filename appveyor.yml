@@ -1,9 +1,26 @@
 image:
 - Visual Studio 2017
 - Ubuntu
-skip_branch_with_pr: true
+version: 0.0.0.{build}
 configuration: Release
+skip_branch_with_pr: true
+assembly_info:
+  patch: true
+  file: AssemblyInfoCommon.cs;
+  assembly_version: '{version}'
+  assembly_file_version: '{version}'
+  assembly_informational_version: '{version}'
 build_script:
-  - dotnet build -c %CONFIGURATION%
+- ps: |
+    dotnet build -c %CONFIGURATION%
+
+    dotnet publish MarkConv/MarkConv.csproj -c %CONFIGURATION% -o ../bin/netcoreapp2.1 -f netcoreapp2.1
 test_script:
-  - dotnet test "MarkConv.Tests\MarkConv.Tests.csproj" -c %CONFIGURATION%
+  - dotnet test "MarkConv.Tests/MarkConv.Tests.csproj" -c %CONFIGURATION%
+after_test:
+- ps: |
+    cd bin/netcoreapp2.1
+
+    7z a MarkConv-netcoreapp2.1-$env:APPVEYOR_BUILD_VERSION.zip *.dll *.config *.json runtimes
+
+    Push-AppveyorArtifact MarkConv-netcoreapp2.1-$env:APPVEYOR_BUILD_VERSION.zip
