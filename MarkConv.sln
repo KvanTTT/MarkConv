@@ -9,6 +9,11 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "MarkConv.Cli", "MarkConv.Cl
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "MarkConv.Tests", "MarkConv.Tests\MarkConv.Tests.csproj", "{DEF17271-8583-4554-B5DE-54FCB594DC2E}"
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "SolutionItems", "SolutionItems", "{E156AE19-0925-4DFE-B94A-AC0A2BBF9077}"
+ProjectSection(SolutionItems) = preProject
+	AssemblyInfoCommon.cs = AssemblyInfoCommon.cs
+EndProjectSection
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
