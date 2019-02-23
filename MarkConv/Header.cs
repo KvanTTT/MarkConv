@@ -98,7 +98,7 @@ namespace MarkConv
             {
                 case MarkdownType.GitHub:
                     return HeaderToLink(headerTitle.ExtractLinkTitle(), false);
-                case MarkdownType.Habrahabr:
+                case MarkdownType.Habr:
                     return HeaderToTranslitLink(headerTitle);
                 case MarkdownType.VisualCode:
                 default:

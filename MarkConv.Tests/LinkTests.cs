@@ -17,21 +17,21 @@ namespace MarkConv.Tests
         public void ConvertVisualCodeToHabrahabrRelativeLinks()
         {
             Compare("RelativeLinks.VisualCode.md", "RelativeLinks.VisualCode-to-Habrahabr.md",
-                MarkdownType.VisualCode, MarkdownType.Habrahabr);
+                MarkdownType.VisualCode, MarkdownType.Habr);
         }
 
         [Fact]
         public void ConvertGitHubToHabrahabrRelativeLinks()
         {
             Compare("RelativeLinks.GitHub.md", "RelativeLinks.GitHub-to-Habrahabr.md",
-                MarkdownType.GitHub, MarkdownType.Habrahabr);
+                MarkdownType.GitHub, MarkdownType.Habr);
         }
 
         [Fact]
         public void ConvertHabrahabrToGitHubRelativeLinks()
         {
             Compare("RelativeLinks.Habrahabr.md", "RelativeLinks.Habrahabr-to-GitHub.md",
-                MarkdownType.Habrahabr, MarkdownType.GitHub);
+                MarkdownType.Habr, MarkdownType.GitHub);
         }
 
         [Fact]

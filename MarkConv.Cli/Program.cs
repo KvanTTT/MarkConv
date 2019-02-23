@@ -20,7 +20,6 @@ namespace MarkConv.Cli
             if (Debugger.IsAttached)
             {
                 Console.WriteLine("Press Enter to exit");
-                Console.ReadLine();
             }
 
             return result;
@@ -47,6 +46,9 @@ namespace MarkConv.Cli
 
             if (parameters.RemoveUnwantedBreaks.HasValue)
                 options.NormalizeBreaks = parameters.RemoveUnwantedBreaks.Value;
+
+            options.RemoveSpoilers = parameters.RemoveSpoilers;
+            options.RemoveComments = parameters.RemoveComments;
 
             var logger = new ConsoleLogger();
             options.ImagesMap = ImagesMap.Load(parameters.ImagesMapFileName, directory, logger);

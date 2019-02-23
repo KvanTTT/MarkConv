@@ -5,6 +5,6 @@
         Default,
         GitHub,
         VisualCode,
-        Habrahabr
+        Habr
     }
 }

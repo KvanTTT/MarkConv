@@ -32,6 +32,10 @@ namespace MarkConv
 
         public Dictionary<string, ImageHash> ImagesMap = new Dictionary<string, ImageHash>();
 
+        public bool RemoveSpoilers { get; set; } = false;
+
+        public bool RemoveComments { get; set; }
+
         public static ProcessorOptions FromOptions(ProcessorOptions options)
         {
             return (ProcessorOptions)options.MemberwiseClone();
@@ -46,15 +50,16 @@ namespace MarkConv
             };
             switch (inputMarkdownType)
             {
-                case MarkdownType.Habrahabr:
-                    if (outputMarkdownType != MarkdownType.Habrahabr)
+                case MarkdownType.Habr:
+                    if (outputMarkdownType != MarkdownType.Habr)
                     {
                         options.LinesMaxLength = 80;
+                        options.IndentString = "    ";
                     }
                     break;
                 case MarkdownType.GitHub:
                 case MarkdownType.VisualCode:
-                    if (outputMarkdownType == MarkdownType.Habrahabr)
+                    if (outputMarkdownType == MarkdownType.Habr)
                     {
                         options.LinesMaxLength = -1;
                     }
@@ -67,7 +72,7 @@ namespace MarkConv
                 case MarkdownType.Default:
                     break;
             }
-            if (outputMarkdownType == MarkdownType.Habrahabr)
+            if (outputMarkdownType == MarkdownType.Habr)
             {
                 options.RemoveTitleHeader = true;
             }
