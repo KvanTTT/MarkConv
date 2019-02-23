@@ -27,7 +27,9 @@ namespace MarkConv
             _headers = headers;
             var result = new StringBuilder(text.Length);
 
+            int spoilersLevel = 0;
             int index = 0;
+
             while (index < text.Length)
             {
                 Match startCodeFragmentMatch = CodeSectionRegex.Match(text, index);
@@ -40,30 +42,48 @@ namespace MarkConv
                 {
                     ElementType elementType = matchResult.Item1;
                     Match match = matchResult.Item2;
-                    result.Append(text.Substring(index, match.Index - index));
 
-                    string processedMatch
-                        = elementType == ElementType.Link ? ProcessLink(_headers, ref _imageLinkNumber, match)
-                        : elementType == ElementType.DetailsElement ? ConvertDetailsElement(match)
-                        : elementType == ElementType.SummaryElements ? ConvertSummaryElements(match)
-                        : elementType == ElementType.SpoilerOpenElement ? ConvertSpoilerOpenElement(match)
-                        : elementType == ElementType.SpoilerCloseElement ? ConvertSpolierCloseElement(match)
-                        : elementType == ElementType.AnchorElement ? ConvertAnchorElement(match)
-                        : elementType == ElementType.HtmlLink ? ConvertHtmlLink(match)
-                        : "";
+                    string processedMatch = null;
 
-                    result.Append(processedMatch);
+                    if (!Options.RemoveSpoilers || spoilersLevel == 0)
+                    {
+                        result.Append(text.Substring(index, match.Index - index));
+
+                        processedMatch
+                            = elementType == ElementType.Link ? ProcessLink(_headers, ref _imageLinkNumber, match)
+                            : elementType == ElementType.DetailsOpenElement ? ConvertDetailsToSpoilerOpen(match)
+                            : elementType == ElementType.DetailsCloseElement ? ConvertDetailsToSpoilerClose(match)
+                            : elementType == ElementType.SummaryElements ? ConvertSummaryToSpoilerOpen(match)
+                            : elementType == ElementType.SpoilerOpenElement ? ConvertSpoilerToDetailsOpen(match)
+                            : elementType == ElementType.SpoilerCloseElement ? ConvertSpoilerToDetailsClose(match)
+                            : elementType == ElementType.AnchorElement ? ConvertAnchorElement(match)
+                            : elementType == ElementType.HtmlLink ? ConvertHtmlLink(match)
+                            : elementType == ElementType.CommentElement ? ConvertComment(match)
+                            : "";
+
+                        result.Append(processedMatch);
+                    }
+
+                    if (elementType == ElementType.SpoilerOpenElement || elementType == ElementType.DetailsOpenElement)
+                        spoilersLevel++;
+                    else if (elementType == ElementType.SpoilerCloseElement || elementType == ElementType.DetailsCloseElement)
+                        spoilersLevel--;
+
                     index = match.Index + match.Length;
 
                     if (string.IsNullOrWhiteSpace(processedMatch))
                     {
                         while (index < text.Length && char.IsWhiteSpace(text[index]))
                             index++;
-                        while (result.Length > 0 && (SpaceChars.Contains(result[result.Length - 1])))
+                        while (result.Length > 0 && SpaceChars.Contains(result[result.Length - 1]))
                             result.Remove(result.Length - 1, 1);
                     }
                 }
-                result.Append(text.Substring(index, startCodeFragmentIndex - index));
+
+                if (!Options.RemoveSpoilers || spoilersLevel == 0)
+                {
+                    result.Append(text.Substring(index, startCodeFragmentIndex - index));
+                }
 
                 if (startCodeFragmentMatch.Success)
                 {
@@ -72,7 +92,11 @@ namespace MarkConv
                         ? endCodeFragmentMatch.Index + endCodeFragmentMatch.Length
                         : text.Length;
 
-                    result.Append(text.Substring(startCodeFragmentMatch.Index, index - startCodeFragmentMatch.Index));
+                    if (!Options.RemoveSpoilers || spoilersLevel == 0)
+                    {
+                        result.Append(
+                            text.Substring(startCodeFragmentMatch.Index, index - startCodeFragmentMatch.Index));
+                    }
                 }
                 else
                 {
@@ -90,21 +114,30 @@ namespace MarkConv
             {
                 prevMatches[ElementType.Link] = GetMatch(text, index, length, ElementType.Link);
                 prevMatches[ElementType.HtmlLink] = GetMatch(text, index, length, ElementType.HtmlLink);
-                if (Options.InputMarkdownType != MarkdownType.Habrahabr &&
-                    Options.OutputMarkdownType == MarkdownType.Habrahabr)
+                if (Options.InputMarkdownType != MarkdownType.Habr &&
+                    (Options.OutputMarkdownType == MarkdownType.Habr || Options.RemoveSpoilers))
                 {
-                    prevMatches[ElementType.DetailsElement] = GetMatch(text, index, length, ElementType.DetailsElement);
-                    prevMatches[ElementType.SummaryElements] = GetMatch(text, index, length, ElementType.SummaryElements);
+                    prevMatches[ElementType.DetailsOpenElement] =
+                        GetMatch(text, index, length, ElementType.DetailsOpenElement);
+                    prevMatches[ElementType.DetailsCloseElement] =
+                        GetMatch(text, index, length, ElementType.DetailsCloseElement);
+                    prevMatches[ElementType.SummaryElements] =
+                        GetMatch(text, index, length, ElementType.SummaryElements);
                 }
-                if ((Options.InputMarkdownType != MarkdownType.GitHub &&
-                     Options.InputMarkdownType != MarkdownType.VisualCode) &&
+
+                if (Options.InputMarkdownType != MarkdownType.GitHub &&
+                    Options.InputMarkdownType != MarkdownType.VisualCode &&
                     (Options.OutputMarkdownType == MarkdownType.GitHub ||
-                     Options.OutputMarkdownType == MarkdownType.VisualCode))
+                     Options.OutputMarkdownType == MarkdownType.VisualCode || Options.RemoveSpoilers))
                 {
-                    prevMatches[ElementType.SpoilerOpenElement] = GetMatch(text, index, length, ElementType.SpoilerOpenElement);
-                    prevMatches[ElementType.SpoilerCloseElement] = GetMatch(text, index, length, ElementType.SpoilerCloseElement);
+                    prevMatches[ElementType.SpoilerOpenElement] =
+                        GetMatch(text, index, length, ElementType.SpoilerOpenElement);
+                    prevMatches[ElementType.SpoilerCloseElement] =
+                        GetMatch(text, index, length, ElementType.SpoilerCloseElement);
                     prevMatches[ElementType.AnchorElement] = GetMatch(text, index, length, ElementType.AnchorElement);
                 }
+
+                prevMatches[ElementType.CommentElement] = GetMatch(text, index, length, ElementType.CommentElement);
             }
             else
             {
@@ -127,12 +160,14 @@ namespace MarkConv
         {
             Regex regex
                 = elementType == ElementType.Link ? LinkRegex
-                : elementType == ElementType.DetailsElement ? DetailsTagRegex
+                : elementType == ElementType.DetailsOpenElement ? DetailsOpenTagRegex
+                : elementType == ElementType.DetailsCloseElement ? DetailsCloseTagRegex
                 : elementType == ElementType.SummaryElements ? SummaryTagsRegex
                 : elementType == ElementType.SpoilerOpenElement ? SpoilerOpenTagRegex
                 : elementType == ElementType.SpoilerCloseElement ? SpoilerCloseTagRegex
                 : elementType == ElementType.AnchorElement ? AnchorTagRegex
                 : elementType == ElementType.HtmlLink ? SrcUrlRegex
+                : elementType == ElementType.CommentElement ? CommentRegex
                 : throw new NotImplementedException($"Regex for {elementType} has not been found");
 
             return regex.Match(text, index, length);
@@ -199,28 +234,29 @@ namespace MarkConv
             return linkString;
         }
 
-        private string ConvertDetailsElement(Match match)
+        private string ConvertSummaryToSpoilerOpen(Match match)
         {
-            if (string.IsNullOrEmpty(match.Groups[1].Value))
-                return "";
-            else
-                return "</spoiler>";
+            return Options.RemoveSpoilers ? "" : $"<spoiler title=\"{match.Groups[1].Value.Trim()}\">";
         }
 
-        private string ConvertSummaryElements(Match match)
+        private string ConvertDetailsToSpoilerOpen(Match match)
         {
-            return $"<spoiler title=\"{match.Groups[1].Value.Trim()}\">";
+            return "";
         }
 
-        private string ConvertSpoilerOpenElement(Match match)
+        private string ConvertDetailsToSpoilerClose(Match match)
         {
-            return  "<details>\n" +
-                   $"<summary>{match.Groups[1].Value}</summary>\n";
+            return Options.RemoveSpoilers ? "" : "</spoiler>";
         }
 
-        private string ConvertSpolierCloseElement(Match match)
+        private string ConvertSpoilerToDetailsOpen(Match match)
         {
-            return "</details>";
+            return Options.RemoveSpoilers ? "" : $"<details>\n<summary>{match.Groups[1].Value}</summary>\n";
+        }
+
+        private string ConvertSpoilerToDetailsClose(Match match)
+        {
+            return Options.RemoveSpoilers ? "" : "</details>";
         }
 
         private string ConvertAnchorElement(Match match)
@@ -231,6 +267,11 @@ namespace MarkConv
         private string ConvertHtmlLink(Match match)
         {
             return $"src=\"{ProcessImageLink(match.Groups[1].Value)}\"";
+        }
+
+        private string ConvertComment(Match match)
+        {
+            return Options.RemoveComments ? "" : match.ToString();
         }
 
         private string ProcessImageLink(string address)

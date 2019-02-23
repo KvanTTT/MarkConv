@@ -31,6 +31,17 @@ namespace MarkConv.Tests
         }
 
         [Fact]
+        public void ShouldRemoveSpoilers()
+        {
+            var options = new ProcessorOptions
+            {
+                RemoveSpoilers = true
+            };
+
+            Utils.CompareFiles("Spoilers.md", "Spoilers-Removed.md", options);
+        }
+
+        [Fact]
         public void ShouldConvertAnchors()
         {
             var options = new ProcessorOptions

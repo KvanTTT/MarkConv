@@ -3,11 +3,13 @@
     public enum ElementType
     {
         Link,
-        DetailsElement,
+        DetailsOpenElement,
+        DetailsCloseElement,
         SummaryElements,
         SpoilerOpenElement,
         SpoilerCloseElement,
         AnchorElement,
-        HtmlLink
+        HtmlLink,
+        CommentElement
     }
 }
