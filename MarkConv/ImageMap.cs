@@ -6,12 +6,15 @@ namespace MarkConv
 {
     public class ImagesMap
     {
+        public const string DefaultImagesMapFileName = "ImagesMap";
+        public const string HeaderImageLinkSrc = "HeaderImageLink";
+
         public static Dictionary<string, ImageHash> Load(string imagesMapFileName, string rootDir, ILogger logger)
         {
             var imagesMap = new Dictionary<string, ImageHash>();
             if (string.IsNullOrEmpty(imagesMapFileName))
             {
-                string defaultImagesMapFile = Path.Combine(rootDir, "ImagesMap");
+                string defaultImagesMapFile = Path.Combine(rootDir, DefaultImagesMapFileName);
                 if (File.Exists(defaultImagesMapFile))
                 {
                     imagesMapFileName = defaultImagesMapFile;

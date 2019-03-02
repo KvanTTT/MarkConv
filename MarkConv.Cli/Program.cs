@@ -38,8 +38,15 @@ namespace MarkConv.Cli
             if (parameters.LinesMaxLength.HasValue)
                 options.LinesMaxLength = parameters.LinesMaxLength.Value;
 
+            var logger = new ConsoleLogger();
+            options.RootDirectory = directory;
+
+            options.ImagesMap = ImagesMap.Load(parameters.ImagesMapFileName, directory, logger);
+
             if (parameters.HeaderImageLink != null)
                 options.HeaderImageLink = parameters.HeaderImageLink;
+            else if (options.ImagesMap.TryGetValue(ImagesMap.HeaderImageLinkSrc, out ImageHash imageHash))
+                options.HeaderImageLink = imageHash.Path;
 
             if (parameters.RemoveTitleHeader.HasValue)
                 options.RemoveTitleHeader = parameters.RemoveTitleHeader.Value;
@@ -49,10 +56,6 @@ namespace MarkConv.Cli
 
             options.RemoveSpoilers = parameters.RemoveSpoilers;
             options.RemoveComments = parameters.RemoveComments;
-
-            var logger = new ConsoleLogger();
-            options.ImagesMap = ImagesMap.Load(parameters.ImagesMapFileName, directory, logger);
-            options.RootDirectory = directory;
 
             var processor = new Processor(options) { Logger = logger };
             var converted = processor.ProcessAndGetTableOfContents(data);
