@@ -2,7 +2,7 @@
 
 ![Markdown](Markdown.png)
 
-![Habrahabr](Habrahabr.png)
+![Habr](Habr.png)
 
 ![Invalid](Invalid.png)
 

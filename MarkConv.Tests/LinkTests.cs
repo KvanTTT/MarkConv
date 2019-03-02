@@ -14,23 +14,23 @@ namespace MarkConv.Tests
         }
 
         [Fact]
-        public void ConvertVisualCodeToHabrahabrRelativeLinks()
+        public void ConvertVisualCodeToHabrRelativeLinks()
         {
-            Compare("RelativeLinks.VisualCode.md", "RelativeLinks.VisualCode-to-Habrahabr.md",
+            Compare("RelativeLinks.VisualCode.md", "RelativeLinks.VisualCode-to-Habr.md",
                 MarkdownType.VisualCode, MarkdownType.Habr);
         }
 
         [Fact]
-        public void ConvertGitHubToHabrahabrRelativeLinks()
+        public void ConvertGitHubToHabrRelativeLinks()
         {
-            Compare("RelativeLinks.GitHub.md", "RelativeLinks.GitHub-to-Habrahabr.md",
+            Compare("RelativeLinks.GitHub.md", "RelativeLinks.GitHub-to-Habr.md",
                 MarkdownType.GitHub, MarkdownType.Habr);
         }
 
         [Fact]
-        public void ConvertHabrahabrToGitHubRelativeLinks()
+        public void ConvertHabrToGitHubRelativeLinks()
         {
-            Compare("RelativeLinks.Habrahabr.md", "RelativeLinks.Habrahabr-to-GitHub.md",
+            Compare("RelativeLinks.Habr.md", "RelativeLinks.Habr-to-GitHub.md",
                 MarkdownType.Habr, MarkdownType.GitHub);
         }
 
@@ -42,7 +42,7 @@ namespace MarkConv.Tests
         }
 
         [Fact]
-        public void GenerateHabrahabrLink()
+        public void GenerateHabrLink()
         {
             string header = @"АБВГДЕЁЖЗИЙКЛМНОПРСТУФХЦЧШЩЪЫЬЭЮЯ  ABCabc    0123456789!""№;%:?*() -+=`~<>@#$^&[]{}\/|'_";
             string habraLink = Header.HeaderToTranslitLink(header);
