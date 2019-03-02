@@ -11,7 +11,7 @@ namespace MarkConv
     {
         public ILogger Logger { get; set; }
 
-        public ProcessorOptions Options { get; set; }
+        public ProcessorOptions Options { get; }
 
         public LinesProcessor(ProcessorOptions options = null) => Options = options ?? new ProcessorOptions();
 
@@ -30,15 +30,15 @@ namespace MarkConv
             for (int lineIndex = 0; lineIndex <= lines.Count; lineIndex++)
             {
                 string line = lineIndex < lines.Count ? lines[lineIndex] : string.Empty;
-                Match codeSectionMarkerMatch = CodeSectionRegex.Match(line);
+                Match codeSectionMarkerMatch = CodeSectionCloseRegex.Match(line);
 
                 if (codeSectionMarkerMatch.Success)
                 {
                     codeSection = !codeSection;
                 }
 
-                if ((codeSection && line.IndexOf("```", codeSectionMarkerMatch.Length) == -1) ||
-                    (!codeSection && codeSectionMarkerMatch.Success))
+                if (codeSection && line.IndexOf("```", codeSectionMarkerMatch.Length) == -1 ||
+                    !codeSection && codeSectionMarkerMatch.Success)
                 {
                     resultLines.Add(line);
                 }
@@ -81,18 +81,15 @@ namespace MarkConv
                         bool isLastResultLineHeaderOrCodeSection =
                             HeaderRegex.IsMatch(lastResultLine) ||
                             HeaderLineRegex.IsMatch(lastResultLine) ||
-                            CodeSectionRegex.IsMatch(lastResultLine);
+                            CodeSectionCloseRegex.IsMatch(lastResultLine);
 
                         bool isLastLineHeader = headerMatch.Success;
-                        bool isLastLineSpecial =
-                            isLastLineHeader || isHeaderLineMatch ||
+                        bool isLastLineSpecial = isLastLineHeader || isHeaderLineMatch ||
                             SpecialItemRegex.IsMatch(line) || listItemMatch.Success;
 
-                        bool isLastResultLineWhiteSpace =
-                            string.IsNullOrWhiteSpace(lastResultLine);
+                        bool isLastResultLineWhiteSpace = string.IsNullOrWhiteSpace(lastResultLine);
 
-                        bool isLastLineWhiteSpace =
-                            string.IsNullOrWhiteSpace(line);
+                        bool isLastLineWhiteSpace = string.IsNullOrWhiteSpace(line);
 
                         if (Options.LinesMaxLength != 0 &&
                             !isLastResultLineHeaderOrCodeSection &&
@@ -106,10 +103,8 @@ namespace MarkConv
                         {
                             if (Options.NormalizeBreaks)
                             {
-                                if ((isLastResultLineHeaderOrCodeSection &&
-                                    !isLastLineWhiteSpace) ||
-                                    (isLastLineHeader &&
-                                    !isLastResultLineWhiteSpace))
+                                if (isLastResultLineHeaderOrCodeSection && !isLastLineWhiteSpace ||
+                                    isLastLineHeader && !isLastResultLineWhiteSpace)
                                 {
                                     resultLines.Add("");
                                 }

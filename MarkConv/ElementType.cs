@@ -10,6 +10,9 @@
         SpoilerCloseElement,
         AnchorElement,
         HtmlLink,
-        CommentElement
+        CommentOpenElement,
+        CommentCloseElement,
+        CodeOpenElement,
+        CodeCloseElement
     }
 }
