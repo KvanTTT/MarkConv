@@ -54,7 +54,7 @@ namespace MarkConv
 
         public int DestLineIndex { get; set; } = 0;
 
-        public Dictionary<MarkdownType, HeaderLink> Links = new Dictionary<MarkdownType, HeaderLink>();
+        public readonly Dictionary<MarkdownType, HeaderLink> Links = new Dictionary<MarkdownType, HeaderLink>();
 
         public Header(string headerTitle, int level, List<Header> existingHeaders)
         {
@@ -73,7 +73,7 @@ namespace MarkConv
         {
             string headerLink = GenerateLink(linkType, headerTitle);
 
-            var sameLinkHeaders = headers.Where(h => h.Links[linkType].Link == headerLink);
+            var sameLinkHeaders = headers.Where(h => h.Links[linkType].Link == headerLink).ToList();
             int linkNumber = 0;
             if (sameLinkHeaders.Any())
             {
@@ -96,24 +96,21 @@ namespace MarkConv
         {
             switch (linkType)
             {
-                case MarkdownType.GitHub:
-                    return HeaderToLink(headerTitle.ExtractLinkTitle(), false);
                 case MarkdownType.Habr:
                     return HeaderToTranslitLink(headerTitle);
-                case MarkdownType.VisualCode:
                 default:
-                    return HeaderToLink(headerTitle.ExtractLinkTitle(), true);
+                    return HeaderToLink(headerTitle.ExtractLinkTitle());
             }
         }
 
-        public static string HeaderToLink(string header, bool loweredNotLatin)
+        public static string HeaderToLink(string header)
         {
             var link = new StringBuilder(header.Length);
             foreach (char c in header)
             {
                 if (char.IsLetterOrDigit(c))
                 {
-                    link.Append(loweredNotLatin || (c >= 'A' && c <= 'Z') ? char.ToLowerInvariant(c) : c);
+                    link.Append(char.ToLowerInvariant(c));
                 }
                 else
                 {
@@ -132,7 +129,7 @@ namespace MarkConv
             var link = new StringBuilder(lower.Length);
             foreach (char c in lower)
             {
-                if ((c >= 'a' && c <= 'z') || (c >= '0' && c <= '9'))
+                if (c >= 'a' && c <= 'z' || c >= '0' && c <= '9')
                 {
                     link.Append(c);
                 }
