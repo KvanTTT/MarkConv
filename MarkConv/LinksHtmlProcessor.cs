@@ -26,13 +26,15 @@ namespace MarkConv
 
         public string Process(string text, List<Header> headers)
         {
+            ReadOnlySpan<char> textSpan = text.AsSpan();
+
             _imageLinkNumber = 0;
             _headers = headers;
-            var result = new StringBuilder(text.Length);
+            var result = new StringBuilder(textSpan.Length);
 
             int index = 0;
 
-            while (index < text.Length)
+            while (index < textSpan.Length)
             {
                 var matches = new Dictionary<ElementType, Match>();
                 Tuple<ElementType, Match> matchResult = null;
@@ -44,7 +46,7 @@ namespace MarkConv
 
                     if ((!Options.RemoveSpoilers || _spoilersLevel == 0) && (!Options.RemoveComments || !_insideComment))
                     {
-                        result.Append(text.Substring(index, match.Index - index));
+                        result.Append(textSpan.Slice(index, match.Index - index));
                     }
 
                     string processedMatch = ProcessMatch(elementType, match);
@@ -54,7 +56,7 @@ namespace MarkConv
 
                     if (string.IsNullOrWhiteSpace(processedMatch))
                     {
-                        while (index < text.Length && char.IsWhiteSpace(text[index]))
+                        while (index < textSpan.Length && char.IsWhiteSpace(textSpan[index]))
                             index++;
                         while (result.Length > 0 && SpaceChars.Contains(result[result.Length - 1]))
                             result.Remove(result.Length - 1, 1);
@@ -63,10 +65,10 @@ namespace MarkConv
 
                 if ((!Options.RemoveSpoilers || _spoilersLevel == 0) && (!Options.RemoveComments || !_insideComment))
                 {
-                    result.Append(text.Substring(index));
+                    result.Append(textSpan.Slice(index));
                 }
 
-                index = text.Length;
+                index = textSpan.Length;
             }
 
             return result.ToString();
