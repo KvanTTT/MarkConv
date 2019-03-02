@@ -10,7 +10,17 @@ namespace MarkConv
         {
             var imagesMap = new Dictionary<string, ImageHash>();
             if (string.IsNullOrEmpty(imagesMapFileName))
-                return imagesMap;
+            {
+                string defaultImagesMapFile = Path.Combine(rootDir, "ImagesMap");
+                if (File.Exists(defaultImagesMapFile))
+                {
+                    imagesMapFileName = defaultImagesMapFile;
+                }
+                else
+                {
+                    return imagesMap;
+                }
+            }
 
             string[] mappingItems = File.ReadAllLines(imagesMapFileName);
             for (int i = 0; i < mappingItems.Length; i++)
