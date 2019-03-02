@@ -93,10 +93,8 @@ namespace MarkConv
                         GetMatch(text, index, ElementType.SummaryElements);
                 }
 
-                if (Options.InputMarkdownType != MarkdownType.GitHub &&
-                    Options.InputMarkdownType != MarkdownType.VisualCode &&
-                    (Options.OutputMarkdownType == MarkdownType.GitHub ||
-                     Options.OutputMarkdownType == MarkdownType.VisualCode || Options.RemoveSpoilers))
+                if (Options.InputMarkdownType != MarkdownType.Common &&
+                    (Options.OutputMarkdownType == MarkdownType.Common || Options.RemoveSpoilers))
                 {
                     prevMatches[ElementType.SpoilerOpenElement] =
                         GetMatch(text, index, ElementType.SpoilerOpenElement);

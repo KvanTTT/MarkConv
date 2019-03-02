@@ -7,38 +7,24 @@ namespace MarkConv.Tests
     public class LinkTests
     {
         [Fact]
-        public void ConvertVisualCodeToGitHubRelativeLinks()
-        {
-            Compare("RelativeLinks.VisualCode.md", "RelativeLinks.VisualCode-to-GitHub.md",
-                MarkdownType.VisualCode, MarkdownType.GitHub);
-        }
-
-        [Fact]
         public void ConvertVisualCodeToHabrRelativeLinks()
         {
-            Compare("RelativeLinks.VisualCode.md", "RelativeLinks.VisualCode-to-Habr.md",
-                MarkdownType.VisualCode, MarkdownType.Habr);
+            Compare("RelativeLinks.Common.md", "RelativeLinks.Common-to-Habr.md",
+                MarkdownType.Common, MarkdownType.Habr);
         }
 
         [Fact]
-        public void ConvertGitHubToHabrRelativeLinks()
+        public void ConvertHabrToCommonRelativeLinks()
         {
-            Compare("RelativeLinks.GitHub.md", "RelativeLinks.GitHub-to-Habr.md",
-                MarkdownType.GitHub, MarkdownType.Habr);
+            Compare("RelativeLinks.Habr.md", "RelativeLinks.Habr-to-Common.md",
+                MarkdownType.Habr, MarkdownType.Common);
         }
 
         [Fact]
-        public void ConvertHabrToGitHubRelativeLinks()
+        public void ShouldNotChangeAnythingInsideCodeSection()
         {
-            Compare("RelativeLinks.Habr.md", "RelativeLinks.Habr-to-GitHub.md",
-                MarkdownType.Habr, MarkdownType.GitHub);
-        }
-
-        [Fact]
-        public void ShouldNotChangeLinksInsideCodeSection()
-        {
-            Compare("RelativeLinksAndCode.md", "RelativeLinksAndCode-VisualCode.md",
-                MarkdownType.GitHub, MarkdownType.VisualCode);
+            Compare("RelativeLinksAndCode.md", "RelativeLinksAndCode-Converted.md",
+                MarkdownType.Default, MarkdownType.Common);
         }
 
         [Fact]
@@ -53,16 +39,8 @@ namespace MarkConv.Tests
         public void GenerateVisualCodeLink()
         {
             string header = @"ABCabc АБВгде    0123456789!""№;%:?*() -+=`~<>@#$^&[]{}\/|'_";
-            string resultLink = Header.HeaderToLink(header, true);
+            string resultLink = Header.HeaderToLink(header);
             Assert.Equal(@"abcabc-абвгде----0123456789--_", resultLink);
-        }
-
-        [Fact]
-        public void GenerateGitHubLink()
-        {
-            string header = @"ABCabc АБВгде    0123456789!""№;%:?*() -+=`~<>@#$^&[]{}\/|'_";
-            string resultLink = Header.HeaderToLink(header, false);
-            Assert.Equal(@"abcabc-АБВгде----0123456789--_", resultLink);
         }
 
         [Fact]

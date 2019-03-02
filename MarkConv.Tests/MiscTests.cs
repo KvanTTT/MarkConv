@@ -51,7 +51,7 @@ namespace MarkConv.Tests
         [Fact]
         public void ShouldGenerateTableOfContents()
         {
-            string source = Utils.ReadFileFromProject("RelativeLinks.GitHub.md");
+            string source = Utils.ReadFileFromProject("RelativeLinks.Common.md");
 
             var linesProcessor = new LinesProcessor();
             LinesProcessorResult linesProcessorResult = linesProcessor.Process(source);
@@ -68,7 +68,6 @@ namespace MarkConv.Tests
                 "    * [Заголовок 3](#заголовок-3)\n" +
                 "    * [Заголовок 3](#заголовок-3-1)\n" +
                 "    * [Заголовок 3 1](#заголовок-3-1-1)\n" +
-                "    * [ЗАГОЛОВОК 3](#заголовок-3-2)\n" +
                 "    * [Заголовок Header 3](#заголовок-header-3)\n" +
                 "* [Header With Link](#header-with-link)", actual);
         }

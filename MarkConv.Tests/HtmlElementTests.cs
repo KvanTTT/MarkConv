@@ -10,7 +10,7 @@ namespace MarkConv.Tests
             var options = new ProcessorOptions
             {
                 LinesMaxLength = 0,
-                InputMarkdownType = MarkdownType.VisualCode,
+                InputMarkdownType = MarkdownType.Common,
                 OutputMarkdownType = MarkdownType.Habr
             };
 
@@ -24,7 +24,7 @@ namespace MarkConv.Tests
             {
                 LinesMaxLength = 0,
                 InputMarkdownType = MarkdownType.Habr,
-                OutputMarkdownType = MarkdownType.VisualCode
+                OutputMarkdownType = MarkdownType.Common
             };
 
             Utils.CompareFiles("Spoilers.md", "Spoilers-to-DetailsSummary.md", options);
@@ -59,7 +59,7 @@ namespace MarkConv.Tests
             {
                 LinesMaxLength = 0,
                 InputMarkdownType = MarkdownType.Habr,
-                OutputMarkdownType = MarkdownType.VisualCode
+                OutputMarkdownType = MarkdownType.Common
             };
             var processor = new Processor(options);
 

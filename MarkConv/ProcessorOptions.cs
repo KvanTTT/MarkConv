@@ -57,8 +57,7 @@ namespace MarkConv
                         options.IndentString = "    ";
                     }
                     break;
-                case MarkdownType.GitHub:
-                case MarkdownType.VisualCode:
+                case MarkdownType.Common:
                     if (outputMarkdownType == MarkdownType.Habr)
                     {
                         options.LinesMaxLength = -1;
@@ -67,9 +66,6 @@ namespace MarkConv
                     {
                         options.LinesMaxLength = 0;
                     }
-                    break;
-                default:
-                case MarkdownType.Default:
                     break;
             }
             if (outputMarkdownType == MarkdownType.Habr)
