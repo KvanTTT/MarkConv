@@ -42,6 +42,17 @@ namespace MarkConv.Tests
         }
 
         [Fact]
+        public void ShouldRemoveComments()
+        {
+            var options = new ProcessorOptions
+            {
+                RemoveComments = true
+            };
+
+            Utils.CompareFiles("Comments.md", "Comments-Removed.md", options);
+        }
+
+        [Fact]
         public void ShouldConvertAnchors()
         {
             var options = new ProcessorOptions
