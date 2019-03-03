@@ -31,7 +31,7 @@ namespace MarkConv
         public static readonly Regex LinkRegex = new Regex(
             @"(!?)" +
             @"\[(([^\[\]]|\\\])+)\]" +
-            @"\(([^\)]+)\)", RegexOptions.Compiled);
+            @"\(((?>\((?<DEPTH>)|\)(?<-DEPTH>)|[^()]+)*)\)(?(DEPTH)(?!))", RegexOptions.Compiled);
 
         public static readonly Dictionary<ElementType, Regex> ElementTypeRegex = new Dictionary<ElementType, Regex>
         {
