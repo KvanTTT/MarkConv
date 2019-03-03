@@ -300,7 +300,7 @@ namespace MarkConv
                     LinkType linkType = Link.DetectLinkType(address);
                     string warnMessage = linkType == LinkType.Local
                         ? $"File {address} does not exist"
-                        : $"Link {address} probably broken";
+                        : $"Link {address} is probably broken";
                     Logger?.Warn(warnMessage);
                 }
             }
