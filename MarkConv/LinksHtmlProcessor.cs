@@ -268,7 +268,7 @@ namespace MarkConv
                 {
                     if (!_urlStates.TryGetValue(address, out bool isValid))
                     {
-                        isValid = Link.IsUrlValid(address);
+                        isValid = Link.IsUrlAlive(address);
                         _urlStates[address] = isValid;
                     }
 

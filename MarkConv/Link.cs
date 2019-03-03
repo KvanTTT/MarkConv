@@ -1,5 +1,6 @@
 ﻿using System;
 using System.IO;
+using System.Net;
 using System.Net.Http;
 using System.Security.Cryptography;
 
@@ -86,15 +87,39 @@ namespace MarkConv
             return LinkType.Local;
         }
 
-        public static bool IsUrlValid(string url, int timeout = 2000) =>
-            DownloadData(url, timeout) != null;
+        public static bool IsUrlAlive(string url, int timeout = 2000)
+        {
+            HttpWebResponse response = null;
+            try
+            {
+                if (Uri.TryCreate(url, UriKind.Absolute, out var uriResult)
+                    && (uriResult.Scheme == Uri.UriSchemeHttp || uriResult.Scheme == Uri.UriSchemeHttps))
+                {
+                    HttpWebRequest request = (HttpWebRequest) WebRequest.Create(uriResult);
+                    request.Timeout = timeout;
+                    request.Method = "HEAD";
+                    response = (HttpWebResponse) request.GetResponse();
+                    return response.StatusCode == HttpStatusCode.OK;
+                }
+            }
+            catch
+            {
+            }
+            finally
+            {
+                response?.Dispose();
+            }
+
+            return false;
+        }
 
         public static byte[] DownloadData(string url, int timeout = 2000)
         {
-            HttpClient client = new HttpClient();
+            HttpClient client = null;
             byte[] data = null;
             try
             {
+                client = new HttpClient();
                 client.Timeout = TimeSpan.FromMilliseconds(timeout);
                 data = client.GetByteArrayAsync(url).Result;
             }
@@ -103,7 +128,7 @@ namespace MarkConv
             }
             finally
             {
-                client.Dispose();
+                client?.Dispose();
             }
             return data;
         }

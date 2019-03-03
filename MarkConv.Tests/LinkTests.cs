@@ -101,10 +101,10 @@ namespace MarkConv.Tests
         }
 
         [Fact]
-        public void CheckValidInvalidUrls()
+        public void CheckAliveUrls()
         {
-            Assert.True(Link.IsUrlValid("https://github.com/KvanTTT/MarkConv"));
-            Assert.False(Link.IsUrlValid("https://github.com/KvanTTT/MarkConv1"));
+            Assert.True(Link.IsUrlAlive("https://github.com/KvanTTT/MarkConv"));
+            Assert.False(Link.IsUrlAlive("https://github.com/KvanTTT/MarkConv1"));
         }
 
         private void Compare(string inputFileName, string outputFileName, MarkdownType inputKind, MarkdownType outputKind)
