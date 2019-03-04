@@ -13,6 +13,7 @@
         CommentOpenElement,
         CommentCloseElement,
         CodeOpenElement,
-        CodeCloseElement
+        CodeCloseElement,
+        CutElement
     }
 }

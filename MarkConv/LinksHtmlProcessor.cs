@@ -9,6 +9,20 @@ namespace MarkConv
 {
     public class LinksHtmlProcessor
     {
+        public const int HabrMaxTextLengthWithoutCut = 1000;
+        public const int HabrMaxTextLengthBeforeCut = 2000;
+        public const int HabrMinTextLengthBeforeCut = 100;
+        public const int HabrMinTextLengthAfterCut = 100;
+
+        public static readonly string HabrMaxTextLengthWithoutCutMessage =
+            $"You need to insert <cut/> tag if the text contains more than {HabrMaxTextLengthWithoutCut} characters";
+        public static readonly string HabrMaxTextLengthBeforeCutMessage =
+            $"Text before cut can not be more than or equal to {HabrMaxTextLengthBeforeCut} characters";
+        public static readonly string HabrMinTextLengthBeforeCutMessage =
+            $"Text before cut can not be less than {HabrMinTextLengthBeforeCut} characters";
+        public static readonly string HabrMinTextLengthAfterCutMessage =
+            $"Text after cut can not be less than {HabrMinTextLengthAfterCut} characters";
+
         private int _spoilersLevel = 0;
         private bool _insideCodeBlock = false;
         private bool _insideComment = false;
@@ -33,6 +47,8 @@ namespace MarkConv
             var result = new StringBuilder(textSpan.Length);
 
             int index = 0;
+            int cutElementIndex = -1;
+            int cutElementLength = 0;
 
             while (index < textSpan.Length)
             {
@@ -47,6 +63,15 @@ namespace MarkConv
                     if ((!Options.RemoveSpoilers || _spoilersLevel == 0) && (!Options.RemoveComments || !_insideComment))
                     {
                         result.Append(textSpan.Slice(index, match.Index - index));
+                    }
+
+                    if (elementType == ElementType.CutElement)
+                    {
+                        if (cutElementIndex == -1)
+                        {
+                            cutElementIndex = result.Length;
+                            cutElementLength = match.Length;
+                        }
                     }
 
                     string processedMatch = ProcessMatch(elementType, match);
@@ -71,7 +96,36 @@ namespace MarkConv
                 index = textSpan.Length;
             }
 
-            return result.ToString();
+            string resultStr = result.ToString();
+
+            if (Options.OutputMarkdownType == MarkdownType.Habr)
+            {
+                if (cutElementIndex == -1)
+                {
+                    if (resultStr.Trim().Length >= HabrMaxTextLengthWithoutCut)
+                    {
+                        Logger?.Warn(HabrMaxTextLengthWithoutCutMessage);
+                    }
+                }
+                else
+                {
+                    if (cutElementIndex > HabrMaxTextLengthBeforeCut)
+                    {
+                        Logger?.Warn(HabrMaxTextLengthBeforeCutMessage);
+                    }
+                    else if (cutElementIndex < HabrMinTextLengthBeforeCut)
+                    {
+                        Logger?.Warn(HabrMinTextLengthBeforeCutMessage);
+                    }
+
+                    if (result.Length - (cutElementIndex + 4) < HabrMinTextLengthAfterCut) // TODO: Bug on habr.com
+                    {
+                        Logger?.Warn(HabrMinTextLengthAfterCutMessage);
+                    }
+                }
+            }
+
+            return resultStr;
         }
 
         private Tuple<ElementType, Match> NextMatch(string text, int index,
@@ -101,6 +155,11 @@ namespace MarkConv
                     prevMatches[ElementType.SpoilerCloseElement] =
                         GetMatch(text, index, ElementType.SpoilerCloseElement);
                     prevMatches[ElementType.AnchorElement] = GetMatch(text, index, ElementType.AnchorElement);
+                }
+
+                if (Options.OutputMarkdownType == MarkdownType.Habr)
+                {
+                    prevMatches[ElementType.CutElement] = GetMatch(text, index, ElementType.CutElement);
                 }
 
                 prevMatches[ElementType.CommentOpenElement] = GetMatch(text, index, ElementType.CommentOpenElement);
@@ -205,6 +264,7 @@ namespace MarkConv
 
                 case ElementType.CodeOpenElement:
                 case ElementType.CodeCloseElement:
+                case ElementType.CutElement:
                     result = match.ToString();
                     break;
 
@@ -266,15 +326,15 @@ namespace MarkConv
                 linkString = match.Value;
                 if (Options.CheckLinks)
                 {
-                    if (!_urlStates.TryGetValue(address, out bool isValid))
+                    if (!_urlStates.TryGetValue(address, out bool isAlive))
                     {
-                        isValid = Link.IsUrlAlive(address);
-                        _urlStates[address] = isValid;
+                        isAlive = Link.IsUrlAlive(address);
+                        _urlStates.Add(address, isAlive);
                     }
 
-                    if (!isValid)
+                    if (!isAlive)
                     {
-                        Logger?.Warn($"Link {address} probably broken");
+                        Logger?.Warn($"Link {address} is probably broken");
                     }
                 }
             }
@@ -292,7 +352,7 @@ namespace MarkConv
                 if (!_imageHashes.TryGetValue(address, out hash))
                 {
                     hash = Link.GetImageHash(address, Options.RootDirectory);
-                    _imageHashes[address] = hash;
+                    _imageHashes.Add(address, hash);
                 }
 
                 if (hash == null)
@@ -309,7 +369,7 @@ namespace MarkConv
             {
                 if (Options.CheckLinks && replacement.Hash.Value == null)
                 {
-                    Logger?.Warn($"Replacement link {replacement.Path} probably broken");
+                    Logger?.Warn($"Replacement link {replacement.Path} is probably broken");
                 }
                 if (Options.CompareImageHashes &&
                     hash != null && replacement.Hash.Value != null && !Link.CompareHashes(hash, replacement.Hash.Value))

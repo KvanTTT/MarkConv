@@ -32,6 +32,7 @@ namespace MarkConv
             @"(!?)" +
             @"\[(([^\[\]]|\\\])+)\]" +
             @"\(((?>\((?<DEPTH>)|\)(?<-DEPTH>)|[^()]+)*)\)(?(DEPTH)(?!))", RegexOptions.Compiled);
+        public static readonly Regex CutTagRegex = new Regex(@"<(habra)?cut\s*(text\s*=\s*""(.*?)""\s*)?/>");
 
         public static readonly Dictionary<ElementType, Regex> ElementTypeRegex = new Dictionary<ElementType, Regex>
         {
@@ -47,6 +48,7 @@ namespace MarkConv
             [ElementType.CommentCloseElement] = CommentCloseTagRegex,
             [ElementType.CodeOpenElement] = CodeSectionOpenRegex,
             [ElementType.CodeCloseElement] = CodeSectionCloseRegex,
+            [ElementType.CutElement] = CutTagRegex,
         };
     }
 }
