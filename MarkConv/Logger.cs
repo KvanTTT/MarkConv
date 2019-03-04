@@ -1,5 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 
 namespace MarkConv
 {
@@ -22,6 +21,12 @@ namespace MarkConv
         public void Warn(string message)
         {
             WarningMessages.Add(message);
+        }
+
+        public void Clear()
+        {
+            InfoMessages.Clear();
+            WarningMessages.Clear();
         }
     }
 }
