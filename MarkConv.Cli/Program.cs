@@ -29,6 +29,7 @@ namespace MarkConv.Cli
         {
             string directory = Path.GetDirectoryName(parameters.InputFileName);
             string fileName = Path.GetFileNameWithoutExtension(parameters.InputFileName);
+            string fileNameWoExt = Path.GetFileNameWithoutExtension(fileName);
 
             string data = File.ReadAllText(parameters.InputFileName);
             var options = ProcessorOptions.GetDefaultOptions(parameters.InputMarkdownType, parameters.OutputMarkdownType);
@@ -45,7 +46,7 @@ namespace MarkConv.Cli
 
             if (parameters.HeaderImageLink != null)
                 options.HeaderImageLink = parameters.HeaderImageLink;
-            else if (options.ImagesMap.TryGetValue(ImagesMap.HeaderImageLinkSrc, out ImageHash imageHash))
+            else if (options.ImagesMap.TryGetValue(fileNameWoExt + ImagesMap.HeaderImageLinkSrc, out ImageHash imageHash))
                 options.HeaderImageLink = imageHash.Path;
 
             if (parameters.RemoveTitleHeader.HasValue)
