@@ -249,7 +249,7 @@ namespace MarkConv
                     break;
 
                 case ElementType.HtmlLink:
-                    result = $"src=\"{ProcessImageLink(match.Groups[1].Value)}\"";
+                    result = $"src=\"{ProcessImageAddress(match.Groups[1].Value)}\"";
                     break;
 
                 case ElementType.CommentOpenElement:
@@ -310,9 +310,17 @@ namespace MarkConv
             }
             else if (isImage)
             {
-                string newLink = ProcessImageLink(address);
+                string newAddress = ProcessImageAddress(address);
 
-                linkString = new Link(title, newLink, true).ToString();
+                if (Options.CenterImageAlignment)
+                {
+                    linkString = $"<img src=\"{newAddress}\" align=center />";
+                }
+                else
+                {
+                    linkString = new Link(title, newAddress, true).ToString();
+                }
+
                 if (_imageLinkNumber == 0 && !string.IsNullOrWhiteSpace(Options.HeaderImageLink))
                 {
                     linkString = new Link(linkString, Options.HeaderImageLink).ToString();
@@ -342,11 +350,12 @@ namespace MarkConv
             return linkString;
         }
 
-        private string ProcessImageLink(string address)
+        private string ProcessImageAddress(string address)
         {
             byte[] hash = null;
             address = address.Trim('"');
             string newLink = address;
+
             if (Options.CheckLinks)
             {
                 if (!_imageHashes.TryGetValue(address, out hash))

@@ -28,6 +28,8 @@ namespace MarkConv
 
         public bool CompareImageHashes { get; set; } = false;
 
+        public bool CenterImageAlignment { get; set; }
+
         public string RootDirectory { get; set; } = "";
 
         public Dictionary<string, ImageHash> ImagesMap = new Dictionary<string, ImageHash>();
@@ -54,7 +56,6 @@ namespace MarkConv
                     if (outputMarkdownType != MarkdownType.Habr)
                     {
                         options.LinesMaxLength = 80;
-                        options.IndentString = "    ";
                     }
                     break;
                 case MarkdownType.Common:
@@ -70,7 +71,9 @@ namespace MarkConv
             }
             if (outputMarkdownType == MarkdownType.Habr)
             {
+                options.IndentString = "    ";
                 options.RemoveTitleHeader = true;
+                options.CenterImageAlignment = true;
             }
             return options;
         }
