@@ -2,12 +2,14 @@
 
 Converts markdown of different types to each other.
 
+Platform: NET Core 3.1 (Crossplatform).
+
 ## Using
 
 The following command:
 
 ```
-dotnet MarkConv.dll -f "my_awesome_article.md" -o Habr
+dotnet MarkConv.Cli.dll -f "my_awesome_article.md" -o Habr
 ```
 
 Creates the output file `my_awesome_article-Common-Habr.md`.
