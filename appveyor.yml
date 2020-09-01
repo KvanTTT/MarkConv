@@ -14,13 +14,13 @@ build_script:
 - ps: |
     dotnet build -c Release
 
-    dotnet publish MarkConv.Cli/MarkConv.Cli.csproj -c Release -o ../bin/netcoreapp2.1 -f netcoreapp2.1
+    dotnet publish MarkConv.Cli/MarkConv.Cli.csproj -c Release -o ../bin/netcoreapp3.1 -f netcoreapp3.1
 test_script:
   - dotnet test "MarkConv.Tests/MarkConv.Tests.csproj" -c Release
 after_test:
 - ps: |
-    cd bin/netcoreapp2.1
+    cd bin/netcoreapp3.1
 
-    7z a MarkConv-netcoreapp2.1-$env:APPVEYOR_BUILD_VERSION.zip *.dll *.config *.json runtimes
+    7z a MarkConv-netcoreapp3.1-$env:APPVEYOR_BUILD_VERSION.zip *.dll *.config *.json runtimes
 
-    Push-AppveyorArtifact MarkConv-netcoreapp2.1-$env:APPVEYOR_BUILD_VERSION.zip
+    Push-AppveyorArtifact MarkConv-netcoreapp3.1-$env:APPVEYOR_BUILD_VERSION.zip
