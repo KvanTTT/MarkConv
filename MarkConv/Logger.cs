@@ -5,6 +5,7 @@ namespace MarkConv
     public class Logger : ILogger
     {
         public List<string> InfoMessages { get; }
+
         public List<string> WarningMessages { get; }
 
         public Logger()

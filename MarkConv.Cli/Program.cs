@@ -1,28 +1,17 @@
 ﻿using CommandLine;
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.IO;
 
 namespace MarkConv.Cli
 {
-    class Program
+    static class Program
     {
         static int Main(string[] args)
         {
             var parser = new Parser(config => config.HelpWriter = Console.Out);
             ParserResult<CliParameters> parserResult = parser.ParseArguments<CliParameters>(args);
-
-            var result = parserResult.MapResult(
-                cliParams => Convert(cliParams),
-                errors => ProcessErrors(errors));
-
-            if (Debugger.IsAttached)
-            {
-                Console.WriteLine("Press Enter to exit");
-            }
-
-            return result;
+            return parserResult.MapResult(Convert, ProcessErrors);
         }
 
         private static int Convert(CliParameters parameters)
@@ -74,9 +63,6 @@ namespace MarkConv.Cli
             return 0;
         }
 
-        private static int ProcessErrors(IEnumerable<Error> errors)
-        {
-            return 1;
-        }
+        private static int ProcessErrors(IEnumerable<Error> errors) => 1;
     }
 }

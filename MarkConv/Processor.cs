@@ -8,10 +8,9 @@ namespace MarkConv
     {
         public ILogger Logger { get; set; } = new Logger();
 
-        public ProcessorOptions Options { get; set; }
+        public ProcessorOptions Options { get; }
 
-        public Processor(ProcessorOptions options = null)
-            => Options = options ?? new ProcessorOptions();
+        public Processor(ProcessorOptions options = null) => Options = options ?? new ProcessorOptions();
 
         public string Process(string original)
         {
@@ -20,14 +19,8 @@ namespace MarkConv
 
         public ProcessorResult ProcessAndGetTableOfContents(string original)
         {
-            var linesProcessor = new LinesProcessor(Options)
-            {
-                Logger = Logger
-            };
-            var linksHtmlProcessor = new LinksHtmlProcessor(Options)
-            {
-                Logger = Logger
-            };
+            var linesProcessor = new LinesProcessor(Options) { Logger = Logger };
+            var linksHtmlProcessor = new LinksHtmlProcessor(Options) { Logger = Logger };
 
             string[] lines = original.Split(LineBreaks, StringSplitOptions.None);
             LinesProcessorResult linesProcessorResult = linesProcessor.Process(lines);

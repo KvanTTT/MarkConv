@@ -65,13 +65,14 @@ namespace MarkConv
 
             if (data != null)
             {
-                byte[] hash = null;
+                byte[] hash;
                 using (SHA1 sha1 = SHA1.Create())
                 {
                     hash = sha1.ComputeHash(data);
                 }
                 return hash;
             }
+
             return null;
         }
 

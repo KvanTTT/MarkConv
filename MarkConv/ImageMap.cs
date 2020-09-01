@@ -4,7 +4,7 @@ using System.IO;
 
 namespace MarkConv
 {
-    public class ImagesMap
+    public static class ImagesMap
     {
         public const string DefaultImagesMapFileName = "ImagesMap";
         public const string HeaderImageLinkSrc = "HeaderImageLink";

@@ -23,9 +23,8 @@ namespace MarkConv
         public static readonly string HabrMinTextLengthAfterCutMessage =
             $"Text after cut can not be less than {HabrMinTextLengthAfterCut} characters";
 
-        private int _spoilersLevel = 0;
-        private bool _insideCodeBlock = false;
-        private bool _insideComment = false;
+        private int _spoilersLevel;
+        private bool _insideComment;
         private int _imageLinkNumber;
         private List<Header> _headers;
 
@@ -48,7 +47,6 @@ namespace MarkConv
 
             int index = 0;
             int cutElementIndex = -1;
-            int cutElementLength = 0;
 
             while (index < textSpan.Length)
             {
@@ -70,7 +68,6 @@ namespace MarkConv
                         if (cutElementIndex == -1)
                         {
                             cutElementIndex = result.Length;
-                            cutElementLength = match.Length;
                         }
                     }
 

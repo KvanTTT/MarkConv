@@ -37,7 +37,7 @@ namespace MarkConv
                     codeSection = !codeSection;
                 }
 
-                if (codeSection && line.IndexOf("```", codeSectionMarkerMatch.Length) == -1 ||
+                if (codeSection && line.IndexOf("```", codeSectionMarkerMatch.Length, StringComparison.Ordinal) == -1 ||
                     !codeSection && codeSectionMarkerMatch.Success)
                 {
                     resultLines.Add(line);

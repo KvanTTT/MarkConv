@@ -8,7 +8,7 @@ namespace MarkConv
         /// 0 - not change
         /// -1 - concat lines
         /// </summary>
-        public int LinesMaxLength { get; set; } = 0;
+        public int LinesMaxLength { get; set; }
 
         public MarkdownType InputMarkdownType { get; set; } = MarkdownType.Default;
 
@@ -16,17 +16,17 @@ namespace MarkConv
 
         public string HeaderImageLink { get; set; } = string.Empty;
 
-        public bool RemoveTitleHeader { get; set; } = false;
+        public bool RemoveTitleHeader { get; set; }
 
         public bool NormalizeBreaks { get; set; } = true;
 
-        public bool Normalize { get; set; } = false;
+        public bool Normalize { get; set; }
 
         public string IndentString { get; set; } = "    ";
 
         public bool CheckLinks { get; set; } = true;
 
-        public bool CompareImageHashes { get; set; } = false;
+        public bool CompareImageHashes { get; set; }
 
         public bool CenterImageAlignment { get; set; }
 
@@ -34,7 +34,7 @@ namespace MarkConv
 
         public Dictionary<string, ImageHash> ImagesMap = new Dictionary<string, ImageHash>();
 
-        public bool RemoveSpoilers { get; set; } = false;
+        public bool RemoveSpoilers { get; set; }
 
         public bool RemoveComments { get; set; }
 

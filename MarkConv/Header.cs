@@ -46,13 +46,13 @@ namespace MarkConv
             [' '] = "-"
         };
 
-        public string Title { get; set; } = "";
+        public string Title { get; }
 
-        public int Level { get; set; } = 1;
+        public int Level { get; }
 
-        public int SourceLineIndex { get; set; } = 0;
+        public int SourceLineIndex { get; set; }
 
-        public int DestLineIndex { get; set; } = 0;
+        public int DestLineIndex { get; set; }
 
         public readonly Dictionary<MarkdownType, HeaderLink> Links = new Dictionary<MarkdownType, HeaderLink>();
 
@@ -63,10 +63,6 @@ namespace MarkConv
 
             foreach (MarkdownType markdownType in MarkdownTypes)
                 Links[markdownType] = CalculateHeaderLink(existingHeaders, markdownType, headerTitle);
-        }
-
-        protected Header()
-        {
         }
 
         private static HeaderLink CalculateHeaderLink(List<Header> headers, MarkdownType linkType, string headerTitle)
