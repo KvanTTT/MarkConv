@@ -87,7 +87,7 @@ namespace MarkConv.Tests
 
             inputText = new string('a', LinksHtmlProcessor.HabrMaxTextLengthWithoutCut - 1);
             result = processor.Process(inputText);
-            Assert.Equal(0, logger.WarningMessages.Count);
+            Assert.Empty(logger.WarningMessages);
             logger.Clear();
 
             inputText = new string('a', LinksHtmlProcessor.HabrMaxTextLengthBeforeCut + 1) + "<cut/>" +
@@ -99,7 +99,7 @@ namespace MarkConv.Tests
             inputText = new string('a', LinksHtmlProcessor.HabrMaxTextLengthBeforeCut) + "<cut/>" +
                         new string('a', LinksHtmlProcessor.HabrMinTextLengthAfterCut);
             result = processor.Process(inputText);
-            Assert.Equal(0, logger.WarningMessages.Count);
+            Assert.Empty(logger.WarningMessages);
             logger.Clear();
 
             inputText = new string('a', LinksHtmlProcessor.HabrMinTextLengthBeforeCut - 1) + "<cut/>" +
@@ -111,7 +111,7 @@ namespace MarkConv.Tests
             inputText = new string('a', LinksHtmlProcessor.HabrMinTextLengthBeforeCut) + "<cut/>" +
                         new string('a', 1000);
             result = processor.Process(inputText);
-            Assert.Equal(0, logger.WarningMessages.Count);
+            Assert.Empty(logger.WarningMessages);
             logger.Clear();
 
             inputText = new string('a', 1000) + "<cut/>" +
@@ -123,7 +123,7 @@ namespace MarkConv.Tests
             inputText = new string('a', 1000) + "<cut/>" +
                         new string('a', LinksHtmlProcessor.HabrMinTextLengthAfterCut - 2);
             result = processor.Process(inputText);
-            Assert.Equal(0, logger.WarningMessages.Count);
+            Assert.Empty(logger.WarningMessages);
             logger.Clear();
         }
     }
