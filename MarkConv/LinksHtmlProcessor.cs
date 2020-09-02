@@ -51,11 +51,11 @@ namespace MarkConv
             while (index < textSpan.Length)
             {
                 var matches = new Dictionary<ElementType, Match>();
-                Tuple<ElementType, Match> matchResult = NextMatch(text, index, null, matches);
+                MatchResult matchResult = NextMatch(text, index, null, matches);
 
                 while (matchResult != null)
                 {
-                    Match match = matchResult.Item2;
+                    Match match = matchResult.Match;
 
                     if ((!Options.RemoveSpoilers || _spoilersLevel == 0) && (!Options.RemoveComments || !_insideComment))
                     {
@@ -64,7 +64,7 @@ namespace MarkConv
 
                     index = match.Index + match.Length;
 
-                    if (matchResult.Item1 == ElementType.CutElement)
+                    if (matchResult.Type == ElementType.CutElement)
                     {
                         if (cutElementIndex == -1)
                         {
@@ -72,7 +72,8 @@ namespace MarkConv
                         }
                     }
 
-                    string processedMatch = ProcessMatch(matchResult, text, matches, out matchResult);
+                    string processedMatch;
+                    (processedMatch, matchResult) = ProcessMatch(matchResult, text, matches);
                     result.Append(processedMatch);
 
                     if (string.IsNullOrWhiteSpace(processedMatch))
@@ -124,10 +125,10 @@ namespace MarkConv
             return resultStr;
         }
 
-        private Tuple<ElementType, Match> NextMatch(string text, int index,
-            Tuple<ElementType, Match> prevMatch, Dictionary<ElementType, Match> prevMatches)
+        private MatchResult NextMatch(string text, int index,
+            MatchResult prevMatch, Dictionary<ElementType, Match> prevMatches)
         {
-            if (prevMatch == null || prevMatch.Item1 == ElementType.CodeCloseElement)
+            if (prevMatch == null || prevMatch.Type == ElementType.CodeCloseElement)
             {
                 prevMatches[ElementType.Link] = GetMatch(text, index, ElementType.Link);
                 prevMatches[ElementType.HtmlLink] = GetMatch(text, index, ElementType.HtmlLink);
@@ -163,33 +164,33 @@ namespace MarkConv
             }
             else
             {
-                if (prevMatch.Item1 == ElementType.CodeOpenElement)
+                if (prevMatch.Type == ElementType.CodeOpenElement)
                 {
-                    return new Tuple<ElementType, Match>(ElementType.CodeCloseElement, GetMatch(text, index, ElementType.CodeCloseElement));
+                    return new MatchResult(ElementType.CodeCloseElement, GetMatch(text, index, ElementType.CodeCloseElement));
                 }
 
-                if (prevMatch.Item1 == ElementType.CommentOpenElement)
+                if (prevMatch.Type == ElementType.CommentOpenElement)
                 {
                     prevMatches.Remove(ElementType.CommentOpenElement);
                     prevMatches[ElementType.CommentCloseElement] = GetMatch(text, index, ElementType.CommentCloseElement);
                 }
-                else if (prevMatch.Item1 == ElementType.CommentCloseElement)
+                else if (prevMatch.Type == ElementType.CommentCloseElement)
                 {
                     prevMatches.Remove(ElementType.CommentCloseElement);
                     prevMatches[ElementType.CommentOpenElement] = GetMatch(text, index, ElementType.CommentOpenElement);
                 }
                 else
                 {
-                    prevMatches[prevMatch.Item1] = GetMatch(text, index, prevMatch.Item1);
+                    prevMatches[prevMatch.Type] = GetMatch(text, index, prevMatch.Type);
                 }
             }
 
-            Tuple<ElementType, Match> result = null;
+            MatchResult result = null;
             foreach (KeyValuePair<ElementType, Match> match in prevMatches)
             {
-                if (match.Value.Success && match.Value.Index < (result?.Item2.Index ?? int.MaxValue))
+                if (match.Value.Success && match.Value.Index < (result?.Match.Index ?? int.MaxValue))
                 {
-                    result = new Tuple<ElementType, Match>(match.Key, match.Value);
+                    result = new MatchResult(match.Key, match.Value);
                 }
             }
 
@@ -206,14 +207,13 @@ namespace MarkConv
             throw new NotImplementedException($"Regex for {elementType} has not been found");
         }
 
-        private string ProcessMatch(Tuple<ElementType, Match> matchResult, string text, Dictionary<ElementType, Match> matches,
-            out Tuple<ElementType, Match> nextMatch)
+        private (string, MatchResult) ProcessMatch(MatchResult matchResult, string text, Dictionary<ElementType, Match> matches)
         {
             string result;
-            var match = matchResult.Item2;
-            nextMatch = NextMatch(text, match.Index + match.Length, matchResult, matches);
+            var match = matchResult.Match;
+            var nextMatch = NextMatch(text, match.Index + match.Length, matchResult, matches);
 
-            switch (matchResult.Item1)
+            switch (matchResult.Type)
             {
                 case ElementType.Link:
                     result = ProcessLink(match);
@@ -223,7 +223,7 @@ namespace MarkConv
                     _spoilersLevel++;
                     result = Options.RemoveSpoilers
                         ? ""
-                        : nextMatch.Item1 != ElementType.SummaryElements
+                        : nextMatch.Type != ElementType.SummaryElements
                             ? "<spoiler>"
                             : "";
                     break;
@@ -272,16 +272,16 @@ namespace MarkConv
                     break;
 
                 default:
-                    throw new NotImplementedException($"Regex for {matchResult.Item1} is not supported");
+                    throw new NotImplementedException($"Regex for {matchResult.Type} is not supported");
             }
 
             if (Options.RemoveComments && _insideComment)
-                return "";
+                result = "";
 
             if (Options.RemoveSpoilers && _spoilersLevel > 0)
-                return "";
+                result = "";
 
-            return result;
+            return (result, nextMatch);
         }
 
         private string ProcessLink(Match match)
