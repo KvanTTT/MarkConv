@@ -32,7 +32,7 @@ Supported values:
 
 Max length of line. `0` - not change, `-1` - merge lines
 
-### `-m` or `imagesMap`
+### `-m` or `--imagesMap`
 
 source -> replacement map for image paths. Example of such file:
 

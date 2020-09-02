@@ -8,18 +8,18 @@ namespace MarkConv
 {
     public class Link
     {
-        public string Title { get; set; }
+        public string Title { get; }
 
-        public string Address { get; set; }
+        public string Address { get; }
 
-        public bool IsImage { get; set; }
+        public bool IsImage { get; }
 
-        public LinkType LinkType { get; set; }
+        public LinkType LinkType { get; }
 
         public Link(string title, string address, bool isImage = false, LinkType linkType = LinkType.Absolute)
         {
             Title = title;
-            Address = address;
+            Address = address ?? throw new ArgumentNullException(nameof(address));
             IsImage = isImage;
             LinkType = linkType;
         }
@@ -65,12 +65,8 @@ namespace MarkConv
 
             if (data != null)
             {
-                byte[] hash;
-                using (SHA1 sha1 = SHA1.Create())
-                {
-                    hash = sha1.ComputeHash(data);
-                }
-                return hash;
+                using SHA1 sha1 = SHA1.Create();
+                return sha1.ComputeHash(data);
             }
 
             return null;

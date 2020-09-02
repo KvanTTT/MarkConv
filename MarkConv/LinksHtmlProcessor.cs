@@ -267,9 +267,6 @@ namespace MarkConv
                     break;
 
                 case ElementType.CodeElement:
-                    result = match.ToString();
-                    break;
-
                 case ElementType.CodeOpenElement:
                 case ElementType.CodeCloseElement:
                 case ElementType.CutElement:
@@ -320,14 +317,9 @@ namespace MarkConv
             {
                 string newAddress = ProcessImageAddress(address);
 
-                if (Options.CenterImageAlignment)
-                {
-                    linkString = $"<img src=\"{newAddress}\" align=center />";
-                }
-                else
-                {
-                    linkString = new Link(title, newAddress, true).ToString();
-                }
+                linkString = Options.CenterImageAlignment
+                    ? $"<img src=\"{newAddress}\" align=center />"
+                    : new Link(title, newAddress, true).ToString();
 
                 if (_imageLinkNumber == 0 && !string.IsNullOrWhiteSpace(Options.HeaderImageLink))
                 {
@@ -361,7 +353,7 @@ namespace MarkConv
         private string ProcessImageAddress(string address)
         {
             byte[] hash = null;
-            address = address.Trim('"');
+            address = address.Trim('"', '\'');
             string newLink = address;
 
             if (Options.CheckLinks)
