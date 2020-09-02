@@ -25,7 +25,7 @@ namespace MarkConv
         public static readonly Regex SpoilerCloseTagRegex = new Regex(@"<\s*/spoiler\s*>", RegexOptions.Compiled);
         public static readonly Regex AnchorTagRegex = new Regex(@"<\s*anchor\s*>(.*?)<\s*/anchor\s*>", RegexOptions.Compiled);
         public static readonly Regex UrlRegex = new Regex(@"^https?://", RegexOptions.Compiled);
-        public static readonly Regex SrcUrlRegex = new Regex(@"src\s*=\s*([^\s]+)", RegexOptions.Compiled);
+        public static readonly Regex SrcUrlRegex = new Regex(@"src\s*=\s*([^\s/>]+)", RegexOptions.Compiled);
         public static readonly Regex CommentOpenTagRegex = new Regex(@"<!--", RegexOptions.Compiled);
         public static readonly Regex CommentCloseTagRegex = new Regex(@"-->", RegexOptions.Compiled);
         public static readonly Regex LinkRegex = new Regex(
