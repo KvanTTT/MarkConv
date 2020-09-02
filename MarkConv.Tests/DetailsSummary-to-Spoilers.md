@@ -1,3 +1,7 @@
+<spoiler>
+Details without summary
+</spoiler>
+
 <spoiler title="Details">
 Content
 

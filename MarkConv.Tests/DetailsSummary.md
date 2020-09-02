@@ -1,4 +1,8 @@
 <details>
+Details without summary
+</details>
+
+<details>
 <summary>Details</summary>
 Content
 

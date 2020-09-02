@@ -51,11 +51,10 @@ namespace MarkConv
             while (index < textSpan.Length)
             {
                 var matches = new Dictionary<ElementType, Match>();
-                Tuple<ElementType, Match> matchResult = null;
+                Tuple<ElementType, Match> matchResult = NextMatch(text, index, null, matches);
 
-                while ((matchResult = NextMatch(text, index, matchResult, matches)) != null)
+                while (matchResult != null)
                 {
-                    ElementType elementType = matchResult.Item1;
                     Match match = matchResult.Item2;
 
                     if ((!Options.RemoveSpoilers || _spoilersLevel == 0) && (!Options.RemoveComments || !_insideComment))
@@ -63,7 +62,9 @@ namespace MarkConv
                         result.Append(textSpan.Slice(index, match.Index - index));
                     }
 
-                    if (elementType == ElementType.CutElement)
+                    index = match.Index + match.Length;
+
+                    if (matchResult.Item1 == ElementType.CutElement)
                     {
                         if (cutElementIndex == -1)
                         {
@@ -71,16 +72,14 @@ namespace MarkConv
                         }
                     }
 
-                    string processedMatch = ProcessMatch(elementType, match);
+                    string processedMatch = ProcessMatch(matchResult, text, matches, out matchResult);
                     result.Append(processedMatch);
-
-                    index = match.Index + match.Length;
 
                     if (string.IsNullOrWhiteSpace(processedMatch))
                     {
                         while (index < textSpan.Length && char.IsWhiteSpace(textSpan[index]))
                             index++;
-                        while (result.Length > 0 && SpaceChars.Contains(result[result.Length - 1]))
+                        while (result.Length > 0 && SpaceChars.Contains(result[^1]))
                             result.Remove(result.Length - 1, 1);
                     }
                 }
@@ -207,11 +206,14 @@ namespace MarkConv
             throw new NotImplementedException($"Regex for {elementType} has not been found");
         }
 
-        private string ProcessMatch(ElementType elementType, Match match)
+        private string ProcessMatch(Tuple<ElementType, Match> matchResult, string text, Dictionary<ElementType, Match> matches,
+            out Tuple<ElementType, Match> nextMatch)
         {
             string result;
+            var match = matchResult.Item2;
+            nextMatch = NextMatch(text, match.Index + match.Length, matchResult, matches);
 
-            switch (elementType)
+            switch (matchResult.Item1)
             {
                 case ElementType.Link:
                     result = ProcessLink(match);
@@ -219,7 +221,11 @@ namespace MarkConv
 
                 case ElementType.DetailsOpenElement:
                     _spoilersLevel++;
-                    result = "";
+                    result = Options.RemoveSpoilers
+                        ? ""
+                        : nextMatch.Item1 != ElementType.SummaryElements
+                            ? "<spoiler>"
+                            : "";
                     break;
 
                 case ElementType.DetailsCloseElement:
@@ -266,7 +272,7 @@ namespace MarkConv
                     break;
 
                 default:
-                    throw new NotImplementedException($"Regex for {elementType} is not supported");
+                    throw new NotImplementedException($"Regex for {matchResult.Item1} is not supported");
             }
 
             if (Options.RemoveComments && _insideComment)
