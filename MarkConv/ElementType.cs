@@ -12,6 +12,7 @@
         HtmlLink,
         CommentOpenElement,
         CommentCloseElement,
+        CodeElement,
         CodeOpenElement,
         CodeCloseElement,
         CutElement

@@ -128,7 +128,7 @@ namespace MarkConv
         private MatchResult NextMatch(string text, int index,
             MatchResult prevMatch, Dictionary<ElementType, Match> prevMatches)
         {
-            if (prevMatch == null || prevMatch.Type == ElementType.CodeCloseElement)
+            if (prevMatch == null || prevMatch.Type == ElementType.CodeElement || prevMatch.Type == ElementType.CodeCloseElement)
             {
                 prevMatches[ElementType.Link] = GetMatch(text, index, ElementType.Link);
                 prevMatches[ElementType.HtmlLink] = GetMatch(text, index, ElementType.HtmlLink);
@@ -159,6 +159,7 @@ namespace MarkConv
                     prevMatches[ElementType.CutElement] = GetMatch(text, index, ElementType.CutElement);
                 }
 
+                prevMatches[ElementType.CodeElement] = GetMatch(text, index, ElementType.CodeElement);
                 prevMatches[ElementType.CommentOpenElement] = GetMatch(text, index, ElementType.CommentOpenElement);
                 prevMatches[ElementType.CodeOpenElement] = GetMatch(text, index, ElementType.CodeOpenElement);
             }
@@ -263,6 +264,10 @@ namespace MarkConv
                 case ElementType.CommentCloseElement:
                     _insideComment = false;
                     result = Options.RemoveComments ? "" : match.ToString();
+                    break;
+
+                case ElementType.CodeElement:
+                    result = match.ToString();
                     break;
 
                 case ElementType.CodeOpenElement:

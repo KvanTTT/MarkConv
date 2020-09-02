@@ -6,6 +6,30 @@ namespace MarkConv.Tests
     public class MiscTests
     {
         [Fact]
+        public void ShouldEscapeHtmlComments()
+        {
+            var options = new ProcessorOptions();
+            var processor = new Processor(options);
+
+            var actual = processor.Process(
+                                        "``\n" +
+                                           "\n" +
+                                           "`<!--`\n" +
+                                           "\n" +
+                                           "```\n" +
+                                           "-->\n" +
+                                           "```\n");
+
+            Assert.Equal("``\n" +
+                         "\n" +
+                         "`<!--`\n" +
+                         "\n" +
+                         "```\n" +
+                         "-->\n" +
+                         "```", actual);
+        }
+
+        [Fact]
         public void ShouldNormalize()
         {
             var options = new ProcessorOptions { Normalize = true };

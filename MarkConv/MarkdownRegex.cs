@@ -13,6 +13,7 @@ namespace MarkConv
         public static readonly Regex SpecialCharsRegex = new Regex($@"^(>|\*|-|\+|\d+\.|\||=)$", RegexOptions.Compiled);
         public static readonly Regex SpecialItemRegex = new Regex($@"^{space}*(>|\|)", RegexOptions.Compiled);
         public static readonly Regex ListItemRegex = new Regex($@"^{space}*(\*|-|\+|\d+\.){space}(.+)", RegexOptions.Compiled);
+        public static readonly Regex CodeStringRegex = new Regex(@"`([^`\r\n]+)`", RegexOptions.Compiled);
         public static readonly Regex CodeSectionOpenRegex = new Regex($@"{space}*(~~~|```)(\w*)", RegexOptions.Compiled | RegexOptions.Multiline);
         public static readonly Regex CodeSectionCloseRegex = new Regex($@"{space}*(~~~|```)", RegexOptions.Compiled | RegexOptions.Multiline);
         public static readonly Regex HeaderRegex = new Regex($@"^{space}*(#+){space}*(.+)", RegexOptions.Compiled);
@@ -46,6 +47,7 @@ namespace MarkConv
             [ElementType.HtmlLink] = SrcUrlRegex,
             [ElementType.CommentOpenElement] = CommentOpenTagRegex,
             [ElementType.CommentCloseElement] = CommentCloseTagRegex,
+            [ElementType.CodeElement] = CodeStringRegex,
             [ElementType.CodeOpenElement] = CodeSectionOpenRegex,
             [ElementType.CodeCloseElement] = CodeSectionCloseRegex,
             [ElementType.CutElement] = CutTagRegex,
