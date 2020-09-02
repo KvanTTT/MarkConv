@@ -58,7 +58,9 @@ namespace MarkConv.Cli
                 File.WriteAllText(Path.Combine(directory, $"{fileName}-table-of-contents.md"), tableOfContents);
             }
 
-            File.WriteAllText(Path.Combine(directory, $"{fileName}-{options.InputMarkdownType}-to-{options.OutputMarkdownType}.md"), converted.Result);
+            string outputFileName = $"{fileName}-{options.InputMarkdownType}-to-{options.OutputMarkdownType}.md";
+            File.WriteAllText(Path.Combine(directory, outputFileName), converted.Result);
+            logger.Info($"File {outputFileName} is ready");
 
             return 0;
         }
