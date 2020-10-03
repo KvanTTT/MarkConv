@@ -10,9 +10,9 @@ namespace MarkConv
         /// </summary>
         public int LinesMaxLength { get; set; }
 
-        public MarkdownType InputMarkdownType { get; set; } = MarkdownType.Default;
+        public MarkdownType InputMarkdownType { get; set; } = MarkdownType.Common;
 
-        public MarkdownType OutputMarkdownType { get; set; } = MarkdownType.Default;
+        public MarkdownType OutputMarkdownType { get; set; } = MarkdownType.Habr;
 
         public string HeaderImageLink { get; set; } = string.Empty;
 

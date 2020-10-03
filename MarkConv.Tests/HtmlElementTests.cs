@@ -47,6 +47,7 @@ namespace MarkConv.Tests
         {
             var options = new ProcessorOptions
             {
+                InputMarkdownType = MarkdownType.Habr,
                 RemoveSpoilers = true
             };
 

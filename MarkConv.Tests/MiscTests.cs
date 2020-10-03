@@ -77,7 +77,9 @@ namespace MarkConv.Tests
         {
             string source = Utils.ReadFileFromProject("RelativeLinks.Common.md");
 
-            var linesProcessor = new LinesProcessor();
+            var options = new ProcessorOptions
+                {InputMarkdownType = MarkdownType.Common, OutputMarkdownType = MarkdownType.Common};
+            var linesProcessor = new LinesProcessor(options);
             LinesProcessorResult linesProcessorResult = linesProcessor.Process(source);
             List<string> tableOfContents = linesProcessor.GenerateTableOfContents(linesProcessorResult);
             string actual = string.Join("\n", tableOfContents);

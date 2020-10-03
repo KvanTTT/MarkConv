@@ -144,7 +144,7 @@ namespace MarkConv
                         GetMatch(text, index, ElementType.SummaryElements);
                 }
 
-                if ((Options.InputMarkdownType == MarkdownType.Habr || Options.InputMarkdownType == MarkdownType.Default) &&
+                if (Options.InputMarkdownType == MarkdownType.Habr &&
                     (Options.OutputMarkdownType == MarkdownType.Common || Options.OutputMarkdownType == MarkdownType.Dev || Options.RemoveSpoilers))
                 {
                     prevMatches[ElementType.SpoilerOpenElement] =
@@ -311,7 +311,7 @@ namespace MarkConv
             LinkType linkType = Link.DetectLinkType(address);
 
             string linkString;
-            if (Options.OutputMarkdownType != MarkdownType.Default && linkType == LinkType.Relative && !isImage)
+            if (linkType == LinkType.Relative && !isImage)
             {
                 string inputAddress = Header.GenerateLink(Options.InputMarkdownType, address);
                 Header header = _headers.FirstOrDefault(h => h.Links[Options.InputMarkdownType].FullLink == inputAddress);

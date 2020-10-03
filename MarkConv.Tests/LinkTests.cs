@@ -24,7 +24,7 @@ namespace MarkConv.Tests
         public void ShouldNotChangeAnythingInsideCodeSection()
         {
             Compare("RelativeLinksAndCode.md", "RelativeLinksAndCode-Converted.md",
-                MarkdownType.Default, MarkdownType.Common);
+                MarkdownType.Common, MarkdownType.Common);
         }
 
         [Fact]

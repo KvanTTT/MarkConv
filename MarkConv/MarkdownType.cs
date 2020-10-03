@@ -2,7 +2,6 @@
 {
     public enum MarkdownType
     {
-        Default,
         Common,
         Habr,
         Dev
