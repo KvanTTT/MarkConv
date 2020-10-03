@@ -9,6 +9,8 @@ namespace MarkConv
 {
     public class LinesProcessor
     {
+        private readonly List<string> _indents = new List<string> { "" };
+
         public ILogger Logger { get; set; }
 
         public ProcessorOptions Options { get; }
@@ -53,14 +55,14 @@ namespace MarkConv
                         codeSection = false;
                     }
 
-                    string lastResultLine = resultLines.Count > 0 ? resultLines[resultLines.Count - 1] : "";
+                    string lastResultLine = resultLines.Count > 0 ? resultLines[^1] : "";
 
                     if (Options.LinesMaxLength > 0 && lastResultLine.Length > Options.LinesMaxLength &&
                         !string.IsNullOrWhiteSpace(lastResultLine) &&
                         !HeaderRegex.IsMatch(lastResultLine) && !HeaderLineRegex.IsMatch(lastResultLine))
                     {
-                        WrapLines(resultLines, lines, lastResultLine);
-                        lastResultLine = resultLines[resultLines.Count - 1];
+                        WrapLines(resultLines, lastResultLine);
+                        lastResultLine = resultLines[^1];
                     }
 
                     if (Options.NormalizeBreaks &&
@@ -97,7 +99,7 @@ namespace MarkConv
                             !isLastLineSpecial &&
                             !isLastLineWhiteSpace)
                         {
-                            WrapLines(resultLines, lines, line.Trim(), lastResultLine);
+                            WrapLines(resultLines, line.Trim(), lastResultLine);
                         }
                         else
                         {
@@ -202,7 +204,7 @@ namespace MarkConv
             return tableOfContents;
         }
 
-        private void WrapLines(List<string> resultLines, IList<string> lines, string str, string initStr = "")
+        private void WrapLines(List<string> resultLines, string str, string initStr = "")
         {
             string[] words = SplitForSoftWrap(str);
             int linesMaxLength = Options.LinesMaxLength == -1 ? int.MaxValue : Options.LinesMaxLength;
@@ -246,26 +248,26 @@ namespace MarkConv
             int lastNotWsIndex = 0;
             bool codeSection = false;
             char[] chars = str.ToCharArray();
-            int i = 0;
-            while (i <= chars.Length)
+            int charInd = 0;
+            while (charInd <= chars.Length)
             {
-                if (i + 2 < chars.Length &&
-                    chars[i] == '`' && chars[i + 1] == '`' && chars[i + 2] == '`')
+                if (charInd + 2 < chars.Length &&
+                    chars[charInd] == '`' && chars[charInd + 1] == '`' && chars[charInd + 2] == '`')
                 {
                     codeSection = !codeSection;
-                    i += 3;
+                    charInd += 3;
                 }
                 else if (!codeSection)
                 {
-                    if (i == chars.Length || chars[i] == ' ' || chars[i] == '\t')
+                    if (charInd == chars.Length || chars[charInd] == ' ' || chars[charInd] == '\t')
                     {
-                        int wordLength = i - lastNotWsIndex;
+                        int wordLength = charInd - lastNotWsIndex;
                         if (wordLength != 0)
                         {
                             string word = new string(chars, lastNotWsIndex, wordLength);
                             if (SpecialCharsRegex.IsMatch(word) && result.Count > 0)
                             {
-                                result[result.Count - 1] = $"{result[result.Count - 1]} {word}";
+                                result[^1] = $"{result[^1]} {word}";
                             }
                             else
                             {
@@ -273,15 +275,15 @@ namespace MarkConv
                             }
                         }
                     }
-                    else if (i - 1 >= 0 && (chars[i - 1] == ' ' || chars[i - 1] == '\t'))
+                    else if (charInd - 1 >= 0 && (chars[charInd - 1] == ' ' || chars[charInd - 1] == '\t'))
                     {
-                        lastNotWsIndex = i;
+                        lastNotWsIndex = charInd;
                     }
-                    i++;
+                    charInd++;
                 }
                 else
                 {
-                    i++;
+                    charInd++;
                 }
             }
 
@@ -294,30 +296,42 @@ namespace MarkConv
             {
                 return false;
             }
-            else
+
+            if (!string.IsNullOrWhiteSpace(header))
             {
-                if (!string.IsNullOrWhiteSpace(header))
+                if (headers.Any() && level < headers.Min(h => h.Level))
                 {
-                    if (headers.Any() && level < headers.Min(h => h.Level))
-                    {
-                        Logger?.Warn($"Header \"{header}\" level {level} at line {sourceLineIndex + 1} is incorrect");
-                    }
-                    headers.Add(new Header(header, level, headers)
-                    {
-                        SourceLineIndex = sourceLineIndex,
-                        DestLineIndex = destLineIndex >= 0 ? destLineIndex : 0
-                    });
+                    Logger?.Warn($"Header \"{header}\" level {level} at line {sourceLineIndex + 1} is incorrect");
                 }
-                return true;
+                headers.Add(new Header(header, level, headers)
+                {
+                    SourceLineIndex = sourceLineIndex,
+                    DestLineIndex = destLineIndex >= 0 ? destLineIndex : 0
+                });
             }
+            return true;
         }
 
-        private static string Repeat(string value, int count)
+        private string Repeat(string value, int count)
         {
-            if (count <= 0)
+            if (count < 0)
+            {
                 return "";
+            }
 
-            return new StringBuilder(value.Length * count).Insert(0, value, count).ToString();
+            if (_indents.Count <= count)
+            {
+                var stringBuilder = new StringBuilder(value.Length * count);
+                stringBuilder.Append(_indents[^1]);
+
+                for (int i = _indents.Count; i <= count; i++)
+                {
+                    stringBuilder.Append(value);
+                    _indents.Add(stringBuilder.ToString());
+                }
+            }
+
+            return _indents[count];
         }
     }
 }
