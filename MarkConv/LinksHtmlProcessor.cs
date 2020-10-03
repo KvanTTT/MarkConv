@@ -145,7 +145,7 @@ namespace MarkConv
                 }
 
                 if (Options.InputMarkdownType == MarkdownType.Habr &&
-                    (Options.OutputMarkdownType == MarkdownType.Common || Options.OutputMarkdownType == MarkdownType.Dev || Options.RemoveSpoilers))
+                    (Options.OutputMarkdownType == MarkdownType.GitHub || Options.OutputMarkdownType == MarkdownType.Dev || Options.RemoveSpoilers))
                 {
                     prevMatches[ElementType.SpoilerOpenElement] =
                         GetMatch(text, index, ElementType.SpoilerOpenElement);

@@ -1,6 +1,7 @@
 # MarkConv (Markdown Converter)
 
-Converts markdown of different types to each other.
+Converts markdown of different types (GitHub, Habr, Dev) to each other.
+GitHub is also equivalent to VisualCode.
 
 Platform: NET Core 3.1 (Crossplatform).
 
@@ -9,10 +10,10 @@ Platform: NET Core 3.1 (Crossplatform).
 The following command:
 
 ```
-dotnet MarkConv.Cli.dll -f "my_awesome_article.md" -o Habr
+dotnet MarkConv.Cli.dll -f "MyAwesomeArticle.md" -o Habr
 ```
 
-Creates the output file `my_awesome_article-Common-Habr.md`.
+Creates the output file `MyAwesomeArticle-Common-Habr.md`.
 
 All cli parameters are optional except of `-f`.
 
@@ -24,15 +25,15 @@ File to convert.
 
 Supported values:
 
-* Default
-* Common
+* GitHub (Default)
 * Habr
+* Dev
 
-### `-l` or `--linesLength`
+### `-l` or `--lineslength`
 
 Max length of line. `0` - not change, `-1` - merge lines
 
-### `-m` or `--imagesMap`
+### `-m` or `--imagesmap`
 
 source -> replacement map for image paths. Example of such file:
 

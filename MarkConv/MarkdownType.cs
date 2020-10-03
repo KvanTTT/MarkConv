@@ -2,7 +2,7 @@
 {
     public enum MarkdownType
     {
-        Common,
+        GitHub,
         Habr,
         Dev
     }

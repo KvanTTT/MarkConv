@@ -78,7 +78,7 @@ namespace MarkConv.Tests
             string source = Utils.ReadFileFromProject("RelativeLinks.Common.md");
 
             var options = new ProcessorOptions
-                {InputMarkdownType = MarkdownType.Common, OutputMarkdownType = MarkdownType.Common};
+                {InputMarkdownType = MarkdownType.GitHub, OutputMarkdownType = MarkdownType.GitHub};
             var linesProcessor = new LinesProcessor(options);
             LinesProcessorResult linesProcessorResult = linesProcessor.Process(source);
             List<string> tableOfContents = linesProcessor.GenerateTableOfContents(linesProcessorResult);

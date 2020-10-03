@@ -10,7 +10,7 @@ namespace MarkConv
         /// </summary>
         public int LinesMaxLength { get; set; }
 
-        public MarkdownType InputMarkdownType { get; set; } = MarkdownType.Common;
+        public MarkdownType InputMarkdownType { get; set; } = MarkdownType.GitHub;
 
         public MarkdownType OutputMarkdownType { get; set; } = MarkdownType.Habr;
 
@@ -58,7 +58,7 @@ namespace MarkConv
                         options.LinesMaxLength = 80;
                     }
                     break;
-                case MarkdownType.Common:
+                case MarkdownType.GitHub:
                     if (outputMarkdownType == MarkdownType.Habr || outputMarkdownType == MarkdownType.Dev)
                     {
                         options.LinesMaxLength = -1;

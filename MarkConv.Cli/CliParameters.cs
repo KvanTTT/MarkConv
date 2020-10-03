@@ -7,10 +7,10 @@ namespace MarkConv.Cli
         [Option('f', "file", Required = true, HelpText = "Input file to be processed")]
         public string InputFileName { get; set; }
 
-        [Option('i', "inputType", HelpText = "Markdown type of an input image (Default, Common, Habr)")]
-        public MarkdownType InputMarkdownType { get; set; } = MarkdownType.Common;
+        [Option('i', "inputType", HelpText = "Markdown type of an input image (GitHub, Habr, Dev)")]
+        public MarkdownType InputMarkdownType { get; set; } = MarkdownType.GitHub;
 
-        [Option('o', "outputType", HelpText = "Markdown type of an output image (Default, Common, Habr)")]
+        [Option('o', "outputType", HelpText = "Markdown type of an output image (GitHub, Habr, Dev)")]
         public MarkdownType OutputMarkdownType { get; set; } = MarkdownType.Habr;
 
         [Option('l', "linesLength", HelpText = "Lines max length. 0 - not change, -1 - merge lines")]

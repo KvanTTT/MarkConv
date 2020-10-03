@@ -10,21 +10,21 @@ namespace MarkConv.Tests
         public void ConvertVisualCodeToHabrRelativeLinks()
         {
             Compare("RelativeLinks.Common.md", "RelativeLinks.Common-to-Habr.md",
-                MarkdownType.Common, MarkdownType.Habr);
+                MarkdownType.GitHub, MarkdownType.Habr);
         }
 
         [Fact]
         public void ConvertHabrToCommonRelativeLinks()
         {
             Compare("RelativeLinks.Habr.md", "RelativeLinks.Habr-to-Common.md",
-                MarkdownType.Habr, MarkdownType.Common);
+                MarkdownType.Habr, MarkdownType.GitHub);
         }
 
         [Fact]
         public void ShouldNotChangeAnythingInsideCodeSection()
         {
             Compare("RelativeLinksAndCode.md", "RelativeLinksAndCode-Converted.md",
-                MarkdownType.Common, MarkdownType.Common);
+                MarkdownType.GitHub, MarkdownType.GitHub);
         }
 
         [Fact]
