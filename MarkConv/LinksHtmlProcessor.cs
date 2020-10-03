@@ -270,7 +270,7 @@ namespace MarkConv
                     break;
 
                 case ElementType.HtmlLink:
-                    result = $"src=\"{ProcessImageAddress(match.Groups[1].Value)}\"";
+                    result = $"src=\"{ProcessImageAddress(match.Groups[1].Value)}\"{match.Groups[2].Value}";
                     break;
 
                 case ElementType.CommentOpenElement:

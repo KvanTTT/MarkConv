@@ -31,15 +31,15 @@ namespace MarkConv
                 if (string.IsNullOrWhiteSpace(mappingItems[i]) || mappingItems[i].TrimStart().StartsWith("//"))
                     continue;
 
-                string[] strs = mappingItems[i].Split(MarkdownRegex.SpaceChars, StringSplitOptions.RemoveEmptyEntries);
-                if (strs.Length != 2)
+                string[] parts = mappingItems[i].Split(MarkdownRegex.SpaceChars, StringSplitOptions.RemoveEmptyEntries);
+                if (parts.Length != 2)
                 {
                     logger?.Warn($"Incorrect mapping item \"{mappingItems[i]}\" at line {i + 1}");
                 }
                 else
                 {
-                    string source = strs[0];
-                    string replacement = strs[1];
+                    string source = parts[0];
+                    string replacement = parts[1];
 
                     if (imagesMap.ContainsKey(source))
                     {
