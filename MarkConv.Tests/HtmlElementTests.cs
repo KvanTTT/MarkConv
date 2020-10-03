@@ -31,6 +31,18 @@ namespace MarkConv.Tests
         }
 
         [Fact]
+        public void ShouldConvertDetailsToDevFormat()
+        {
+            var options = new ProcessorOptions
+            {
+                InputMarkdownType = MarkdownType.Common,
+                OutputMarkdownType = MarkdownType.Dev
+            };
+
+            Utils.CompareFiles("DetailsSummary.md", "DetailsSummary-to-DEV.md", options);
+        }
+
+        [Fact]
         public void ShouldRemoveSpoilers()
         {
             var options = new ProcessorOptions
