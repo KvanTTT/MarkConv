@@ -59,7 +59,7 @@ namespace MarkConv
                     }
                     break;
                 case MarkdownType.Common:
-                    if (outputMarkdownType == MarkdownType.Habr)
+                    if (outputMarkdownType == MarkdownType.Habr || outputMarkdownType == MarkdownType.Dev)
                     {
                         options.LinesMaxLength = -1;
                     }
@@ -69,7 +69,7 @@ namespace MarkConv
                     }
                     break;
             }
-            if (outputMarkdownType == MarkdownType.Habr)
+            if (outputMarkdownType == MarkdownType.Habr || outputMarkdownType == MarkdownType.Dev)
             {
                 options.IndentString = "    ";
                 options.RemoveTitleHeader = true;

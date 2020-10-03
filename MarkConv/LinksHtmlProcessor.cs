@@ -134,7 +134,7 @@ namespace MarkConv
                 prevMatches[ElementType.HtmlLink] = GetMatch(text, index, ElementType.HtmlLink);
 
                 if (Options.InputMarkdownType != MarkdownType.Habr &&
-                    (Options.OutputMarkdownType == MarkdownType.Habr || Options.RemoveSpoilers))
+                    (Options.OutputMarkdownType == MarkdownType.Habr || Options.OutputMarkdownType == MarkdownType.Dev || Options.RemoveSpoilers))
                 {
                     prevMatches[ElementType.DetailsOpenElement] =
                         GetMatch(text, index, ElementType.DetailsOpenElement);
@@ -144,8 +144,8 @@ namespace MarkConv
                         GetMatch(text, index, ElementType.SummaryElements);
                 }
 
-                if (Options.InputMarkdownType != MarkdownType.Common &&
-                    (Options.OutputMarkdownType == MarkdownType.Common || Options.RemoveSpoilers))
+                if ((Options.InputMarkdownType == MarkdownType.Habr || Options.InputMarkdownType == MarkdownType.Default) &&
+                    (Options.OutputMarkdownType == MarkdownType.Common || Options.OutputMarkdownType == MarkdownType.Dev || Options.RemoveSpoilers))
                 {
                     prevMatches[ElementType.SpoilerOpenElement] =
                         GetMatch(text, index, ElementType.SpoilerOpenElement);
@@ -224,18 +224,35 @@ namespace MarkConv
                     _spoilersLevel++;
                     result = Options.RemoveSpoilers
                         ? ""
-                        : nextMatch.Type != ElementType.SummaryElements
-                            ? "<spoiler>"
-                            : "";
+                        : nextMatch.Type == ElementType.SummaryElements
+                            ? ""
+                            : Options.OutputMarkdownType == MarkdownType.Habr
+                                ? "<spoiler>"
+                                : Options.OutputMarkdownType == MarkdownType.Dev
+                                    ? "{% details %}"
+                                    : "";
                     break;
 
                 case ElementType.DetailsCloseElement:
                     _spoilersLevel--;
-                    result = Options.RemoveSpoilers ? "" : "</spoiler>";
+                    result = Options.RemoveSpoilers
+                        ? ""
+                        : Options.OutputMarkdownType == MarkdownType.Habr
+                            ? "</spoiler>"
+                            : Options.OutputMarkdownType == MarkdownType.Dev
+                                ? "{% enddetails %}"
+                                : "";
                     break;
 
                 case ElementType.SummaryElements:
-                    result = Options.RemoveSpoilers ? "" : $"<spoiler title=\"{match.Groups[1].Value.Trim()}\">";
+                    string summary = match.Groups[1].Value.Trim();
+                    result = Options.RemoveSpoilers
+                        ? ""
+                        : Options.OutputMarkdownType == MarkdownType.Habr
+                            ? $"<spoiler title=\"{summary}\">"
+                            : Options.OutputMarkdownType == MarkdownType.Dev
+                                ? $"{{% details {summary} %}}"
+                                : "";
                     break;
 
                 case ElementType.SpoilerOpenElement:

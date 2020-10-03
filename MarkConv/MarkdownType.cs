@@ -4,6 +4,7 @@
     {
         Default,
         Common,
-        Habr
+        Habr,
+        Dev
     }
 }
