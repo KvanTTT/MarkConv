@@ -53,20 +53,12 @@ namespace MarkConv
             switch (inputMarkdownType)
             {
                 case MarkdownType.Habr:
-                    if (outputMarkdownType != MarkdownType.Habr)
-                    {
-                        options.LinesMaxLength = 80;
-                    }
+                case MarkdownType.Dev:
+                    options.LinesMaxLength = outputMarkdownType == MarkdownType.GitHub ? 80 : 0;
                     break;
                 case MarkdownType.GitHub:
-                    if (outputMarkdownType == MarkdownType.Habr || outputMarkdownType == MarkdownType.Dev)
-                    {
-                        options.LinesMaxLength = -1;
-                    }
-                    else
-                    {
-                        options.LinesMaxLength = 0;
-                    }
+                    options.LinesMaxLength =
+                        outputMarkdownType == MarkdownType.Habr || outputMarkdownType == MarkdownType.Dev ? -1 : 0;
                     break;
             }
             if (outputMarkdownType == MarkdownType.Habr || outputMarkdownType == MarkdownType.Dev)
