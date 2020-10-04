@@ -19,6 +19,9 @@ namespace MarkConv.Cli
         [Option('m', "imagesMap", HelpText = "source -> replacement map for image paths")]
         public string ImagesMapFileName { get; set; } = null;
 
+        [Option("outDir")]
+        public string OutputDirectory { get; set; } = null;
+
         [Option]
         public string HeaderImageLink { get; set; } = null;
 
@@ -32,7 +35,7 @@ namespace MarkConv.Cli
         public bool Normalize { get; set; } = false;
 
         [Option]
-        public bool CheckLinks { get; set; } = true;
+        public bool CheckLinks { get; set; } = false;
 
         [Option]
         public bool CompareImages { get; set; } = false;
