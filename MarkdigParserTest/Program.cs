@@ -1,7 +1,9 @@
 ﻿using System;
 using System.IO;
 using System.Text;
+using HtmlAgilityPack;
 using Markdig;
+using Markdig.Helpers;
 using Markdig.Syntax;
 using Markdig.Syntax.Inlines;
 
@@ -121,13 +123,7 @@ namespace MarkdigParserTest
                     break;
 
                 case HtmlBlock htmlBlock:
-                    for (int i = 0; i < htmlBlock.Lines.Count; i++)
-                    {
-                        result.Append(htmlBlock.Lines.Lines[i].ToString());
-                        result.Append(nl);
-                    }
-
-                    result.Append(nl);
+                    ProcessHtml(result, htmlBlock);
                     break;
 
                 case CodeBlock codeBlock:
@@ -168,6 +164,26 @@ namespace MarkdigParserTest
                 default:
                     throw new NotImplementedException($"Processing of Block type '{block.GetType()}' is not implemented");
             }
+        }
+
+        private static void ProcessHtml(StringBuilder result, HtmlBlock htmlBlock)
+        {
+            var htmlData = new StringBuilder();
+            var lines = htmlBlock.Lines.Lines;
+            foreach (StringLine line in lines)
+            {
+                htmlData.Append(line.ToString());
+                htmlData.Append(nl);
+            }
+
+            var doc = new HtmlDocument();
+            using var stringReader = new StringReader(htmlData.ToString());
+            doc.Load(stringReader);
+
+            var htmlOutput = doc.DocumentNode.OuterHtml;
+
+            result.Append(htmlOutput);
+            result.Append(nl);
         }
 
         private static void ProcessInline(StringBuilder result, Inline inline)
