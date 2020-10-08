@@ -1,13 +1,24 @@
 test
 c
-test
-42
+[link](http://google.com)
+
 string_without_spaces
 test >
+x
 test *
+x
 test -
+x
 test +
+x
 test =
-test 42.
+x
 test |
-```a bcd```
+x
+test 42.
+x
+`test x`
+**bold bold**
+*italic italic*
+~~strike
+strike~~

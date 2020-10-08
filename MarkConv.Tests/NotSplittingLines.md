@@ -1,11 +1,15 @@
 test c
-test 42
+[link](http://google.com)
+
 string_without_spaces
-test >
-test *
-test -
-test +
-test =
-test 42.
-test |
-```a bcd```
+test > x
+test * x
+test - x
+test + x
+test = x
+test | x
+test 42. x
+```test x```
+**bold bold**
+*italic italic*
+~~strike strike~~

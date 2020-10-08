@@ -5,6 +5,20 @@ namespace MarkConv.Tests
 {
     public class MiscTests
     {
+        [Theory]
+        [InlineData("Headers")]
+        [InlineData("Inlines")]
+        [InlineData("Lists")]
+        [InlineData("Quotes")]
+        [InlineData("CodeBlocks")]
+        [InlineData("Html")]
+        public void ShouldConvertMarkdown(string fileName)
+        {
+            var options = new ProcessorOptions();
+            fileName = $"Resources/{fileName}.md";
+            Utils.CompareFiles(fileName, fileName, options);
+        }
+
         [Fact]
         public void ShouldEscapeHtmlComments()
         {

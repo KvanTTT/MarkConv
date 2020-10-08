@@ -23,13 +23,14 @@ namespace MarkConv.Tests
             ProjectDir = Path.GetDirectoryName(thisFilePath);
         }
 
-        public static void CompareFiles(string inputFileName, string outputFileName, ProcessorOptions options,
+        public static void CompareFiles(string inputFileName, string outputFileName, ProcessorOptions options = null,
             Logger logger = null)
         {
-            var processor = new Processor(options) { Logger = logger };
+            var processor = new Processor(options);
+            processor.Logger = logger;
             string source = ReadFileFromProject(inputFileName);
-            string actual = processor.Process(source);
-            string expected = ReadFileFromProject(outputFileName);
+            string actual = processor.Process(source).Replace("\r\n", "\n");
+            string expected = ReadFileFromProject(outputFileName).Replace("\r\n", "\n");
 
             Assert.Equal(expected, actual);
         }
