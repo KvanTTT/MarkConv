@@ -28,6 +28,10 @@ namespace MarkConv
 
             switch (block)
             {
+                case MarkdownDocument markdownDocument:
+                    ConvertMarkdownDocument(markdownDocument);
+                    break;
+
                 case HeadingBlock headingBlock:
                     ConvertHeadingBlock(headingBlock);
                     break;
@@ -58,6 +62,15 @@ namespace MarkConv
 
                 default:
                     throw new NotImplementedException($"Converting of Block type '{block.GetType()}' is not implemented");
+            }
+        }
+
+        private void ConvertMarkdownDocument(MarkdownDocument markdownDocument)
+        {
+            foreach (Block block in markdownDocument)
+            {
+                _result.EnsureNewLine(true);
+                ConvertBlock(block);
             }
         }
 
@@ -256,7 +269,7 @@ namespace MarkConv
                     break;
 
                 case HtmlInline htmlInline:
-                    result = new Converter(Options, Logger).ConvertHtml(htmlInline.Tag);
+                    result = new Converter(Options, Logger).ConvertHtmlAndReturn(htmlInline.Tag);
                     if (appendToCurrentParagraph)
                         AppendWithBreak(result);
                     break;

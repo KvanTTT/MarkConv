@@ -1,5 +1,6 @@
 ﻿using System;
 using System.IO;
+using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
 using HtmlAgilityPack;
@@ -19,7 +20,7 @@ namespace MarkConv
         private static readonly Regex MarkdownBlockRegex =
             new Regex(@"(\s*)" + MarkdownBlockMarker + @"(\d+)" + @"(\s*)", RegexOptions.Compiled);
 
-        private bool _lastBlockIsMarkdown = false;
+        private bool _lastBlockIsMarkdown;
 
         private ContainerBlock _container;
 
@@ -35,9 +36,28 @@ namespace MarkConv
         public string Convert(string content)
         {
             MarkdownDocument document = Markdown.Parse(content);
+            ConvertContainerBlock(document, content.Length);
+            return _result.ToString();
+        }
 
-            var htmlData = new StringBuilder(content.Length);
-            _container = document;
+        public string ConvertHtmlAndReturn(string html)
+        {
+            ConvertHtml(html);
+            return _result.ToString();
+        }
+
+        public void ConvertContainerBlock(ContainerBlock containerBlock, int capacity = 0)
+        {
+            _container = containerBlock;
+
+            if (_container.All(block => !(block is HtmlBlock)))
+            {
+                var markdownConverter = new MarkdigConverter(Options, Logger, _result);
+                markdownConverter.ConvertBlock(_container);
+                return;
+            }
+
+            var htmlData = new StringBuilder(capacity);
 
             for (var index = 0; index < _container.Count; index++)
             {
@@ -53,18 +73,16 @@ namespace MarkConv
                 }
             }
 
-            return ConvertHtml(htmlData.ToString(), true);
+            ConvertHtml(htmlData.ToString());
         }
 
-        public string ConvertHtml(string htmlData, bool ensureNewLine = false)
+        private void ConvertHtml(string htmlData)
         {
             var doc = new HtmlDocument();
             using var stringReader = new StringReader(htmlData);
             doc.Load(stringReader);
 
             Convert(doc.DocumentNode);
-
-            return _result.ToString();
         }
 
         private void AppendHtmlData(StringBuilder htmlData, HtmlBlock htmlBlock)
