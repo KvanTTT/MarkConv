@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Text;
-using Markdig;
 using Markdig.Syntax;
 using Markdig.Syntax.Inlines;
 
@@ -8,55 +7,24 @@ namespace MarkConv
 {
     public class MarkdigConverter
     {
-        private const string NewLine = "\n";
+        public const string NewLine = "\n";
         private bool _notBreak;
-        private int _currentColumn;
-        private int _currentIndent; // TODO: normalize indents
-        private HtmlConverter _htmlConverter;
-        private StringBuilder _result;
+        private readonly ConversionResult _result;
 
         public ILogger Logger { get; }
 
         public ProcessorOptions Options { get; }
 
-        public MarkdigConverter(ProcessorOptions options = null, ILogger logger = null)
+        public MarkdigConverter(ProcessorOptions options, ILogger logger, ConversionResult conversionResult)
         {
             Options = options ?? new ProcessorOptions();
             Logger = logger;
-            _htmlConverter = new HtmlConverter(options, logger);
+            _result = conversionResult ?? throw new ArgumentNullException(nameof(conversionResult));
         }
 
-        public string Convert(string mdContent)
+        public void ConvertBlock(Block block)
         {
-            MarkdownDocument doc = Markdown.Parse(mdContent);
-
-            _result = new StringBuilder(mdContent.Length);
-
-            foreach (Block child in doc)
-            {
-                EnsureNewLine(true);
-                ConvertBlock(child);
-            }
-
-            // Trim whitespaces and newlines
-            int lastWsIndex = _result.Length - 1;
-            while (lastWsIndex >= 0)
-            {
-                if (!char.IsWhiteSpace(_result[lastWsIndex]))
-                    break;
-                lastWsIndex--;
-            }
-
-            lastWsIndex++;
-            if (lastWsIndex < _result.Length)
-                _result.Remove(lastWsIndex, _result.Length - lastWsIndex);
-
-            return _result.ToString();
-        }
-
-        private void ConvertBlock(Block block)
-        {
-            _currentIndent = block.Column;
+            _result.SetIndent(block.Column);
 
             switch (block)
             {
@@ -98,8 +66,8 @@ namespace MarkConv
             if (headingBlock.HeaderChar != '\0')
             {
                 _notBreak = true;
-                Append(headingBlock.HeaderChar, headingBlock.Level);
-                Append(' ');
+                _result.Append(headingBlock.HeaderChar, headingBlock.Level);
+                _result.Append(' ');
             }
 
             ConvertInline(headingBlock.Inline);
@@ -110,8 +78,8 @@ namespace MarkConv
             }
             else
             {
-                AppendNewLine();
-                Append(headingBlock.Level == 1 ? '=' : '-', 3); // TODO: correct repeating count (extract from span)
+                _result.AppendNewLine();
+                _result.Append(headingBlock.Level == 1 ? '=' : '-', 3); // TODO: correct repeating count (extract from span)
             }
         }
 
@@ -119,7 +87,7 @@ namespace MarkConv
         {
             for (int i = 0; i < thematicBreakBlock.ThematicCharCount; i++)
             {
-                Append(thematicBreakBlock.ThematicChar);
+                _result.Append(thematicBreakBlock.ThematicChar);
             }
         }
 
@@ -127,21 +95,21 @@ namespace MarkConv
         {
             foreach (Block childListBlock in listBlock)
             {
-                _currentIndent = childListBlock.Column;
-                EnsureNewLine();
+                _result.SetIndent(childListBlock.Column);
+                _result.EnsureNewLine();
                 if (childListBlock is ListItemBlock listItemBlock)
                 {
                     int appendWidth;
                     if (listBlock.IsOrdered)
                     {
                         string orderString = listItemBlock.Order.ToString();
-                        Append(orderString);
-                        Append(listBlock.OrderedDelimiter);
+                        _result.Append(orderString);
+                        _result.Append(listBlock.OrderedDelimiter);
                         appendWidth = orderString.Length + 1;
                     }
                     else
                     {
-                        Append(listBlock.BulletType);
+                        _result.Append(listBlock.BulletType);
                         appendWidth = 1;
                     }
 
@@ -149,10 +117,10 @@ namespace MarkConv
                     {
                         var itemBlock = listItemBlock[index];
                         if (index == 0)
-                            Append(' ', itemBlock.Column - listItemBlock.Column - appendWidth);
+                            _result.Append(' ', itemBlock.Column - listItemBlock.Column - appendWidth);
                         else
-                            EnsureNewLine();
-                        _currentIndent = itemBlock.Column;
+                            _result.EnsureNewLine();
+                        _result.SetIndent(itemBlock.Column);
                         ConvertBlock(itemBlock);
                     }
                 }
@@ -167,14 +135,14 @@ namespace MarkConv
             for (var index = 0; index < quoteBlock.Count; index++)
             {
                 Block childQuoteBlock = quoteBlock[index];
-                _currentIndent = quoteBlock.Column;
+                _result.SetIndent(quoteBlock.Column);
                 if (index > 0 || !(quoteBlock.Parent is QuoteBlock) && !(quoteBlock.Parent is ListItemBlock))
                 {
-                    EnsureNewLine();
+                    _result.EnsureNewLine();
                 }
-                Append(quoteBlock.QuoteChar);
-                Append(' ');
-                _currentIndent = childQuoteBlock.Column;
+                _result.Append(quoteBlock.QuoteChar);
+                _result.Append(' ');
+                _result.SetIndent(childQuoteBlock.Column);
                 ConvertBlock(childQuoteBlock);
             }
         }
@@ -185,9 +153,9 @@ namespace MarkConv
 
             if (fencedCodeBlock != null)
             {
-                Append(fencedCodeBlock.FencedChar, fencedCodeBlock.FencedCharCount);
-                Append(fencedCodeBlock.Info);
-                AppendNewLine();
+                _result.Append(fencedCodeBlock.FencedChar, fencedCodeBlock.FencedCharCount);
+                _result.Append(fencedCodeBlock.Info);
+                _result.AppendNewLine();
             }
 
             ReadOnlySpan<char> origSpan = default;
@@ -201,15 +169,15 @@ namespace MarkConv
                     origSpan = slice.Text.AsSpan();
                 }
 
-                _currentIndent = line.Column;
-                Append(origSpan.Slice(slice.Start, slice.Length));
-                AppendNewLine();
+                _result.SetIndent(line.Column);
+                _result.Append(origSpan.Slice(slice.Start, slice.Length));
+                _result.AppendNewLine();
             }
 
             if (fencedCodeBlock != null)
             {
-                _currentIndent = codeBlock.Column;
-                Append(fencedCodeBlock.FencedChar, fencedCodeBlock.FencedCharCount);
+                _result.SetIndent(codeBlock.Column);
+                _result.Append(fencedCodeBlock.FencedChar, fencedCodeBlock.FencedCharCount);
             }
         }
 
@@ -231,8 +199,7 @@ namespace MarkConv
                 htmlData.Append(NewLine);
             }
 
-            var htmlOutput = _htmlConverter.Convert(htmlData.ToString());
-            Append(htmlOutput);
+            _result.Append(htmlData.ToString());
         }
 
         private void ConvertParagraphBlock(ParagraphBlock paragraphBlock)
@@ -267,7 +234,7 @@ namespace MarkConv
 
                 case LineBreakInline _:
                     if (Options.LinesMaxLength == 0)
-                        AppendNewLine();
+                        _result.AppendNewLine();
                     break;
 
                 case CodeInline codeInline:
@@ -289,7 +256,7 @@ namespace MarkConv
                     break;
 
                 case HtmlInline htmlInline:
-                    result = _htmlConverter.Convert(htmlInline.Tag);
+                    result = new Converter(Options, Logger).ConvertHtml(htmlInline.Tag);
                     if (appendToCurrentParagraph)
                         AppendWithBreak(result);
                     break;
@@ -357,91 +324,22 @@ namespace MarkConv
         {
             int linesMaxLength = IsBreakAcceptable ? Options.LinesMaxLength : int.MaxValue;
 
-            bool insertSpace = _result.Length > 0 && !char.IsWhiteSpace(_result[^1]);
+            bool insertSpace = !_result.IsLastCharWhitespace();
 
-            if (_currentColumn + word.Length + (insertSpace ? 1 : 0) > linesMaxLength && !MarkdownRegex.SpecialCharsRegex.IsMatch(word))
+            if (_result.CurrentColumn + word.Length + (insertSpace ? 1 : 0) > linesMaxLength && !MarkdownRegex.SpecialCharsRegex.IsMatch(word))
             {
-                if (_currentColumn > 0)
+                if (_result.CurrentColumn > 0)
                 {
-                    AppendNewLine();
+                    _result.AppendNewLine();
                     insertSpace = false;
                 }
             }
 
             if (insertSpace)
-                Append(' ');
-            Append(word);
+                _result.Append(' ');
+            _result.Append(word);
         }
 
         private bool IsBreakAcceptable => Options.LinesMaxLength > 0 && !_notBreak;
-
-        private void Append(string str)
-        {
-            AppendIndent();
-            _result.Append(str);
-            _currentColumn += str.Length;
-        }
-
-        private void Append(ReadOnlySpan<char> str)
-        {
-            AppendIndent();
-            _result.Append(str);
-            _currentColumn += str.Length;
-        }
-
-        private void Append(char c)
-        {
-            AppendIndent();
-            _result.Append(c);
-            _currentColumn += 1;
-        }
-
-        private void Append(char c, int count)
-        {
-            AppendIndent();
-            _result.Append(c, count);
-            _currentColumn += count;
-        }
-
-        private void AppendIndent()
-        {
-            if (_result.Length > 0 && _result[^1] == '\n' && _currentIndent > 0)
-            {
-                _result.Append(' ', _currentIndent);
-                _currentColumn = _currentIndent;
-            }
-        }
-
-        private void EnsureNewLine(bool doubleNl = false)
-        {
-            if (doubleNl)
-            {
-                if (_result.Length < 2)
-                    return;
-
-                if (_result[^1] != '\n')
-                {
-                    AppendNewLine();
-                    AppendNewLine();
-                }
-
-                if (_result[^2] != '\n')
-                    AppendNewLine();
-            }
-            else
-            {
-                if (_result.Length < 1)
-                    return;
-
-                if (_result[^1] != '\n')
-                    AppendNewLine();
-            }
-        }
-
-        private void AppendNewLine()
-        {
-            _result.Append(NewLine);
-            _currentColumn = 0;
-        }
     }
 }
