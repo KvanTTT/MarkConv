@@ -8,3 +8,12 @@ code block
 ```
 
 </details>
+
+1. Item 1
+
+   <details>
+   <summary>details 2</summary>
+
+   content 2
+
+   </details>

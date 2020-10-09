@@ -7,7 +7,6 @@ namespace MarkConv
 {
     public class MarkdigConverter
     {
-        public const string NewLine = "\n";
         private bool _notBreak;
         private readonly ConversionResult _result;
 
@@ -146,7 +145,6 @@ namespace MarkConv
                     _result.Append(' ', itemBlock.Column - _result.CurrentColumn);
                 else
                     _result.EnsureNewLine();
-                _result.SetIndent(itemBlock.Column);
                 ConvertBlock(itemBlock);
             }
         }
@@ -217,7 +215,7 @@ namespace MarkConv
                     origSpan = slice.Text.AsSpan();
                 }
                 htmlData.Append(origSpan.Slice(slice.Start, slice.Length));
-                htmlData.Append(NewLine);
+                htmlData.Append("\n");
             }
 
             _result.Append(htmlData.ToString());

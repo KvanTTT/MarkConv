@@ -97,8 +97,8 @@ namespace MarkConv
                 {
                     origSpan = slice.Text.AsSpan();
                 }
-                htmlData.Append(origSpan.Slice(slice.Start, slice.Length));
-                htmlData.Append(MarkdigConverter.NewLine);
+                htmlData.Append(origSpan.Slice(slice.Start, slice.Length).TrimStart());
+                htmlData.Append("\n");
             }
         }
 
@@ -120,9 +120,18 @@ namespace MarkConv
                         var groups = match.Groups;
                         int blockNumber = int.Parse(groups[2].Value);
                         var markdownBlock = _container[blockNumber];
+
+                        if (_container is ListItemBlock && blockNumber == 0)
+                        {
+                            _result.Append(' ', markdownBlock.Column - _result.CurrentColumn);
+                        }
+                        else
+                        {
+                            _result.Append(groups[1].Value);
+                            _result.EnsureNewLine(true);
+                        }
+
                         var markdownConverter = new MarkdigConverter(Options, Logger, _result);
-                        _result.Append(groups[1].Value);
-                        _result.EnsureNewLine(true);
                         markdownConverter.ConvertBlock(markdownBlock);
                         _result.Append(groups[3].Value);
                         _lastBlockIsMarkdown = true;
