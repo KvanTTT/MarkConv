@@ -17,8 +17,8 @@ namespace MarkConv
 
         public virtual ProcessorResult ProcessAndGetTableOfContents(string original)
         {
-            var markdigConverter = new MarkdigConverter(Options, Logger);
-            var result = markdigConverter.Convert(original);
+            var converter = new Converter(Options, Logger);
+            var result = converter.Convert(original);
             return new ProcessorResult(result, new List<string> { "TODO"});
         }
     }
