@@ -44,6 +44,10 @@ namespace MarkConv
                     ConvertListBlock(listBlock);
                     break;
 
+                case ListItemBlock listItemBlock:
+                    ConvertListItemBlock(listItemBlock);
+                    break;
+
                 case QuoteBlock quoteBlock:
                     ConvertQuoteBlock(quoteBlock);
                     break;
@@ -118,28 +122,32 @@ namespace MarkConv
                         string orderString = listItemBlock.Order.ToString();
                         _result.Append(orderString);
                         _result.Append(listBlock.OrderedDelimiter);
-                        appendWidth = orderString.Length + 1;
                     }
                     else
                     {
                         _result.Append(listBlock.BulletType);
-                        appendWidth = 1;
                     }
 
-                    for (var index = 0; index < listItemBlock.Count; index++)
-                    {
-                        var itemBlock = listItemBlock[index];
-                        if (index == 0)
-                            _result.Append(' ', itemBlock.Column - listItemBlock.Column - appendWidth);
-                        else
-                            _result.EnsureNewLine();
-                        _result.SetIndent(itemBlock.Column);
-                        ConvertBlock(itemBlock);
-                    }
+                    var converter = new Converter(Options, Logger, _result);
+                    converter.ConvertContainerBlock(listItemBlock);
                 }
                 else
                 {
                 }
+            }
+        }
+
+        private void ConvertListItemBlock(ListItemBlock listItemBlock)
+        {
+            for (var index = 0; index < listItemBlock.Count; index++)
+            {
+                var itemBlock = listItemBlock[index];
+                if (index == 0)
+                    _result.Append(' ', itemBlock.Column - _result.CurrentColumn);
+                else
+                    _result.EnsureNewLine();
+                _result.SetIndent(itemBlock.Column);
+                ConvertBlock(itemBlock);
             }
         }
 

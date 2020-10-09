@@ -40,12 +40,6 @@ namespace MarkConv
             return _result.ToString();
         }
 
-        public string ConvertHtmlAndReturn(string html)
-        {
-            ConvertHtml(html);
-            return _result.ToString();
-        }
-
         public void ConvertContainerBlock(ContainerBlock containerBlock, int capacity = 0)
         {
             _container = containerBlock;
@@ -74,6 +68,12 @@ namespace MarkConv
             }
 
             ConvertHtml(htmlData.ToString());
+        }
+
+        public string ConvertHtmlAndReturn(string html)
+        {
+            ConvertHtml(html);
+            return _result.ToString();
         }
 
         private void ConvertHtml(string htmlData)
