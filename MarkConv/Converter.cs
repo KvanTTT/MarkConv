@@ -179,20 +179,52 @@ namespace MarkConv
             string name = htmlNode.Name;
             (string, string) additionalAttr = default;
 
-            if (Options.InputMarkdownType == MarkdownType.GitHub && Options.OutputMarkdownType == MarkdownType.Habr)
+            if (Options.InputMarkdownType == MarkdownType.GitHub)
             {
-                if (name == "details")
+                if (Options.OutputMarkdownType == MarkdownType.Habr)
                 {
-                    name = "spoiler";
-                    var summaryNode = htmlNode.ChildNodes["summary"];
-                    if (summaryNode != null)
+                    if (name == "details")
                     {
-                        additionalAttr = ("title", summaryNode.InnerText);
+                        name = "spoiler";
+                        var summaryNode = htmlNode.ChildNodes["summary"];
+                        if (summaryNode != null)
+                        {
+                            additionalAttr = ("title", summaryNode.InnerText);
+                        }
+                    }
+                    else if (name == "summary")
+                    {
+                        return false;
                     }
                 }
-                else if (name == "summary")
+                else if (Options.OutputMarkdownType == MarkdownType.Dev)
                 {
-                    return false;
+                    if (name == "details")
+                    {
+                        _result.EnsureNewLine();
+                        if (!closing)
+                        {
+                            _result.Append("{% details");
+                            var summaryNode = htmlNode.ChildNodes["summary"];
+                            if (summaryNode != null)
+                            {
+                                _result.Append(" ");
+                                _result.Append(summaryNode.InnerText);
+                            }
+
+                            _result.Append(" %}");
+                        }
+                        else
+                        {
+                            _result.Append("{% enddetails %}");
+                        }
+                        return true;
+                    }
+
+                    if (name == "summary")
+                    {
+                        return false;
+                    }
                 }
             }
 
