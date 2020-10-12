@@ -112,73 +112,13 @@ namespace MarkConv
 
             if (htmlNode is HtmlTextNode htmlTextNode)
             {
-                var matches = MarkdownBlockRegex.Matches(htmlTextNode.Text);
-                if (matches.Count > 0)
-                {
-                    foreach (Match match in matches)
-                    {
-                        var groups = match.Groups;
-                        int blockNumber = int.Parse(groups[2].Value);
-                        var markdownBlock = _container[blockNumber];
-
-                        if (_container is ListItemBlock && blockNumber == 0)
-                        {
-                            _result.Append(' ', markdownBlock.Column - _result.CurrentColumn);
-                        }
-                        else
-                        {
-                            _result.Append(groups[1].Value);
-                            _result.EnsureNewLine(true);
-                        }
-
-                        var markdownConverter = new MarkdigConverter(Options, Logger, _result);
-                        markdownConverter.ConvertBlock(markdownBlock);
-                        _result.Append(groups[3].Value);
-                        _lastBlockIsMarkdown = true;
-                    }
-                }
-                else
-                {
-                    _result.Append(htmlTextNode.Text);
-                    _lastBlockIsMarkdown = false;
-                }
-
+                ConvertHtmlTextNode(htmlTextNode);
                 return;
             }
 
             if (htmlNode.Name != "#document")
             {
-                if (_lastBlockIsMarkdown)
-                    _result.EnsureNewLine(true);
-
-                _result.Append('<');
-
-                if (closing)
-                {
-                    _result.Append('/');
-                }
-
-                _result.Append(htmlNode.Name);
-
-                foreach (HtmlAttribute htmlAttribute in htmlNode.Attributes)
-                {
-                    _result.Append(' ');
-                    char quote = htmlAttribute.QuoteType == AttributeValueQuote.SingleQuote ? '\'' : '"';
-
-                    _result.Append(htmlAttribute.Name);
-                    _result.Append('=');
-
-                    _result.Append(quote);
-                    _result.Append(htmlAttribute.Value);
-                    _result.Append(quote);
-                }
-
-                if (htmlNode.EndNode == htmlNode)
-                {
-                    _result.Append('/');
-                }
-
-                _result.Append('>');
+                ConvertHtmlElement(htmlNode, closing);
             }
 
             foreach (HtmlNode childNode in htmlNode.ChildNodes)
@@ -192,6 +132,75 @@ namespace MarkConv
             }
 
             _lastBlockIsMarkdown = false;
+        }
+
+        private void ConvertHtmlTextNode(HtmlTextNode htmlTextNode)
+        {
+            var matches = MarkdownBlockRegex.Matches(htmlTextNode.Text);
+            if (matches.Count > 0)
+            {
+                foreach (Match match in matches)
+                {
+                    var groups = match.Groups;
+                    int blockNumber = int.Parse(groups[2].Value);
+                    var markdownBlock = _container[blockNumber];
+
+                    if (_container is ListItemBlock && blockNumber == 0)
+                    {
+                        _result.Append(' ', markdownBlock.Column - _result.CurrentColumn);
+                    }
+                    else
+                    {
+                        _result.Append(groups[1].Value);
+                        _result.EnsureNewLine(true);
+                    }
+
+                    var markdownConverter = new MarkdigConverter(Options, Logger, _result);
+                    markdownConverter.ConvertBlock(markdownBlock);
+                    _result.Append(groups[3].Value);
+                    _lastBlockIsMarkdown = true;
+                }
+            }
+            else
+            {
+                _result.Append(htmlTextNode.Text);
+                _lastBlockIsMarkdown = false;
+            }
+        }
+
+        private void ConvertHtmlElement(HtmlNode htmlNode, bool closing)
+        {
+            if (_lastBlockIsMarkdown)
+                _result.EnsureNewLine(true);
+
+            _result.Append('<');
+
+            if (closing)
+            {
+                _result.Append('/');
+            }
+
+            _result.Append(htmlNode.Name);
+
+            foreach (HtmlAttribute htmlAttribute in htmlNode.Attributes)
+            {
+                _result.Append(' ');
+                char quote = htmlAttribute.QuoteType == AttributeValueQuote.SingleQuote ? '\'' : '"';
+
+                _result.Append(htmlAttribute.Name);
+                _result.Append('=');
+
+                _result.Append(quote);
+                _result.Append(htmlAttribute.Value);
+                _result.Append(quote);
+            }
+
+            if (htmlNode.EndNode == htmlNode)
+            {
+                _result.Append('/');
+            }
+
+            _result.Append('>');
         }
     }
 }

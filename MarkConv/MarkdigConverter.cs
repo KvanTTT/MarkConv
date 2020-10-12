@@ -115,7 +115,6 @@ namespace MarkConv
                 _result.EnsureNewLine();
                 if (childListBlock is ListItemBlock listItemBlock)
                 {
-                    int appendWidth;
                     if (listBlock.IsOrdered)
                     {
                         string orderString = listItemBlock.Order.ToString();
@@ -202,7 +201,7 @@ namespace MarkConv
 
         private void ConvertHtmlBlock(HtmlBlock htmlBlock)
         {
-            var htmlData = new StringBuilder();
+            var htmlData = new StringBuilder(htmlBlock.Span.Length);
 
             ReadOnlySpan<char> origSpan = default;
             var lines = htmlBlock.Lines.Lines;
