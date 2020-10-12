@@ -18,7 +18,7 @@ namespace MarkConv
         public const string MarkdownBlockMarker = "markdown_block:";
 
         private static readonly Regex MarkdownBlockRegex =
-            new Regex(@"(\s*)" + MarkdownBlockMarker + @"(\d+)" + @"(\s*)", RegexOptions.Compiled);
+            new Regex(MarkdownBlockMarker + @"(\d+)", RegexOptions.Compiled);
 
         private bool _lastBlockIsMarkdown;
 
@@ -63,7 +63,7 @@ namespace MarkConv
                 else
                 {
                     htmlData.Append(MarkdownBlockMarker);
-                    htmlData.Append(index.ToString());
+                    htmlData.Append(index);
                 }
             }
 
@@ -136,40 +136,45 @@ namespace MarkConv
 
         private void ConvertHtmlTextNode(HtmlTextNode htmlTextNode)
         {
-            var matches = MarkdownBlockRegex.Matches(htmlTextNode.Text);
-            if (matches.Count > 0)
+            Match match;
+            int index = 0;
+            int length = htmlTextNode.Text.Length;
+            var textSpan = htmlTextNode.Text.AsSpan();
+            _lastBlockIsMarkdown = false;
+
+            while ((match = MarkdownBlockRegex.Match(htmlTextNode.Text, index, length)).Success)
             {
-                foreach (Match match in matches)
-                {
-                    var groups = match.Groups;
-                    int blockNumber = int.Parse(groups[2].Value);
-                    var markdownBlock = _container[blockNumber];
+                _result.Append(textSpan.Slice(index, match.Index - index));
 
-                    if (_container is ListItemBlock && blockNumber == 0)
-                    {
-                        _result.Append(' ', markdownBlock.Column - _result.CurrentColumn);
-                    }
-                    else
-                    {
-                        _result.Append(groups[1].Value);
-                        _result.EnsureNewLine(true);
-                    }
+                int blockNumber = int.Parse(match.Groups[1].Value);
+                var markdownBlock = _container[blockNumber];
 
-                    var markdownConverter = new MarkdigConverter(Options, Logger, _result);
-                    markdownConverter.ConvertBlock(markdownBlock);
-                    _result.Append(groups[3].Value);
-                    _lastBlockIsMarkdown = true;
-                }
+                if (_container is ListItemBlock && blockNumber == 0)
+                    _result.Append(' ', markdownBlock.Column - _result.CurrentColumn);
+                else
+                    _result.EnsureNewLine(true);
+
+                var markdownConverter = new MarkdigConverter(Options, Logger, _result);
+                markdownConverter.ConvertBlock(markdownBlock);
+                _lastBlockIsMarkdown = true;
+
+                index = match.Index + match.Length;
+                length = htmlTextNode.Text.Length - index;
             }
-            else
+
+            var span = textSpan.Slice(match.Index, length - match.Index);
+            if (!span.IsEmpty)
             {
-                _result.Append(htmlTextNode.Text);
                 _lastBlockIsMarkdown = false;
+                _result.Append(span);
             }
         }
 
         private void ConvertHtmlElement(HtmlNode htmlNode, bool closing)
         {
+            string name = htmlNode.Name;
+            (string, string) additionalAttr = default;
+
             if (_lastBlockIsMarkdown)
                 _result.EnsureNewLine(true);
 
@@ -180,19 +185,16 @@ namespace MarkConv
                 _result.Append('/');
             }
 
-            _result.Append(htmlNode.Name);
+            _result.Append(name);
 
             foreach (HtmlAttribute htmlAttribute in htmlNode.Attributes)
             {
-                _result.Append(' ');
-                char quote = htmlAttribute.QuoteType == AttributeValueQuote.SingleQuote ? '\'' : '"';
+                ConvertAttribute(htmlAttribute.Name, htmlAttribute.Value, htmlAttribute.QuoteType);
+            }
 
-                _result.Append(htmlAttribute.Name);
-                _result.Append('=');
-
-                _result.Append(quote);
-                _result.Append(htmlAttribute.Value);
-                _result.Append(quote);
+            if (additionalAttr != default)
+            {
+                ConvertAttribute(additionalAttr.Item1, additionalAttr.Item2, AttributeValueQuote.DoubleQuote);
             }
 
             if (htmlNode.EndNode == htmlNode)
@@ -201,6 +203,24 @@ namespace MarkConv
             }
 
             _result.Append('>');
+        }
+
+        private void ConvertAttribute(string key, string value, AttributeValueQuote? attributeValueQuote)
+        {
+            _result.Append(' ');
+            char quote = attributeValueQuote == AttributeValueQuote.SingleQuote ? '\'' :
+                attributeValueQuote == AttributeValueQuote.DoubleQuote ? '"' : '\0';
+
+            _result.Append(key);
+            _result.Append('=');
+
+            if (quote != '\0')
+                _result.Append(quote);
+
+            _result.Append(value);
+
+            if (quote != '\0')
+                _result.Append(quote);
         }
     }
 }

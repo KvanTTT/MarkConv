@@ -2,10 +2,13 @@ Inline html: <img align="right" src="https://habrastorage.org/web/4bf/3c9/eaf/4b
 
 <details>
 <summary>details 1</summary>
+Content before markdown block
 
 ```
 code block
 ```
+
+Content after markdown block
 
 </details>
 
