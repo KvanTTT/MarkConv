@@ -3,7 +3,7 @@ Details without summary
 </details>
 
 <details>
-<summary>Details</summary>
+<summary>Title</summary>
 Content
 
 ```

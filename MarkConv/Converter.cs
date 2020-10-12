@@ -118,7 +118,11 @@ namespace MarkConv
 
             if (htmlNode.Name != "#document")
             {
-                ConvertHtmlElement(htmlNode, closing);
+                if (!ConvertHtmlElement(htmlNode, closing))
+                {
+                    _lastBlockIsMarkdown = false;
+                    return;
+                }
             }
 
             foreach (HtmlNode childNode in htmlNode.ChildNodes)
@@ -170,10 +174,27 @@ namespace MarkConv
             }
         }
 
-        private void ConvertHtmlElement(HtmlNode htmlNode, bool closing)
+        private bool ConvertHtmlElement(HtmlNode htmlNode, bool closing)
         {
             string name = htmlNode.Name;
             (string, string) additionalAttr = default;
+
+            if (Options.InputMarkdownType == MarkdownType.GitHub && Options.OutputMarkdownType == MarkdownType.Habr)
+            {
+                if (name == "details")
+                {
+                    name = "spoiler";
+                    var summaryNode = htmlNode.ChildNodes["summary"];
+                    if (summaryNode != null)
+                    {
+                        additionalAttr = ("title", summaryNode.InnerText);
+                    }
+                }
+                else if (name == "summary")
+                {
+                    return false;
+                }
+            }
 
             if (_lastBlockIsMarkdown)
                 _result.EnsureNewLine(true);
@@ -203,6 +224,8 @@ namespace MarkConv
             }
 
             _result.Append('>');
+
+            return true;
         }
 
         private void ConvertAttribute(string key, string value, AttributeValueQuote? attributeValueQuote)

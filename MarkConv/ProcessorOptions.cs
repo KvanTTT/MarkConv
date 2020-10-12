@@ -12,7 +12,7 @@ namespace MarkConv
 
         public MarkdownType InputMarkdownType { get; set; } = MarkdownType.GitHub;
 
-        public MarkdownType OutputMarkdownType { get; set; } = MarkdownType.Habr;
+        public MarkdownType OutputMarkdownType { get; set; } = MarkdownType.GitHub;
 
         public string HeaderImageLink { get; set; } = string.Empty;
 

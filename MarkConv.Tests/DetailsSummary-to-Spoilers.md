@@ -1,8 +1,8 @@
 <spoiler>
 Details without summary
 </spoiler>
+<spoiler title="Title">
 
-<spoiler title="Details">
 Content
 
 ```
@@ -10,6 +10,7 @@ Some code
 ```
 
 <spoiler title="Nested Details">
+
 Nested text
 </spoiler>
 </spoiler>
