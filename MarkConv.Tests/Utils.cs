@@ -13,9 +13,9 @@ namespace MarkConv.Tests
             InitProjectDir();
         }
 
-        public static string ReadFileFromProject(string fileName)
+        public static string ReadFileFromResources(string fileName)
         {
-            return File.ReadAllText(Path.Combine(ProjectDir, fileName));
+            return File.ReadAllText(Path.Combine(ProjectDir, "Resources", fileName));
         }
 
         private static void InitProjectDir([CallerFilePath]string thisFilePath = null)
@@ -28,9 +28,9 @@ namespace MarkConv.Tests
         {
             var processor = new Processor(options);
             processor.Logger = logger;
-            string source = ReadFileFromProject(inputFileName);
+            string source = ReadFileFromResources(inputFileName);
             string actual = processor.Process(source).Replace("\r\n", "\n");
-            string expected = ReadFileFromProject(outputFileName).Replace("\r\n", "\n");
+            string expected = ReadFileFromResources(outputFileName).Replace("\r\n", "\n");
 
             Assert.Equal(expected, actual);
         }

@@ -11,24 +11,6 @@ namespace MarkConv.Tests
         }
 
         [Fact]
-        public void ShouldNotChangeLines()
-        {
-            Compare(0, "SpecialLines.md", "SpecialLines.md");
-        }
-
-        [Fact]
-        public void ShouldUnwrap()
-        {
-            Compare(-1, "SpecialLines.md", "SpecialLines.Unwrapped.md");
-        }
-
-        [Fact]
-        public void ShouldWrapToDefinedWidth()
-        {
-            Compare(80, "SpecialLines.md", "SpecialLines.Wrapped.80.md");
-        }
-
-        [Fact]
         public void ShouldNormalizeLineBreaks()
         {
             var options = new ProcessorOptions { NormalizeBreaks = true };
@@ -52,31 +34,6 @@ namespace MarkConv.Tests
                 "## Header 2\n" +
                 "\n" +
                 "Paragraph 2"
-                , actual);
-        }
-
-        [Fact]
-        public void ShouldNotRemoveUnwantedLineBreaks()
-        {
-            var options = new ProcessorOptions { NormalizeBreaks = false };
-            var processor = new Processor(options);
-            string actual = processor.Process(
-                "\n" +
-                "# Header\n" +
-                "\n" +
-                "\n" +
-                "Paragraph\n" +
-                "\n" +
-                "\n");
-
-            Assert.Equal(
-                "\n" +
-                "# Header\n" +
-                "\n" +
-                "\n" +
-                "Paragraph\n" +
-                "\n" +
-                "\n"
                 , actual);
         }
 

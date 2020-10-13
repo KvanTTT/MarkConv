@@ -4,17 +4,19 @@ namespace MarkConv.Tests
 {
     public class HtmlElementTests
     {
-        [Fact]
-        public void ShouldConvertDetailsToSpoilers()
+        [Theory]
+        [InlineData(MarkdownType.Habr)]
+        [InlineData(MarkdownType.Dev)]
+        public void ShouldConvertDetailsSummary(MarkdownType markdownType)
         {
             var options = new ProcessorOptions
             {
                 LinesMaxLength = 0,
                 InputMarkdownType = MarkdownType.GitHub,
-                OutputMarkdownType = MarkdownType.Habr
+                OutputMarkdownType = markdownType
             };
 
-            Utils.CompareFiles("DetailsSummary.md", "DetailsSummary-to-Spoilers.md", options);
+            Utils.CompareFiles("DetailsSummary.md", $"DetailsSummary.{markdownType}.md", options);
         }
 
         [Fact]
@@ -28,18 +30,6 @@ namespace MarkConv.Tests
             };
 
             Utils.CompareFiles("Spoilers.md", "Spoilers-to-DetailsSummary.md", options);
-        }
-
-        [Fact]
-        public void ShouldConvertDetailsToDevFormat()
-        {
-            var options = new ProcessorOptions
-            {
-                InputMarkdownType = MarkdownType.GitHub,
-                OutputMarkdownType = MarkdownType.Dev
-            };
-
-            Utils.CompareFiles("DetailsSummary.md", "DetailsSummary-to-DEV.md", options);
         }
 
         [Fact]

@@ -15,7 +15,7 @@ namespace MarkConv.Tests
         public void ShouldConvertMarkdown(string fileName)
         {
             var options = new ProcessorOptions();
-            fileName = $"Resources/{fileName}.md";
+            fileName = $"{fileName}.md";
             Utils.CompareFiles(fileName, fileName, options);
         }
 
@@ -44,33 +44,6 @@ namespace MarkConv.Tests
         }
 
         [Fact]
-        public void ShouldNormalize()
-        {
-            var options = new ProcessorOptions { Normalize = true };
-            var processor = new Processor(options);
-            string actual = processor.Process(
-                " ##   Head # er   ##  \n" +
-                "Header 2\n" +
-                "---\n" +
-                "* List item 1\n" +
-                "+ List item 2\n" +
-                "- List item 3\n" +
-                "25. Ordered list item\n" +
-                "```single-line-code```");
-
-            Assert.Equal(
-                "## Head # er\n" +
-                "\n" +
-                "## Header 2\n" +
-                "\n" +
-                "* List item 1\n" +
-                "* List item 2\n" +
-                "* List item 3\n" +
-                "25. Ordered list item\n" +
-                "`single-line-code`", actual);
-        }
-
-        [Fact]
         public void ShouldWarnIncorrectHeaderLevel()
         {
             var options = new ProcessorOptions();
@@ -89,7 +62,7 @@ namespace MarkConv.Tests
         [Fact]
         public void ShouldGenerateTableOfContents()
         {
-            string source = Utils.ReadFileFromProject("RelativeLinks.Common.md");
+            string source = Utils.ReadFileFromResources("RelativeLinks.Common.md");
 
             var options = new ProcessorOptions
                 {InputMarkdownType = MarkdownType.GitHub, OutputMarkdownType = MarkdownType.GitHub};
