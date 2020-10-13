@@ -5,31 +5,21 @@ namespace MarkConv.Tests
     public class HtmlElementTests
     {
         [Theory]
-        [InlineData(MarkdownType.Habr)]
-        [InlineData(MarkdownType.Dev)]
-        public void ShouldConvertDetailsSummary(MarkdownType markdownType)
+        [InlineData(MarkdownType.GitHub, MarkdownType.Habr)]
+        [InlineData(MarkdownType.GitHub, MarkdownType.Dev)]
+        [InlineData(MarkdownType.Habr, MarkdownType.GitHub)]
+        [InlineData(MarkdownType.Habr, MarkdownType.Dev)]
+        public void ShouldConvertDetailsSummary(MarkdownType inMarkdownType, MarkdownType outMarkdownType)
         {
             var options = new ProcessorOptions
             {
                 LinesMaxLength = 0,
-                InputMarkdownType = MarkdownType.GitHub,
-                OutputMarkdownType = markdownType
+                InputMarkdownType = inMarkdownType,
+                OutputMarkdownType = outMarkdownType
             };
 
-            Utils.CompareFiles("DetailsSummary.md", $"DetailsSummary.{markdownType}.md", options);
-        }
-
-        [Fact]
-        public void ShouldConvertSpoilersToDetails()
-        {
-            var options = new ProcessorOptions
-            {
-                LinesMaxLength = 0,
-                InputMarkdownType = MarkdownType.Habr,
-                OutputMarkdownType = MarkdownType.GitHub
-            };
-
-            Utils.CompareFiles("Spoilers.md", "Spoilers-to-DetailsSummary.md", options);
+            Utils.CompareFiles($"DetailsSummary.{inMarkdownType}.md",
+                              $"DetailsSummary.{outMarkdownType}.md", options);
         }
 
         [Fact]

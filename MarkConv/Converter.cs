@@ -116,19 +116,24 @@ namespace MarkConv
                 return;
             }
 
-            if (htmlNode.Name != "#document")
+            if (ConvertDetailsOrSpoilerElement(htmlNode))
             {
-                if (!ConvertHtmlElement(htmlNode, closing))
-                {
-                    _lastBlockIsMarkdown = false;
-                    return;
-                }
+                _lastBlockIsMarkdown = false;
+                return;
             }
 
-            foreach (HtmlNode childNode in htmlNode.ChildNodes)
+            if (ConvertSummaryElement(htmlNode))
             {
-                Convert(childNode);
+                _lastBlockIsMarkdown = false;
+                return;
             }
+
+            if (htmlNode.Name != "#document")
+            {
+                ConvertHtmlElement(htmlNode, closing);
+            }
+
+            ConvertChildren(htmlNode);
 
             if (htmlNode.Name != "#document" && htmlNode.EndNode != htmlNode)
             {
@@ -174,59 +179,9 @@ namespace MarkConv
             }
         }
 
-        private bool ConvertHtmlElement(HtmlNode htmlNode, bool closing)
+        private void ConvertHtmlElement(HtmlNode htmlNode, bool closing)
         {
             string name = htmlNode.Name;
-            (string, string) additionalAttr = default;
-
-            if (Options.InputMarkdownType == MarkdownType.GitHub)
-            {
-                if (Options.OutputMarkdownType == MarkdownType.Habr)
-                {
-                    if (name == "details")
-                    {
-                        name = "spoiler";
-                        var summaryNode = htmlNode.ChildNodes["summary"];
-                        if (summaryNode != null)
-                        {
-                            additionalAttr = ("title", summaryNode.InnerText);
-                        }
-                    }
-                    else if (name == "summary")
-                    {
-                        return false;
-                    }
-                }
-                else if (Options.OutputMarkdownType == MarkdownType.Dev)
-                {
-                    if (name == "details")
-                    {
-                        _result.EnsureNewLine();
-                        if (!closing)
-                        {
-                            _result.Append("{% details");
-                            var summaryNode = htmlNode.ChildNodes["summary"];
-                            if (summaryNode != null)
-                            {
-                                _result.Append(" ");
-                                _result.Append(summaryNode.InnerText);
-                            }
-
-                            _result.Append(" %}");
-                        }
-                        else
-                        {
-                            _result.Append("{% enddetails %}");
-                        }
-                        return true;
-                    }
-
-                    if (name == "summary")
-                    {
-                        return false;
-                    }
-                }
-            }
 
             if (_lastBlockIsMarkdown)
                 _result.EnsureNewLine(true);
@@ -245,19 +200,114 @@ namespace MarkConv
                 ConvertAttribute(htmlAttribute.Name, htmlAttribute.Value, htmlAttribute.QuoteType);
             }
 
-            if (additionalAttr != default)
-            {
-                ConvertAttribute(additionalAttr.Item1, additionalAttr.Item2, AttributeValueQuote.DoubleQuote);
-            }
-
             if (htmlNode.EndNode == htmlNode)
             {
                 _result.Append('/');
             }
 
             _result.Append('>');
+        }
+
+        private bool ConvertDetailsOrSpoilerElement(HtmlNode htmlNode)
+        {
+            string name = htmlNode.Name;
+            string detailsTitle = null;
+            bool convertDetails = false;
+
+            if (Options.InputMarkdownType == MarkdownType.GitHub && Options.OutputMarkdownType != MarkdownType.GitHub)
+            {
+                if (name == "details")
+                {
+                    detailsTitle = htmlNode.ChildNodes["summary"]?.InnerText;
+                    convertDetails = true;
+                }
+            }
+            else if (Options.InputMarkdownType == MarkdownType.Habr && Options.OutputMarkdownType != MarkdownType.Habr)
+            {
+                if (name == "spoiler")
+                {
+                    detailsTitle = htmlNode.Attributes["title"]?.Value;
+                    convertDetails = true;
+                }
+            }
+
+            if (!convertDetails)
+            {
+                return false;
+            }
+
+            _result.EnsureNewLine(_lastBlockIsMarkdown);
+
+            if (Options.OutputMarkdownType == MarkdownType.GitHub)
+            {
+                _result.Append("<details>");
+                _result.AppendNewLine();
+
+                if (detailsTitle != null)
+                {
+                    _result.Append("<summary>");
+                    _result.Append(detailsTitle);
+                    _result.Append("</summary>");
+                }
+
+                ConvertChildren(htmlNode);
+
+                _result.EnsureNewLine();
+                _result.Append("</details>");
+            }
+            else if (Options.OutputMarkdownType == MarkdownType.Habr)
+            {
+                _result.Append("<spoiler");
+                if (detailsTitle != null)
+                {
+                    _result.Append($" title=\"{detailsTitle}\"");
+                }
+                _result.Append('>');
+
+                ConvertChildren(htmlNode);
+
+                _result.EnsureNewLine();
+                _result.Append("</spoiler>");
+            }
+            else if (Options.OutputMarkdownType == MarkdownType.Dev)
+            {
+                _result.Append("{% details");
+                if (detailsTitle != null)
+                {
+                    _result.Append(' ');
+                    _result.Append(detailsTitle);
+                }
+
+                _result.Append(" %}");
+
+                ConvertChildren(htmlNode);
+
+                _result.EnsureNewLine();
+                _result.Append("{% enddetails %}");
+            }
 
             return true;
+        }
+
+        private bool ConvertSummaryElement(HtmlNode htmlNode)
+        {
+            if (Options.InputMarkdownType == MarkdownType.GitHub && Options.OutputMarkdownType != MarkdownType.GitHub)
+            {
+                if (htmlNode.Name == "summary")
+                {
+                    return true;
+                }
+            }
+
+            return false;
+        }
+
+        private void ConvertChildren(HtmlNode htmlNode)
+        {
+            foreach (HtmlNode childNode in htmlNode.ChildNodes)
+            {
+                Convert(childNode);
+            }
         }
 
         private void ConvertAttribute(string key, string value, AttributeValueQuote? attributeValueQuote)

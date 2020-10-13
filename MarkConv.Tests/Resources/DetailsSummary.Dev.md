@@ -8,6 +8,7 @@ Content
 ```
 Some code
 ```
+
 {% details Nested Details %}
 
 Nested text

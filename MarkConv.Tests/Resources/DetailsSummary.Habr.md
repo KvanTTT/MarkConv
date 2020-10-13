@@ -1,4 +1,5 @@
 <spoiler>
+
 Details without summary
 </spoiler>
 <spoiler title="Title">
