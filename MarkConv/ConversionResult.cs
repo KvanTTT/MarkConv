@@ -28,7 +28,7 @@ namespace MarkConv
             if (string.IsNullOrEmpty(str))
                 return;
 
-            AppendIndent();
+            AppendIndentIfRequired();
             _result.Append(str);
             CurrentColumn += str.Length;
         }
@@ -38,26 +38,26 @@ namespace MarkConv
             if (str.IsEmpty)
                 return;
 
-            AppendIndent();
+            AppendIndentIfRequired();
             _result.Append(str);
             CurrentColumn += str.Length;
         }
 
         public void Append(char c)
         {
-            AppendIndent();
+            AppendIndentIfRequired();
             _result.Append(c);
             CurrentColumn += 1;
         }
 
         public void Append(char c, int count)
         {
-            AppendIndent();
+            AppendIndentIfRequired();
             _result.Append(c, count);
             CurrentColumn += count;
         }
 
-        public void AppendIndent()
+        private void AppendIndentIfRequired()
         {
             if (_result.Length > 0 && _result[^1] == '\n' && _currentIndent > 0)
             {
