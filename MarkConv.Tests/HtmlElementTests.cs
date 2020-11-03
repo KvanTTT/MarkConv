@@ -73,48 +73,48 @@ namespace MarkConv.Tests
             var logger = new Logger();
             var processor = new Processor(options) {Logger = logger};
 
-            string inputText = new string('a', LinksHtmlProcessor.HabrMaxTextLengthWithoutCut);
+            string inputText = new string('a', HabrConstsAndMessages.HabrMaxTextLengthWithoutCut);
             processor.Process(inputText);
-            Assert.Equal(LinksHtmlProcessor.HabrMaxTextLengthWithoutCutMessage, logger.WarningMessages[0]);
+            Assert.Equal(HabrConstsAndMessages.HabrMaxTextLengthWithoutCutMessage, logger.WarningMessages[0]);
             logger.Clear();
 
-            inputText = new string('a', LinksHtmlProcessor.HabrMaxTextLengthWithoutCut - 1);
-            processor.Process(inputText);
-            Assert.Empty(logger.WarningMessages);
-            logger.Clear();
-
-            inputText = new string('a', LinksHtmlProcessor.HabrMaxTextLengthBeforeCut + 1) + "<cut/>" +
-                        new string('a', LinksHtmlProcessor.HabrMinTextLengthAfterCut);
-            processor.Process(inputText);
-            Assert.Equal(LinksHtmlProcessor.HabrMaxTextLengthBeforeCutMessage, logger.WarningMessages[0]);
-            logger.Clear();
-
-            inputText = new string('a', LinksHtmlProcessor.HabrMaxTextLengthBeforeCut) + "<cut/>" +
-                        new string('a', LinksHtmlProcessor.HabrMinTextLengthAfterCut);
+            inputText = new string('a', HabrConstsAndMessages.HabrMaxTextLengthWithoutCut - 1);
             processor.Process(inputText);
             Assert.Empty(logger.WarningMessages);
             logger.Clear();
 
-            inputText = new string('a', LinksHtmlProcessor.HabrMinTextLengthBeforeCut - 1) + "<cut/>" +
+            inputText = new string('a', HabrConstsAndMessages.HabrMaxTextLengthBeforeCut + 1) + "<cut/>" +
+                        new string('a', HabrConstsAndMessages.HabrMinTextLengthAfterCut);
+            processor.Process(inputText);
+            Assert.Equal(HabrConstsAndMessages.HabrMaxTextLengthBeforeCutMessage, logger.WarningMessages[0]);
+            logger.Clear();
+
+            inputText = new string('a', HabrConstsAndMessages.HabrMaxTextLengthBeforeCut) + "<cut/>" +
+                        new string('a', HabrConstsAndMessages.HabrMinTextLengthAfterCut);
+            processor.Process(inputText);
+            Assert.Empty(logger.WarningMessages);
+            logger.Clear();
+
+            inputText = new string('a', HabrConstsAndMessages.HabrMinTextLengthBeforeCut - 1) + "<cut/>" +
                         new string('a', 1000);
             processor.Process(inputText);
-            Assert.Equal(LinksHtmlProcessor.HabrMinTextLengthBeforeCutMessage, logger.WarningMessages[0]);
+            Assert.Equal(HabrConstsAndMessages.HabrMinTextLengthBeforeCutMessage, logger.WarningMessages[0]);
             logger.Clear();
 
-            inputText = new string('a', LinksHtmlProcessor.HabrMinTextLengthBeforeCut) + "<cut/>" +
+            inputText = new string('a', HabrConstsAndMessages.HabrMinTextLengthBeforeCut) + "<cut/>" +
                         new string('a', 1000);
             processor.Process(inputText);
             Assert.Empty(logger.WarningMessages);
             logger.Clear();
 
             inputText = new string('a', 1000) + "<cut/>" +
-                        new string('a', LinksHtmlProcessor.HabrMinTextLengthAfterCut - 3);
+                        new string('a', HabrConstsAndMessages.HabrMinTextLengthAfterCut - 3);
             processor.Process(inputText);
-            Assert.Equal(LinksHtmlProcessor.HabrMinTextLengthAfterCutMessage, logger.WarningMessages[0]);
+            Assert.Equal(HabrConstsAndMessages.HabrMinTextLengthAfterCutMessage, logger.WarningMessages[0]);
             logger.Clear();
 
             inputText = new string('a', 1000) + "<cut/>" +
-                        new string('a', LinksHtmlProcessor.HabrMinTextLengthAfterCut - 2);
+                        new string('a', HabrConstsAndMessages.HabrMinTextLengthAfterCut - 2);
             processor.Process(inputText);
             Assert.Empty(logger.WarningMessages);
             logger.Clear();

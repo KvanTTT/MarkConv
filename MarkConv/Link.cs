@@ -75,7 +75,7 @@ namespace MarkConv
         public static LinkType DetectLinkType(string address)
         {
             address = address.Trim();
-            if (MarkdownRegex.UrlRegex.IsMatch(address))
+            if (Consts.UrlRegex.IsMatch(address))
                 return LinkType.Absolute;
 
             if (address.StartsWith("#"))

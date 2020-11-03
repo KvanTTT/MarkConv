@@ -31,7 +31,7 @@ namespace MarkConv
                 if (string.IsNullOrWhiteSpace(mappingItems[i]) || mappingItems[i].TrimStart().StartsWith("//"))
                     continue;
 
-                string[] parts = mappingItems[i].Split(MarkdownRegex.SpaceChars, StringSplitOptions.RemoveEmptyEntries);
+                string[] parts = mappingItems[i].Split(Consts.SpaceChars, StringSplitOptions.RemoveEmptyEntries);
                 if (parts.Length != 2)
                 {
                     logger?.Warn($"Incorrect mapping item \"{mappingItems[i]}\" at line {i + 1}");

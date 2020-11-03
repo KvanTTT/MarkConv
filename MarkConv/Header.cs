@@ -56,13 +56,13 @@ namespace MarkConv
 
         public readonly Dictionary<MarkdownType, HeaderLink> Links = new Dictionary<MarkdownType, HeaderLink>();
 
-        public Header(string headerTitle, int level, List<Header> existingHeaders)
+        public Header(string title, int level, List<Header> existingHeaders)
         {
-            Title = headerTitle.ExtractLinkTitle();
+            Title = title;
             Level = level;
 
             foreach (MarkdownType markdownType in MarkdownTypes)
-                Links[markdownType] = CalculateHeaderLink(existingHeaders, markdownType, headerTitle);
+                Links[markdownType] = CalculateHeaderLink(existingHeaders, markdownType, title);
         }
 
         private static HeaderLink CalculateHeaderLink(List<Header> headers, MarkdownType linkType, string headerTitle)
@@ -95,7 +95,7 @@ namespace MarkConv
                 case MarkdownType.Habr:
                     return HeaderToTranslitLink(headerTitle);
                 default:
-                    return HeaderToLink(headerTitle.ExtractLinkTitle());
+                    return HeaderToLink(headerTitle);
             }
         }
 

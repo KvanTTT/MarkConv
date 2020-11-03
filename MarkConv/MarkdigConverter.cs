@@ -344,7 +344,7 @@ namespace MarkConv
 
             bool insertSpace = !_result.IsLastCharWhitespace();
 
-            if (_result.CurrentColumn + word.Length + (insertSpace ? 1 : 0) > linesMaxLength && !MarkdownRegex.SpecialCharsRegex.IsMatch(word))
+            if (_result.CurrentColumn + word.Length + (insertSpace ? 1 : 0) > linesMaxLength && !Consts.SpecialCharsRegex.IsMatch(word))
             {
                 if (_result.CurrentColumn > 0)
                 {
