@@ -14,8 +14,6 @@ ProjectSection(SolutionItems) = preProject
 	AssemblyInfoCommon.cs = AssemblyInfoCommon.cs
 EndProjectSection
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MarkdigParserTest", "MarkdigParserTest\MarkdigParserTest.csproj", "{89FB9123-126C-41D3-B025-4131D9AC384C}"
-EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -34,10 +32,6 @@ Global
 		{DEF17271-8583-4554-B5DE-54FCB594DC2E}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{DEF17271-8583-4554-B5DE-54FCB594DC2E}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{DEF17271-8583-4554-B5DE-54FCB594DC2E}.Release|Any CPU.Build.0 = Release|Any CPU
-		{89FB9123-126C-41D3-B025-4131D9AC384C}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{89FB9123-126C-41D3-B025-4131D9AC384C}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{89FB9123-126C-41D3-B025-4131D9AC384C}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{89FB9123-126C-41D3-B025-4131D9AC384C}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
