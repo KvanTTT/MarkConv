@@ -1,4 +1,5 @@
 {% details %}
+
 Details without summary
 {% enddetails %}
 {% details Title %}

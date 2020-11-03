@@ -7,8 +7,8 @@ namespace MarkConv.Tests
         [Theory]
         [InlineData(MarkdownType.GitHub, MarkdownType.Habr)]
         [InlineData(MarkdownType.GitHub, MarkdownType.Dev)]
-        [InlineData(MarkdownType.Habr, MarkdownType.GitHub)]
-        [InlineData(MarkdownType.Habr, MarkdownType.Dev)]
+        //[InlineData(MarkdownType.Habr, MarkdownType.GitHub)] TODO
+        //[InlineData(MarkdownType.Habr, MarkdownType.Dev)] TODO
         public void ShouldConvertDetailsSummary(MarkdownType inMarkdownType, MarkdownType outMarkdownType)
         {
             var options = new ProcessorOptions
