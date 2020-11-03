@@ -129,6 +129,12 @@ namespace MarkConv
                 return;
             }
 
+            if (ConvertHtmlComment(htmlNode))
+            {
+                _lastBlockIsMarkdown = false;
+                return;
+            }
+
             if (htmlNode.Name != "#document")
             {
                 ConvertHtmlElement(htmlNode, closing);
@@ -298,6 +304,22 @@ namespace MarkConv
                 {
                     return true;
                 }
+            }
+
+            return false;
+        }
+
+        private bool ConvertHtmlComment(HtmlNode htmlNode)
+        {
+            if (htmlNode is HtmlCommentNode htmlCommentNode)
+            {
+                if (!Options.RemoveComments)
+                {
+                    _result.EnsureNewLine(_lastBlockIsMarkdown);
+                    _result.Append(htmlCommentNode.Comment);
+                }
+
+                return true;
             }
 
             return false;
