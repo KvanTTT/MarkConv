@@ -5,7 +5,7 @@ using Markdig.Syntax.Inlines;
 
 namespace MarkConv
 {
-    public class MarkdigConverter
+    public class MarkdownConverter
     {
         private bool _notBreak;
         private readonly ConversionResult _result;
@@ -14,7 +14,7 @@ namespace MarkConv
 
         public ProcessorOptions Options { get; }
 
-        public MarkdigConverter(ProcessorOptions options, ILogger logger, ConversionResult conversionResult)
+        public MarkdownConverter(ProcessorOptions options, ILogger logger, ConversionResult conversionResult)
         {
             Options = options ?? new ProcessorOptions();
             Logger = logger;

@@ -46,7 +46,7 @@ namespace MarkConv
 
             if (_container.All(block => !(block is HtmlBlock)))
             {
-                var markdownConverter = new MarkdigConverter(Options, Logger, _result);
+                var markdownConverter = new MarkdownConverter(Options, Logger, _result);
                 markdownConverter.ConvertBlock(_container);
                 return;
             }
@@ -170,7 +170,7 @@ namespace MarkConv
                 else
                     _result.EnsureNewLine(true);
 
-                var markdownConverter = new MarkdigConverter(Options, Logger, _result);
+                var markdownConverter = new MarkdownConverter(Options, Logger, _result);
                 markdownConverter.ConvertBlock(markdownBlock);
                 _lastBlockIsMarkdown = true;
 
