@@ -93,7 +93,7 @@ namespace MarkConv.Cli
             if (parameters.RemoveUnwantedBreaks.HasValue)
                 options.NormalizeBreaks = parameters.RemoveUnwantedBreaks.Value;
 
-            options.RemoveSpoilers = parameters.RemoveSpoilers;
+            options.RemoveDetails = parameters.RemoveSpoilers;
             options.RemoveComments = parameters.RemoveComments;
 
             var processor = new Processor(options) {Logger = logger};

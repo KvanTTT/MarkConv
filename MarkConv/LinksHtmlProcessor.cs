@@ -57,7 +57,7 @@ namespace MarkConv
                 {
                     Match match = matchResult.Match;
 
-                    if ((!Options.RemoveSpoilers || _spoilersLevel == 0) && (!Options.RemoveComments || !_insideComment))
+                    if ((!Options.RemoveDetails || _spoilersLevel == 0) && (!Options.RemoveComments || !_insideComment))
                     {
                         result.Append(textSpan.Slice(index, match.Index - index));
                     }
@@ -85,7 +85,7 @@ namespace MarkConv
                     }
                 }
 
-                if ((!Options.RemoveSpoilers || _spoilersLevel == 0) && (!Options.RemoveComments || !_insideComment))
+                if ((!Options.RemoveDetails || _spoilersLevel == 0) && (!Options.RemoveComments || !_insideComment))
                 {
                     result.Append(textSpan.Slice(index));
                 }
@@ -134,7 +134,7 @@ namespace MarkConv
                 prevMatches[ElementType.HtmlLink] = GetMatch(text, index, ElementType.HtmlLink);
 
                 if (Options.InputMarkdownType != MarkdownType.Habr &&
-                    (Options.OutputMarkdownType == MarkdownType.Habr || Options.OutputMarkdownType == MarkdownType.Dev || Options.RemoveSpoilers))
+                    (Options.OutputMarkdownType == MarkdownType.Habr || Options.OutputMarkdownType == MarkdownType.Dev || Options.RemoveDetails))
                 {
                     prevMatches[ElementType.DetailsOpenElement] =
                         GetMatch(text, index, ElementType.DetailsOpenElement);
@@ -145,7 +145,7 @@ namespace MarkConv
                 }
 
                 if (Options.InputMarkdownType == MarkdownType.Habr &&
-                    (Options.OutputMarkdownType == MarkdownType.GitHub || Options.OutputMarkdownType == MarkdownType.Dev || Options.RemoveSpoilers))
+                    (Options.OutputMarkdownType == MarkdownType.GitHub || Options.OutputMarkdownType == MarkdownType.Dev || Options.RemoveDetails))
                 {
                     prevMatches[ElementType.SpoilerOpenElement] =
                         GetMatch(text, index, ElementType.SpoilerOpenElement);
@@ -222,7 +222,7 @@ namespace MarkConv
 
                 case ElementType.DetailsOpenElement:
                     _spoilersLevel++;
-                    result = Options.RemoveSpoilers
+                    result = Options.RemoveDetails
                         ? ""
                         : nextMatch.Type == ElementType.SummaryElements
                             ? ""
@@ -235,7 +235,7 @@ namespace MarkConv
 
                 case ElementType.DetailsCloseElement:
                     _spoilersLevel--;
-                    result = Options.RemoveSpoilers
+                    result = Options.RemoveDetails
                         ? ""
                         : Options.OutputMarkdownType == MarkdownType.Habr
                             ? "</spoiler>"
@@ -246,7 +246,7 @@ namespace MarkConv
 
                 case ElementType.SummaryElements:
                     string summary = match.Groups[1].Value.Trim();
-                    result = Options.RemoveSpoilers
+                    result = Options.RemoveDetails
                         ? ""
                         : Options.OutputMarkdownType == MarkdownType.Habr
                             ? $"<spoiler title=\"{summary}\">"
@@ -257,12 +257,12 @@ namespace MarkConv
 
                 case ElementType.SpoilerOpenElement:
                     _spoilersLevel++;
-                    result = Options.RemoveSpoilers ? "" : $"<details>\n<summary>{match.Groups[1].Value}</summary>\n";
+                    result = Options.RemoveDetails ? "" : $"<details>\n<summary>{match.Groups[1].Value}</summary>\n";
                     break;
 
                 case ElementType.SpoilerCloseElement:
                     _spoilersLevel--;
-                    result = Options.RemoveSpoilers ? "" : "</details>";
+                    result = Options.RemoveDetails ? "" : "</details>";
                     break;
 
                 case ElementType.AnchorElement:
@@ -297,7 +297,7 @@ namespace MarkConv
             if (Options.RemoveComments && _insideComment)
                 result = "";
 
-            if (Options.RemoveSpoilers && _spoilersLevel > 0)
+            if (Options.RemoveDetails && _spoilersLevel > 0)
                 result = "";
 
             return (result, nextMatch);

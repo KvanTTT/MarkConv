@@ -219,23 +219,37 @@ namespace MarkConv
         {
             string name = htmlNode.Name;
             string detailsTitle = null;
+            bool removeDetails = false;
             bool convertDetails = false;
 
-            if (Options.InputMarkdownType == MarkdownType.GitHub && Options.OutputMarkdownType != MarkdownType.GitHub)
+            if (Options.RemoveDetails || Options.InputMarkdownType == MarkdownType.GitHub && Options.OutputMarkdownType != MarkdownType.GitHub)
             {
                 if (name == "details")
                 {
                     detailsTitle = htmlNode.ChildNodes["summary"]?.InnerText;
-                    convertDetails = true;
+                    AssignRemoveOrConvert();
                 }
             }
-            else if (Options.InputMarkdownType == MarkdownType.Habr && Options.OutputMarkdownType != MarkdownType.Habr)
+            else if (Options.RemoveDetails || Options.InputMarkdownType == MarkdownType.Habr && Options.OutputMarkdownType != MarkdownType.Habr)
             {
                 if (name == "spoiler")
                 {
                     detailsTitle = htmlNode.Attributes["title"]?.Value;
-                    convertDetails = true;
+                    AssignRemoveOrConvert();
                 }
+            }
+
+            void AssignRemoveOrConvert()
+            {
+                if (Options.RemoveDetails)
+                    removeDetails = true;
+                else
+                    convertDetails = true;
+            }
+
+            if (removeDetails)
+            {
+                return true;
             }
 
             if (!convertDetails)

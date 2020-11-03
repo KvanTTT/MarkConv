@@ -34,7 +34,7 @@ namespace MarkConv
 
         public Dictionary<string, ImageHash> ImagesMap = new Dictionary<string, ImageHash>();
 
-        public bool RemoveSpoilers { get; set; }
+        public bool RemoveDetails { get; set; }
 
         public bool RemoveComments { get; set; }
 

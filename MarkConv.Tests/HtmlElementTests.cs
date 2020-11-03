@@ -23,15 +23,17 @@ namespace MarkConv.Tests
         }
 
         [Fact]
-        public void ShouldRemoveSpoilers()
+        public void ShouldRemoveDetails()
         {
             var options = new ProcessorOptions
             {
-                InputMarkdownType = MarkdownType.Habr,
-                RemoveSpoilers = true
+                InputMarkdownType = MarkdownType.GitHub,
+                RemoveDetails = true
             };
 
-            Utils.CompareFiles("Spoilers.md", "Spoilers-Removed.md", options);
+            var processor = new Processor(options);
+            string actual = processor.Process(Utils.ReadFileFromResources("DetailsSummary.GitHub.md"));
+            Assert.True(string.IsNullOrWhiteSpace(actual));
         }
 
         [Fact]
