@@ -18,7 +18,7 @@ namespace MarkConv
         public const string MarkdownBlockMarker = "markdown_block:";
 
         private static readonly Regex MarkdownBlockRegex =
-            new Regex(MarkdownBlockMarker + @"(\d+)", RegexOptions.Compiled);
+            new Regex(MarkdownBlockMarker + @"(\d+);", RegexOptions.Compiled);
 
         private bool _lastBlockIsMarkdown;
 
@@ -64,6 +64,7 @@ namespace MarkConv
                 {
                     htmlData.Append(MarkdownBlockMarker);
                     htmlData.Append(index);
+                    htmlData.Append(';');
                 }
             }
 
