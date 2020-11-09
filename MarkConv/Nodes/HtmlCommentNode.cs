@@ -1,15 +1,16 @@
 ﻿using System;
-using Antlr4.Runtime;
+using Antlr4.Runtime.Tree;
 
 namespace MarkConv.Nodes
 {
     public class HtmlCommentNode : HtmlNode
     {
-        public IToken CommentToken { get; }
+        public string Comment { get; }
 
-        public HtmlCommentNode(IToken commentToken)
+        public HtmlCommentNode(ITerminalNode commentNode, string comment, int start, int length)
+            : base(commentNode, start, length)
         {
-            CommentToken = commentToken ?? throw new ArgumentNullException(nameof(commentToken));
+            Comment = comment ?? throw new ArgumentNullException(nameof(comment));
         }
     }
 }

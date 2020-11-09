@@ -1,19 +1,20 @@
 ﻿using System.Collections.Generic;
-using Antlr4.Runtime;
 
 namespace MarkConv.Nodes
 {
     public class HtmlElementNode : HtmlNode
     {
-        public IToken Name { get; }
+        public HtmlStringNode Name { get; }
 
-        public HtmlParser.AttributeContext[] Attributes { get; }
+        public Dictionary<string, HtmlAttributeNode> Attributes { get; }
 
         public List<Node> Content { get; }
 
-        public IToken SelfClosingTag { get; }
+        public HtmlStringNode SelfClosingTag { get; }
 
-        public HtmlElementNode(IToken name, HtmlParser.AttributeContext[] attributes, List<Node> content, IToken selfClosingTag)
+        public HtmlElementNode(HtmlParser.ElementContext elementContext, HtmlStringNode name, Dictionary<string, HtmlAttributeNode> attributes, List<Node> content,
+            HtmlStringNode selfClosingTag)
+            : base(elementContext)
         {
             Name = name;
             Attributes = attributes;
