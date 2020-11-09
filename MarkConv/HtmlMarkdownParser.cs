@@ -1,10 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.IO;
 using System.Linq;
 using System.Text;
-using System.Text.RegularExpressions;
-using HtmlAgilityPack;
+using Antlr4.Runtime;
+using MarkConv.Html;
 using MarkConv.Nodes;
 using Markdig;
 using Markdig.Syntax;
@@ -18,10 +17,9 @@ namespace MarkConv
 
         public ProcessorOptions Options { get; }
 
-        private const string MarkdownBlockMarker = "markdown_block:";
+        private List<Link> _links = new List<Link>();
 
-        private static readonly Regex MarkdownBlockRegex =
-            new Regex(MarkdownBlockMarker + @"(\d+);", RegexOptions.Compiled);
+        public IReadOnlyList<Link> Links => _links;
 
         public HtmlMarkdownParser(ProcessorOptions options, ILogger logger)
         {
@@ -32,179 +30,186 @@ namespace MarkConv
         public Node ParseHtmlMarkdown(string content)
         {
             MarkdownDocument document = Markdown.Parse(content);
-            return ParseMarkdownHtml(document, 0);
+            return new MarkdownContainerBlockNode(document, ParseHtmlMarkdown(document));
         }
 
-        private Node ParseMarkdownHtml(ContainerBlock rootContainer, int offset)
+        private List<Node> ParseHtmlMarkdown(ContainerBlock containerBlock)
         {
-            if (rootContainer.All(block => !(block is HtmlBlock)))
+            List<Node> children;
+            if (containerBlock.Any(child => child is HtmlBlock))
             {
-                return ParseMarkdown(rootContainer, rootContainer, offset);
+                children = ParseHtmlMarkdown(containerBlock.Cast<MarkdownObject>().ToList());
+            }
+            else
+            {
+                children = new List<Node>(containerBlock.Count);
+                foreach (Block child in containerBlock)
+                    children.Add(ParseMarkdownBlock(child));
             }
 
-            var htmlData = new StringBuilder();
+            return children;
+        }
 
-            for (var index = 0; index < rootContainer.Count; index++)
+        private List<Node> ParseHtmlMarkdown(List<MarkdownObject> markdownObjects)
+        {
+            var tokens = new List<IToken>(markdownObjects.Count);
+
+            foreach (MarkdownObject markdownObject in markdownObjects)
             {
-                Block child = rootContainer[index];
-                if (child is HtmlBlock htmlBlock)
+                var blockSpan = markdownObject.Span;
+                if (markdownObject is HtmlBlock htmlBlock)
                 {
-                    AppendHtmlData(htmlData, htmlBlock);
+                    var builder = new StringBuilder();
+
+                    ReadOnlySpan<char> origSpan = default;
+                    var lines = htmlBlock.Lines.Lines;
+                    for (var index = 0; index < htmlBlock.Lines.Count; index++)
+                    {
+                        var line = lines[index];
+                        var slice = line.Slice;
+                        if (origSpan == default)
+                            origSpan = slice.Text.AsSpan();
+
+                        builder.Append(origSpan.Slice(slice.Start, slice.Length));
+                        builder.Append('\n');
+                    }
+
+                    TokenizeAndAppend(tokens, builder.ToString(), blockSpan.Start);
+                }
+                else if (markdownObject is HtmlInline htmlInline)
+                {
+                    TokenizeAndAppend(tokens, htmlInline.Tag, blockSpan.Start);
                 }
                 else
                 {
-                    htmlData.Append(MarkdownBlockMarker);
-                    htmlData.Append(index);
-                    htmlData.Append(';');
+                    tokens.Add(new MarkdownToken(tokens.Count, blockSpan.Start, blockSpan.End, ParseMarkdown(markdownObject)));
                 }
             }
 
-            return ParseHtml(htmlData.ToString(), rootContainer, offset);
+            var parser = new HtmlParser(new CommonTokenStream(new ListTokenSource(tokens)));
+            var root = parser.root();
+
+            var children = new List<Node>(root.content().Length);
+            foreach (var contentContext in root.content())
+                children.Add(ProcessContent(contentContext));
+
+            return children;
         }
 
-        private Node ParseHtml(string htmlData, ContainerBlock rootContainer, int offset)
+        private static void TokenizeAndAppend(List<IToken> tokens, string input, int offset)
         {
-            var doc = new HtmlDocument();
-            using var stringReader = new StringReader(htmlData);
-            doc.Load(stringReader);
-            return ParseHtml(doc.DocumentNode, rootContainer, offset);
-        }
+            var lexer = new HtmlLexer(new AntlrInputStream(input));
+            var currentTokens = lexer.GetAllTokens();
 
-        private Node ParseHtml(HtmlNode htmlNode, ContainerBlock rootContainer, int offset)
-        {
-            if (htmlNode is HtmlTextNode htmlTextNode)
-                return ParseHtmlTextNode(htmlTextNode, rootContainer, offset);
-
-            var children = new List<Node>(htmlNode.ChildNodes.Count);
-            foreach (HtmlNode childNode in htmlNode.ChildNodes)
-                children.Add(ParseHtml(childNode, rootContainer, offset));
-
-            var span = rootContainer.Span;
-            return new HtmlMarkdownNode(htmlNode, new HtmlMarkdownNode(htmlNode.EndNode, null, new List<Node>(), 0, 0), children,
-                span.Start, span.Length);
-        }
-
-        private Node ParseHtmlTextNode(HtmlTextNode htmlTextNode, ContainerBlock rootContainer, int offset)
-        {
-            Match match;
-            int prevIndex = 0;
-            int restLength = htmlTextNode.Text.Length;
-            var textSpan = htmlTextNode.Text.AsSpan();
-            var children = new List<Node>();
-            Block markdownBlock = null;
-
-            while ((match = MarkdownBlockRegex.Match(htmlTextNode.Text, prevIndex, restLength)).Success)
+            foreach (IToken token in currentTokens)
             {
-                AddHtmlTextNodeIfNotEmpty(prevIndex, match.Index - prevIndex, textSpan);
-
-                int blockNumber = int.Parse(match.Groups[1].Value);
-                markdownBlock = rootContainer[blockNumber];
-
-                children.Add(ParseMarkdown(markdownBlock, rootContainer, offset));
-
-                prevIndex = match.Index + match.Length;
-                restLength = htmlTextNode.Text.Length - prevIndex;
-            }
-
-            AddHtmlTextNodeIfNotEmpty(match.Index, restLength - match.Index, textSpan);
-
-            if (children.Count == 1)
-                return children[0];
-
-            return new HtmlMarkdownNode(htmlTextNode.OwnerDocument.CreateElement("#artificial"), null, children,
-                rootContainer.Span.Start, rootContainer.Span.Length);
-
-            void AddHtmlTextNodeIfNotEmpty(int index, int length, ReadOnlySpan<char> htmlTextSpan)
-            {
-                var span = htmlTextSpan.Slice(index, length);
-                if (!span.IsEmpty)
-                {
-                    children.Add(new HtmlMarkdownNode(
-                        htmlTextNode.OwnerDocument.CreateTextNode(span.ToString()),
-                        offset + (markdownBlock ?? rootContainer).Span.End + 1, span.Length));
-                }
+                tokens.Add(new HtmlToken(token.Type, tokens.Count,
+                    token.StartIndex + offset, token.StopIndex + offset, token.Text));
             }
         }
 
-        private void AppendHtmlData(StringBuilder htmlData, HtmlBlock htmlBlock)
+        private Node ProcessContent(HtmlParser.ContentContext contentContext)
         {
-            ReadOnlySpan<char> origSpan = default;
-            var lines = htmlBlock.Lines.Lines;
-            for (var index = 0; index < htmlBlock.Lines.Count; index++)
+            if (contentContext.element() != null)
             {
-                var line = lines[index];
-                var slice = line.Slice;
-                if (origSpan == default)
-                {
-                    origSpan = slice.Text.AsSpan();
-                }
-                htmlData.Append(origSpan.Slice(slice.Start, slice.Length).TrimStart());
-                htmlData.Append('\n');
+                return ProcessElementNode(contentContext.element());
             }
+
+            if (contentContext.HTML_COMMENT() != null)
+            {
+                return new HtmlCommentNode(contentContext.HTML_COMMENT().Symbol);
+            }
+
+            if (contentContext.HTML_TEXT() != null)
+            {
+                return new HtmlTextNode(contentContext.HTML_TEXT().Symbol);
+            }
+
+            var markdownToken = (MarkdownToken) contentContext.MARKDOWN_FRAGMENT().Symbol;
+            return markdownToken.MarkdownNode;
         }
 
-        private MarkdownNode ParseMarkdown(Block block, ContainerBlock container, int offset)
+        private HtmlElementNode ProcessElementNode(HtmlParser.ElementContext elementContext)
         {
-            List<Node> children;
+            var content = new List<Node>(elementContext.content().Length);
+            foreach (var contentContext in elementContext.content())
+                content.Add(ProcessContent(contentContext));
 
+            return new HtmlElementNode(elementContext.TAG_NAME(0).Symbol,
+                elementContext.attribute(), content, elementContext.TAG_SLASH_CLOSE()?.Symbol);
+        }
+
+        private MarkdownNode ParseMarkdown(MarkdownObject markdownObject)
+        {
+            if (markdownObject is Block block)
+                return ParseMarkdownBlock(block);
+
+            if (markdownObject is Inline inline)
+                return ParseMarkdownInline(inline);
+
+            throw new NotImplementedException($"Converting of type '{markdownObject.GetType()}' is not implemented");
+        }
+
+        private MarkdownNode ParseMarkdownBlock(Block block)
+        {
             switch (block)
             {
+                case HtmlBlock _:
+                    throw new InvalidProgramException($"Parsing of {nameof(HtmlBlock)} should be implemented in {nameof(ParseHtmlMarkdown)}");
+
                 case LeafBlock leafBlock:
-                    children = new List<Node>();
-                    if (leafBlock.Inline != null)
-                        children.Add(ParseInlineMarkdown(leafBlock.Inline, container, offset));
-                    break;
+                    return new MarkdownLeafBlockNode(leafBlock, ParseMarkdownInline(leafBlock.Inline));
 
                 case ContainerBlock containerBlock:
-                    children = new List<Node>(containerBlock.Count);
-                    foreach (Block child in containerBlock)
-                    {
-                        var converterNode = child is ContainerBlock containerBlock2
-                            ? ParseMarkdownHtml(containerBlock2, offset)
-                            : ParseMarkdown(child, container, offset);
-                        children.Add(converterNode is MarkdownNode
-                            ? converterNode
-                            : new MarkdownNode(child, new List<Node>(1) {converterNode}, 0, 0));
-                    }
-                    break;
+                    return new MarkdownContainerBlockNode(containerBlock, ParseHtmlMarkdown(containerBlock));
 
                 default:
                     throw new NotImplementedException($"Converting of Block type '{block.GetType()}' is not implemented");
             }
-
-            var span = block.Span;
-            return new MarkdownNode(block, children, span.Start + offset, span.Length);
         }
 
-        private MarkdownNode ParseInlineMarkdown(Inline inline, ContainerBlock rootContainer, int offset)
+        private MarkdownNode ParseMarkdownInline(Inline inline)
         {
-            List<Node> children;
-
             switch (inline)
             {
-                case LiteralInline _:
-                case LineBreakInline _:
-                case CodeInline _:
-                case AutolinkInline _:
-                    children = new List<Node>(0);
-                    break;
+                case AutolinkInline autolinkInline:
+                    _links.Add(new Link(autolinkInline.Url, autolinkInline.Url));
+                    return new MarkdownLeafInlineNode(autolinkInline);
+
+                case HtmlInline _:
+                    throw new InvalidProgramException($"Parsing of {nameof(HtmlInline)} should be implemented in {nameof(ParseHtmlMarkdown)}");
+
+                case LeafInline leafInline:
+                    return new MarkdownLeafInlineNode(leafInline);
 
                 case ContainerInline containerInline:
-                    children = new List<Node>(containerInline.Count());
-                    foreach (Inline inline2 in containerInline)
-                        children.Add(ParseInlineMarkdown(inline2, rootContainer, offset));
-                    break;
+                    if (containerInline is LinkInline linkInline)
+                    {
+                        string title = linkInline.Title;
+                        if (string.IsNullOrEmpty(title))
+                            title = linkInline.FirstChild.ToString();
+                        _links.Add(new Link(linkInline.Url, title, linkInline.IsImage));
+                    }
 
-                case HtmlInline htmlInline:
-                    children = new List<Node>(1) {ParseHtml(htmlInline.Tag, rootContainer, offset)};
-                    break;
+                    List<Node> children;
+                    if (containerInline.Any(child => child is HtmlInline))
+                    {
+                        children = ParseHtmlMarkdown(containerInline.Cast<MarkdownObject>().ToList());
+                    }
+                    else
+                    {
+                        children = new List<Node>(containerInline.Count());
+                        foreach (Inline inline2 in containerInline)
+                            children.Add(ParseMarkdownInline(inline2));
+                    }
+                    return new MarkdownContainerInlineNode(containerInline, children);
+
+                case null:
+                    return null;
 
                 default:
-                    throw new NotImplementedException($"Converting of Inline type '{inline.GetType()}' is not implemented");
+                    throw new NotImplementedException($"Parsing of Inline type '{inline.GetType()}' is not implemented");
             }
-
-            var span = inline.Span;
-            return new MarkdownNode(inline, children, span.Start + offset, span.Length);
         }
     }
 }
