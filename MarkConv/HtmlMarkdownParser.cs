@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Text.RegularExpressions;
 using Antlr4.Runtime;
 using MarkConv.Html;
 using MarkConv.Nodes;
@@ -13,11 +14,15 @@ namespace MarkConv
 {
     public class HtmlMarkdownParser
     {
+        private static readonly Regex UrlRegex = new Regex(
+            @"https?:\/\/(?:www\.|(?!www))[a-zA-Z0-9][a-zA-Z0-9-]+[a-zA-Z0-9]\.[^\s]{2,}|www\.[a-zA-Z0-9][a-zA-Z0-9-]+[a-zA-Z0-9]\.[^\s]{2,}|https?:\/\/(?:www\.|(?!www))[a-zA-Z0-9]+\.[^\s]{2,}|www\.[a-zA-Z0-9]+\.[^\s]{2,}",
+            RegexOptions.Compiled);
+
         public ILogger Logger { get; }
 
         public ProcessorOptions Options { get; }
 
-        private List<Link> _links = new List<Link>();
+        private readonly List<Link> _links = new List<Link>();
 
         public IReadOnlyList<Link> Links => _links;
 
@@ -29,7 +34,11 @@ namespace MarkConv
 
         public Node ParseHtmlMarkdown(string content)
         {
-            MarkdownDocument document = Markdown.Parse(content);
+            var builder = new MarkdownPipelineBuilder
+            {
+                PreciseSourceLocation = true
+            };
+            MarkdownDocument document = Markdown.Parse(content, builder.Build());
             return new MarkdownContainerBlockNode(document, ParseHtmlMarkdown(document));
         }
 
@@ -102,28 +111,27 @@ namespace MarkConv
             var currentTokens = lexer.GetAllTokens();
 
             foreach (IToken token in currentTokens)
-            {
                 tokens.Add(new HtmlToken(token.Type, tokens.Count,
                     token.StartIndex + offset, token.StopIndex + offset, token.Text));
-            }
         }
 
         private Node ProcessContent(HtmlParser.ContentContext contentContext)
         {
             if (contentContext.element() != null)
-            {
                 return ProcessElementNode(contentContext.element());
-            }
 
             if (contentContext.HTML_COMMENT() != null)
             {
-                return new HtmlCommentNode(contentContext.HTML_COMMENT().Symbol);
+                var commentTerminal = contentContext.HTML_COMMENT();
+                var commentSymbol = commentTerminal.Symbol;
+                var comment = commentSymbol.Text;
+                comment = comment.Remove(comment.Length - 3).Remove(0, 4); // Unescape comment
+                return new HtmlCommentNode(commentTerminal, comment,
+                    commentSymbol.StartIndex, commentSymbol.StopIndex - commentSymbol.StartIndex + 1);
             }
 
             if (contentContext.HTML_TEXT() != null)
-            {
-                return new HtmlTextNode(contentContext.HTML_TEXT().Symbol);
-            }
+                return new HtmlStringNode(contentContext.HTML_TEXT());
 
             var markdownToken = (MarkdownToken) contentContext.MARKDOWN_FRAGMENT().Symbol;
             return markdownToken.MarkdownNode;
@@ -135,8 +143,44 @@ namespace MarkConv
             foreach (var contentContext in elementContext.content())
                 content.Add(ProcessContent(contentContext));
 
-            return new HtmlElementNode(elementContext.TAG_NAME(0).Symbol,
-                elementContext.attribute(), content, elementContext.TAG_SLASH_CLOSE()?.Symbol);
+            var tagName = new HtmlStringNode(elementContext.TAG_NAME(0));
+            var attributes = new Dictionary<string, HtmlAttributeNode>();
+
+            foreach (HtmlParser.AttributeContext attributeContext in elementContext.attribute())
+            {
+                var nameNode = new HtmlStringNode(attributeContext.TAG_NAME());
+
+                var valueTerminal = attributeContext.ATTR_VALUE();
+                var valueSymbol = valueTerminal.Symbol;
+                string value = valueSymbol.Text.Trim('\'', '"');
+                var valueNode = new HtmlStringNode(valueTerminal, value,
+                    valueSymbol.StartIndex, valueSymbol.StopIndex - valueSymbol.StartIndex + 1);
+
+                attributes.Add(nameNode.String, new HtmlAttributeNode(attributeContext, nameNode, valueNode));
+            }
+
+            HtmlStringNode address = null;
+            bool isImage = false;
+
+            // TODO: should check if such attributes presented and throw an error if not
+            if (tagName.String == "a")
+            {
+                address = attributes["href"].Value;
+            }
+            else if (tagName.String == "img")
+            {
+                address = attributes["src"].Value;
+                isImage = true;
+            }
+
+            var selfClosingTagSymbol = elementContext.TAG_SLASH_CLOSE();
+            var result = new HtmlElementNode(elementContext, tagName, attributes, content,
+                selfClosingTagSymbol == null ? null : new HtmlStringNode(selfClosingTagSymbol));
+
+            if (address != null)
+                _links.Add(new Link(result, address.String, isImage, start: address.Start, length: address.Length));
+
+            return result;
         }
 
         private MarkdownNode ParseMarkdown(MarkdownObject markdownObject)
@@ -170,27 +214,31 @@ namespace MarkConv
 
         private MarkdownNode ParseMarkdownInline(Inline inline)
         {
+            MarkdownNode result;
+
             switch (inline)
             {
-                case AutolinkInline autolinkInline:
-                    _links.Add(new Link(autolinkInline.Url, autolinkInline.Url));
-                    return new MarkdownLeafInlineNode(autolinkInline);
-
                 case HtmlInline _:
                     throw new InvalidProgramException($"Parsing of {nameof(HtmlInline)} should be implemented in {nameof(ParseHtmlMarkdown)}");
+
+                case LiteralInline literalInline:
+                    result = new MarkdownLeafInlineNode(literalInline);
+                    var offset = literalInline.Span.Start;
+                    var matches = UrlRegex.Matches(literalInline.Content.ToString());
+                    foreach (Match url in matches)
+                        _links.Add(new Link(result, url.Value, start: offset + url.Index, length: url.Length));
+                    return result;
+
+                case AutolinkInline autolinkInline:
+                    result = new MarkdownLeafInlineNode(autolinkInline);
+                    var span = autolinkInline.Span;
+                    _links.Add(new Link(result, autolinkInline.Url, start: span.Start + 1, length: span.Length - 2));
+                    return result;
 
                 case LeafInline leafInline:
                     return new MarkdownLeafInlineNode(leafInline);
 
                 case ContainerInline containerInline:
-                    if (containerInline is LinkInline linkInline)
-                    {
-                        string title = linkInline.Title;
-                        if (string.IsNullOrEmpty(title))
-                            title = linkInline.FirstChild.ToString();
-                        _links.Add(new Link(linkInline.Url, title, linkInline.IsImage));
-                    }
-
                     List<Node> children;
                     if (containerInline.Any(child => child is HtmlInline))
                     {
@@ -202,7 +250,15 @@ namespace MarkConv
                         foreach (Inline inline2 in containerInline)
                             children.Add(ParseMarkdownInline(inline2));
                     }
-                    return new MarkdownContainerInlineNode(containerInline, children);
+                    result = new MarkdownContainerInlineNode(containerInline, children);
+
+                    if (containerInline is LinkInline linkInline)
+                    {
+                        var urlSpan = linkInline.UrlSpan.Value;
+                        _links.Add(new Link(result, linkInline.Url, linkInline.IsImage, start: urlSpan.Start, length: urlSpan.Length));
+                    }
+
+                    return result;
 
                 case null:
                     return null;
