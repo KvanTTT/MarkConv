@@ -6,13 +6,13 @@ namespace MarkConv.Nodes
 {
     public class MarkdownContainerInlineNode : MarkdownNode
     {
-        public ContainerInline ContainerInline { get; }
+        public ContainerInline ContainerInline => (ContainerInline) MarkdownObject;
 
         public List<Node> Children { get; }
 
         public MarkdownContainerInlineNode(ContainerInline containerInline, List<Node> children)
+            : base(containerInline)
         {
-            ContainerInline = containerInline ?? throw new ArgumentNullException(nameof(containerInline));
             Children = children ?? throw new ArgumentNullException(nameof(children));
         }
     }

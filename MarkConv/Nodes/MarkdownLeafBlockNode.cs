@@ -1,17 +1,16 @@
-﻿using System;
-using Markdig.Syntax;
+﻿using Markdig.Syntax;
 
 namespace MarkConv.Nodes
 {
     public class MarkdownLeafBlockNode : MarkdownNode
     {
-        public LeafBlock LeafBlock { get; }
+        public LeafBlock LeafBlock => (LeafBlock) MarkdownObject;
 
         public Node Inline { get; }
 
         public MarkdownLeafBlockNode(LeafBlock leafBlock, Node inline)
+            : base(leafBlock)
         {
-            LeafBlock = leafBlock;
             Inline = inline;
         }
     }
