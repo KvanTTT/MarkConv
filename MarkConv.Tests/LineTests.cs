@@ -2,7 +2,7 @@
 
 namespace MarkConv.Tests
 {
-    public class LineTests
+    public class LineTests : TestsBase
     {
         [Fact]
         public void ShouldNotSplitSpecialLines()
@@ -46,7 +46,7 @@ namespace MarkConv.Tests
                 NormalizeBreaks = false
             };
 
-            Utils.CompareFiles(sourceFileName, expectedFileName, options);
+            CompareFiles(sourceFileName, expectedFileName, options);
         }
     }
 }

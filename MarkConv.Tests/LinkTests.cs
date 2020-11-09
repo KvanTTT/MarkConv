@@ -4,7 +4,7 @@ using Xunit;
 
 namespace MarkConv.Tests
 {
-    public class LinkTests
+    public class LinkTests : TestsBase
     {
         [Fact]
         public void ConvertVisualCodeToHabrRelativeLinks()
@@ -88,11 +88,11 @@ namespace MarkConv.Tests
             var options = new ProcessorOptions
             {
                 CheckLinks = true,
-                ImagesMap = ImagesMap.Load(Path.Combine(Utils.ProjectDir, "ImagesMap"), Utils.ProjectDir, logger),
-                RootDirectory = Utils.ProjectDir
+                ImagesMap = ImagesMap.Load(Path.Combine(ProjectDir, "ImagesMap"), ProjectDir, logger),
+                RootDirectory = ProjectDir
             };
 
-            Utils.CompareFiles("Images.md", "Images-Mapped.md", options, logger);
+            CompareFiles("Images.md", "Images-Mapped.md", options, logger);
 
             Assert.Equal(1, logger.WarningMessages.Count(message => message.Contains("Duplicated")));
             Assert.Equal(1, logger.WarningMessages.Count(message => message.Contains("Incorrect mapping")));
@@ -117,7 +117,7 @@ namespace MarkConv.Tests
             };
 
             var logger = new Logger();
-            Utils.CompareFiles(inputFileName, outputFileName, options, logger);
+            CompareFiles(inputFileName, outputFileName, options, logger);
 
             Assert.Single(logger.WarningMessages);
         }

@@ -4,11 +4,11 @@ using Xunit;
 
 namespace MarkConv.Tests
 {
-    public static class Utils
+    public abstract class TestsBase
     {
         public static string ProjectDir { get; private set; }
 
-        static Utils()
+        static TestsBase()
         {
             InitProjectDir();
         }

@@ -2,7 +2,7 @@
 
 namespace MarkConv.Tests
 {
-    public class HtmlElementTests
+    public class HtmlElementTests : TestsBase
     {
         [Theory]
         [InlineData(MarkdownType.GitHub, MarkdownType.Habr)]
@@ -18,8 +18,7 @@ namespace MarkConv.Tests
                 OutputMarkdownType = outMarkdownType
             };
 
-            Utils.CompareFiles($"DetailsSummary.{inMarkdownType}.md",
-                              $"DetailsSummary.{outMarkdownType}.md", options);
+            CompareFiles($"DetailsSummary.{inMarkdownType}.md", $"DetailsSummary.{outMarkdownType}.md", options);
         }
 
         [Fact]
@@ -32,7 +31,7 @@ namespace MarkConv.Tests
             };
 
             var processor = new Processor(options);
-            string actual = processor.Process(Utils.ReadFileFromResources("DetailsSummary.GitHub.md"));
+            string actual = processor.Process(ReadFileFromResources("DetailsSummary.GitHub.md"));
             Assert.True(string.IsNullOrWhiteSpace(actual));
         }
 
@@ -44,7 +43,7 @@ namespace MarkConv.Tests
                 RemoveComments = true
             };
 
-            Utils.CompareFiles("Comments.md", "Comments-Removed.md", options);
+            CompareFiles("Comments.md", "Comments-Removed.md", options);
         }
 
         [Fact]
