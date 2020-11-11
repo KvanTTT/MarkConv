@@ -1,223 +1,96 @@
 ﻿using System;
-using System.IO;
 using System.Linq;
 using System.Text;
-using System.Text.RegularExpressions;
-using HtmlAgilityPack;
-using Markdig;
+using MarkConv.Nodes;
 using Markdig.Syntax;
+using Markdig.Syntax.Inlines;
 
 namespace MarkConv
 {
     public class Converter
     {
-        public ILogger Logger { get; }
+        private ILogger Logger { get; }
 
-        public ProcessorOptions Options { get; }
+        private ProcessorOptions Options { get; }
 
-        public const string MarkdownBlockMarker = "markdown_block:";
-
-        private static readonly Regex MarkdownBlockRegex =
-            new Regex(MarkdownBlockMarker + @"(\d+);", RegexOptions.Compiled);
-
+        private bool _notBreak;
         private bool _lastBlockIsMarkdown;
-
-        private ContainerBlock _container;
 
         private readonly ConversionResult _result;
 
-        public Converter(ProcessorOptions options, ILogger logger, ConversionResult result = null)
+        public Converter(ProcessorOptions options, ILogger logger, string endOfLine)
         {
             Options = options ?? new ProcessorOptions();
             Logger = logger;
-            _result = result ?? new ConversionResult();
+            _result = new ConversionResult(endOfLine);
         }
 
-        public string Convert(string content)
+        public string ConvertAndReturn(Node node)
         {
-            MarkdownDocument document = Markdown.Parse(content);
-            ConvertContainerBlock(document, content.Length);
+            Convert(node);
             return _result.ToString();
         }
 
-        public void ConvertContainerBlock(ContainerBlock containerBlock, int capacity = 0)
+        private void Convert(Node node)
         {
-            _container = containerBlock;
-
-            if (_container.All(block => !(block is HtmlBlock)))
+            if (node is HtmlNode htmlNode)
             {
-                var markdownConverter = new MarkdownConverter(Options, Logger, _result);
-                markdownConverter.ConvertBlock(_container);
-                return;
-            }
-
-            var htmlData = new StringBuilder(capacity);
-
-            for (var index = 0; index < _container.Count; index++)
-            {
-                Block child = _container[index];
-                if (child is HtmlBlock htmlBlock)
-                {
-                    AppendHtmlData(htmlData, htmlBlock);
-                }
-                else
-                {
-                    htmlData.Append(MarkdownBlockMarker);
-                    htmlData.Append(index);
-                    htmlData.Append(';');
-                }
-            }
-
-            ConvertHtml(htmlData.ToString());
-        }
-
-        public string ConvertHtmlAndReturn(string html)
-        {
-            ConvertHtml(html);
-            return _result.ToString();
-        }
-
-        private void ConvertHtml(string htmlData)
-        {
-            var doc = new HtmlDocument();
-            using var stringReader = new StringReader(htmlData);
-            doc.Load(stringReader);
-
-            Convert(doc.DocumentNode);
-        }
-
-        private void AppendHtmlData(StringBuilder htmlData, HtmlBlock htmlBlock)
-        {
-            ReadOnlySpan<char> origSpan = default;
-            var lines = htmlBlock.Lines.Lines;
-            for (var index = 0; index < htmlBlock.Lines.Count; index++)
-            {
-                var line = lines[index];
-                var slice = line.Slice;
-                if (origSpan == default)
-                {
-                    origSpan = slice.Text.AsSpan();
-                }
-                htmlData.Append(origSpan.Slice(slice.Start, slice.Length).TrimStart());
-                htmlData.Append("\n");
-            }
-        }
-
-        private void Convert(HtmlNode htmlNode, bool closing = false)
-        {
-            if (htmlNode == null)
-            {
+                ConvertHtmlNode(htmlNode);
                 _lastBlockIsMarkdown = false;
-                return;
             }
-
-            if (htmlNode is HtmlTextNode htmlTextNode)
+            else if (node is MarkdownNode markdownNode)
             {
-                ConvertHtmlTextNode(htmlTextNode);
-                return;
-            }
-
-            if (ConvertDetailsOrSpoilerElement(htmlNode))
-            {
-                _lastBlockIsMarkdown = false;
-                return;
-            }
-
-            if (ConvertSummaryElement(htmlNode))
-            {
-                _lastBlockIsMarkdown = false;
-                return;
-            }
-
-            if (ConvertHtmlComment(htmlNode))
-            {
-                _lastBlockIsMarkdown = false;
-                return;
-            }
-
-            if (htmlNode.Name != "#document")
-            {
-                ConvertHtmlElement(htmlNode, closing);
-            }
-
-            ConvertChildren(htmlNode);
-
-            if (htmlNode.Name != "#document" && htmlNode.EndNode != htmlNode)
-            {
-                Convert(htmlNode.EndNode, true);
-            }
-
-            _lastBlockIsMarkdown = false;
-        }
-
-        private void ConvertHtmlTextNode(HtmlTextNode htmlTextNode)
-        {
-            Match match;
-            int index = 0;
-            int length = htmlTextNode.Text.Length;
-            var textSpan = htmlTextNode.Text.AsSpan();
-            _lastBlockIsMarkdown = false;
-
-            while ((match = MarkdownBlockRegex.Match(htmlTextNode.Text, index, length)).Success)
-            {
-                _result.Append(textSpan.Slice(index, match.Index - index));
-
-                int blockNumber = int.Parse(match.Groups[1].Value);
-                var markdownBlock = _container[blockNumber];
-
-                if (_container is ListItemBlock && blockNumber == 0)
-                    _result.Append(' ', markdownBlock.Column - _result.CurrentColumn);
-                else
-                    _result.EnsureNewLine(true);
-
-                var markdownConverter = new MarkdownConverter(Options, Logger, _result);
-                markdownConverter.ConvertBlock(markdownBlock);
+                ConvertMarkdown(markdownNode);
                 _lastBlockIsMarkdown = true;
-
-                index = match.Index + match.Length;
-                length = htmlTextNode.Text.Length - index;
-            }
-
-            var span = textSpan.Slice(match.Index, length - match.Index);
-            if (!span.IsEmpty)
-            {
-                _lastBlockIsMarkdown = false;
-                _result.Append(span);
             }
         }
 
-        private void ConvertHtmlElement(HtmlNode htmlNode, bool closing)
+        private void ConvertHtmlNode(HtmlNode htmlNode)
         {
-            string name = htmlNode.Name;
-
-            if (_lastBlockIsMarkdown)
-                _result.EnsureNewLine(true);
-
-            _result.Append('<');
-
-            if (closing)
+            switch (htmlNode)
             {
-                _result.Append('/');
+                case HtmlStringNode htmlStringNode:
+                    ConvertHtmlTextNode(htmlStringNode);
+                    break;
+
+                case HtmlCommentNode htmlCommentNode:
+                    ConvertHtmlComment(htmlCommentNode);
+                    break;
+
+                case HtmlElementNode htmlElementNode:
+                    if (ConvertDetailsOrSpoilerElement(htmlElementNode))
+                        return;
+
+                    if (ConvertSummaryElement(htmlElementNode))
+                        return;
+
+                    ConvertHtmlElement(htmlElementNode);
+                    break;
+
+                default:
+                    throw new NotImplementedException($"Conversion of {htmlNode.GetType()} is not implemented");
             }
-
-            _result.Append(name);
-
-            foreach (HtmlAttribute htmlAttribute in htmlNode.Attributes)
-            {
-                ConvertAttribute(htmlAttribute.Name, htmlAttribute.Value, htmlAttribute.QuoteType);
-            }
-
-            if (htmlNode.EndNode == htmlNode)
-            {
-                _result.Append('/');
-            }
-
-            _result.Append('>');
         }
 
-        private bool ConvertDetailsOrSpoilerElement(HtmlNode htmlNode)
+        private void ConvertHtmlTextNode(HtmlStringNode htmlStringNode)
         {
-            string name = htmlNode.Name;
+            _result.Append(htmlStringNode.String);
+        }
+
+        private void ConvertHtmlComment(HtmlCommentNode htmlCommentNode)
+        {
+            if (!Options.RemoveComments)
+            {
+                _result.EnsureNewLine(_lastBlockIsMarkdown);
+                _result.Append("<!--");
+                _result.Append(htmlCommentNode.Comment);
+                _result.Append("-->");
+            }
+        }
+
+        private bool ConvertDetailsOrSpoilerElement(HtmlElementNode htmlElementNode)
+        {
+            string name = htmlElementNode.Name.String;
             string detailsTitle = null;
             bool removeDetails = false;
             bool convertDetails = false;
@@ -226,7 +99,8 @@ namespace MarkConv
             {
                 if (name == "details")
                 {
-                    detailsTitle = htmlNode.ChildNodes["summary"]?.InnerText;
+                    if (htmlElementNode.TryGetChild("summary", out Node child))
+                        detailsTitle = (child as HtmlElementNode)?.Content.FirstOrDefault()?.Substring;
                     AssignRemoveOrConvert();
                 }
             }
@@ -234,7 +108,8 @@ namespace MarkConv
             {
                 if (name == "spoiler")
                 {
-                    detailsTitle = htmlNode.Attributes["title"]?.Value;
+                    if (htmlElementNode.TryGetChild("title", out Node child))
+                        detailsTitle = (child as HtmlElementNode)?.Content.FirstOrDefault()?.Substring;
                     AssignRemoveOrConvert();
                 }
             }
@@ -271,7 +146,7 @@ namespace MarkConv
                     _result.Append("</summary>");
                 }
 
-                ConvertChildren(htmlNode);
+                ConvertChildren(htmlElementNode);
 
                 _result.EnsureNewLine();
                 _result.Append("</details>");
@@ -280,12 +155,10 @@ namespace MarkConv
             {
                 _result.Append("<spoiler");
                 if (detailsTitle != null)
-                {
                     _result.Append($" title=\"{detailsTitle}\"");
-                }
                 _result.Append('>');
 
-                ConvertChildren(htmlNode);
+                ConvertChildren(htmlElementNode);
 
                 _result.EnsureNewLine();
                 _result.Append("</spoiler>");
@@ -301,7 +174,7 @@ namespace MarkConv
 
                 _result.Append(" %}");
 
-                ConvertChildren(htmlNode);
+                ConvertChildren(htmlElementNode);
 
                 _result.EnsureNewLine();
                 _result.Append("{% enddetails %}");
@@ -310,11 +183,11 @@ namespace MarkConv
             return true;
         }
 
-        private bool ConvertSummaryElement(HtmlNode htmlNode)
+        private bool ConvertSummaryElement(HtmlElementNode htmlElementNode)
         {
             if (Options.InputMarkdownType == MarkdownType.GitHub && Options.OutputMarkdownType != MarkdownType.GitHub)
             {
-                if (htmlNode.Name == "summary")
+                if (htmlElementNode.Name.String == "summary")
                 {
                     return true;
                 }
@@ -323,46 +196,383 @@ namespace MarkConv
             return false;
         }
 
-        private bool ConvertHtmlComment(HtmlNode htmlNode)
+        private void ConvertHtmlElement(HtmlElementNode htmlNode)
         {
-            if (htmlNode is HtmlCommentNode htmlCommentNode)
+            if (_lastBlockIsMarkdown)
+                _result.EnsureNewLine(true);
+
+            _result.Append('<');
+            _result.Append(htmlNode.Name.String);
+
+            foreach (HtmlAttributeNode htmlAttribute in htmlNode.Attributes.Values)
             {
-                if (!Options.RemoveComments)
+                _result.Append(' ');
+
+                _result.Append(htmlAttribute.Name.String);
+                _result.Append('=');
+
+                _result.Append('\"');
+                _result.Append(htmlAttribute.Value.String);
+                _result.Append('\"');
+            }
+
+            if (htmlNode.SelfClosingTag != null)
+            {
+                _result.Append("/>");
+            }
+            else
+            {
+                _result.Append('>');
+
+                ConvertChildren(htmlNode);
+
+                _result.Append('<');
+                _result.Append('/');
+                _result.Append(htmlNode.Name.String);
+                _result.Append('>');
+            }
+        }
+
+
+        private void ConvertChildren(HtmlElementNode htmlElementNode)
+        {
+            foreach (Node child in htmlElementNode.Content)
+            {
+                Convert(child);
+            }
+        }
+
+        private void ConvertMarkdown(MarkdownNode markdownNode)
+        {
+            var markdownObject = markdownNode.MarkdownObject;
+            _result.SetIndent(markdownObject.Column);
+
+            switch (markdownObject)
+            {
+                case MarkdownDocument _:
+                    ConvertMarkdownDocument((MarkdownContainerBlockNode)markdownNode);
+                    break;
+
+                case HeadingBlock _:
+                    ConvertHeadingBlock((MarkdownLeafBlockNode)markdownNode);
+                    break;
+
+                case ThematicBreakBlock _:
+                    ConvertThematicBreakBlock((MarkdownLeafBlockNode)markdownNode);
+                    break;
+
+                case ListBlock _:
+                    ConvertListBlock((MarkdownContainerBlockNode)markdownNode);
+                    break;
+
+                case ListItemBlock _:
+                    ConvertListItemBlock((MarkdownContainerBlockNode)markdownNode);
+                    break;
+
+                case QuoteBlock _:
+                    ConvertQuoteBlock((MarkdownContainerBlockNode)markdownNode);
+                    break;
+
+                case CodeBlock _:
+                    ConvertCodeBlock((MarkdownLeafBlockNode)markdownNode);
+                    break;
+
+                case ParagraphBlock _:
+                    ConvertParagraphBlock((MarkdownLeafBlockNode)markdownNode);
+                    break;
+
+                case Inline _:
+                    ConvertInline(markdownNode);
+                    break;
+
+                case HtmlBlock _:
+                    break;
+
+                default:
+                    throw new NotImplementedException($"Converting of Block type '{markdownObject.GetType()}' is not implemented");
+            }
+        }
+
+        private void ConvertMarkdownDocument(MarkdownContainerBlockNode markdownDocument)
+        {
+            foreach (Node child in markdownDocument.Children)
+            {
+                _result.EnsureNewLine(true);
+                Convert(child);
+            }
+        }
+
+        private void ConvertHeadingBlock(MarkdownLeafBlockNode headingBlockNode)
+        {
+            var headingBlock = (HeadingBlock)headingBlockNode.LeafBlock;
+
+            if (headingBlock.HeaderChar != '\0')
+            {
+                _notBreak = true;
+                _result.Append(headingBlock.HeaderChar, headingBlock.Level);
+                _result.Append(' ');
+            }
+
+            Convert(headingBlockNode.Inline);
+
+            if (headingBlock.HeaderChar != '\0')
+            {
+                _notBreak = false;
+            }
+            else
+            {
+                _result.AppendNewLine();
+                _result.Append(headingBlock.Level == 1 ? '=' : '-', 3); // TODO: correct repeating count (extract from span)
+            }
+        }
+
+        private void ConvertThematicBreakBlock(MarkdownLeafBlockNode thematicBreakBlockNode)
+        {
+            var thematicBreakBlock = (ThematicBreakBlock) thematicBreakBlockNode.LeafBlock;
+            for (int i = 0; i < thematicBreakBlock.ThematicCharCount; i++)
+                _result.Append(thematicBreakBlock.ThematicChar);
+        }
+
+        private void ConvertListBlock(MarkdownContainerBlockNode listBlockNode)
+        {
+            var listBlock = (ListBlock) listBlockNode.ContainerBlock;
+            foreach (Node child in listBlockNode.Children)
+            {
+                if (child is MarkdownContainerBlockNode childMarkdownNode && childMarkdownNode.ContainerBlock is ListItemBlock listItemBlock)
                 {
-                    _result.EnsureNewLine(_lastBlockIsMarkdown);
-                    _result.Append(htmlCommentNode.Comment);
+                    _result.SetIndent(listItemBlock.Column);
+                    _result.EnsureNewLine();
+
+                    if (listBlock.IsOrdered)
+                    {
+                        string orderString = listItemBlock.Order.ToString();
+                        _result.Append(orderString);
+                        _result.Append(listBlock.OrderedDelimiter);
+                    }
+                    else
+                    {
+                        _result.Append(listBlock.BulletType);
+                    }
+
+                    Convert(child);
                 }
-
-                return true;
             }
-
-            return false;
         }
 
-        private void ConvertChildren(HtmlNode htmlNode)
+        private void ConvertListItemBlock(MarkdownContainerBlockNode listItemBlockNode)
         {
-            foreach (HtmlNode childNode in htmlNode.ChildNodes)
+            var listItemBlock = (ListItemBlock) listItemBlockNode.ContainerBlock;
+            for (var index = 0; index < listItemBlockNode.Children.Count; index++)
             {
-                Convert(childNode);
+                var itemBlock = listItemBlock[index];
+                if (index == 0)
+                    _result.Append(' ', itemBlock.Column - _result.CurrentColumn);
+                else
+                    _result.EnsureNewLine();
+                Convert(listItemBlockNode.Children[index]);
             }
         }
 
-        private void ConvertAttribute(string key, string value, AttributeValueQuote? attributeValueQuote)
+        private void ConvertQuoteBlock(MarkdownContainerBlockNode quoteBlockNode)
         {
-            _result.Append(' ');
-            char quote = attributeValueQuote == AttributeValueQuote.SingleQuote ? '\'' :
-                attributeValueQuote == AttributeValueQuote.DoubleQuote ? '"' : '\0';
-
-            _result.Append(key);
-            _result.Append('=');
-
-            if (quote != '\0')
-                _result.Append(quote);
-
-            _result.Append(value);
-
-            if (quote != '\0')
-                _result.Append(quote);
+            var quoteBlock = (QuoteBlock) quoteBlockNode.ContainerBlock;
+            for (var index = 0; index < quoteBlockNode.Children.Count; index++)
+            {
+                Block childQuoteBlock = quoteBlock[index];
+                _result.SetIndent(quoteBlock.Column);
+                if (index > 0 || !(quoteBlock.Parent is QuoteBlock) && !(quoteBlock.Parent is ListItemBlock))
+                {
+                    _result.EnsureNewLine();
+                }
+                _result.Append(quoteBlock.QuoteChar);
+                _result.Append(' ');
+                _result.SetIndent(childQuoteBlock.Column);
+                Convert(quoteBlockNode.Children[index]);
+            }
         }
+
+        private void ConvertCodeBlock(MarkdownLeafBlockNode codeBlockNode)
+        {
+            var codeBlock = (CodeBlock) codeBlockNode.LeafBlock;
+            FencedCodeBlock fencedCodeBlock = codeBlock as FencedCodeBlock;
+
+            if (fencedCodeBlock != null)
+            {
+                _result.Append(fencedCodeBlock.FencedChar, fencedCodeBlock.FencedCharCount);
+                _result.Append(fencedCodeBlock.Info);
+                _result.AppendNewLine();
+            }
+
+            ReadOnlySpan<char> origSpan = codeBlockNode.File.Data.AsSpan();
+            var lines = codeBlock.Lines.Lines;
+            for (var index = 0; index < codeBlock.Lines.Count; index++)
+            {
+                var line = lines[index];
+                var slice = line.Slice;
+                _result.SetIndent(line.Column);
+                _result.Append(origSpan.Slice(slice.Start, slice.Length));
+                _result.AppendNewLine();
+            }
+
+            if (fencedCodeBlock != null)
+            {
+                _result.SetIndent(codeBlock.Column);
+                _result.Append(fencedCodeBlock.FencedChar, fencedCodeBlock.FencedCharCount);
+            }
+        }
+
+        private void ConvertParagraphBlock(MarkdownLeafBlockNode paragraphBlockNode)
+        {
+            ConvertInline(paragraphBlockNode.Inline);
+        }
+
+        private string ConvertInline(Node node, bool appendToCurrentParagraph = true)
+        {
+            string result = null;
+
+            if (node is MarkdownNode markdownNode)
+            {
+                var inline = (Inline) markdownNode.MarkdownObject;
+
+                switch (inline)
+                {
+                    case LiteralInline literalInline:
+                        result = node.File.GetSubstring(literalInline.Span.Start, literalInline.Span.Length);
+                        if (appendToCurrentParagraph)
+                        {
+                            if (IsBreakAcceptable)
+                            {
+                                string[] words = result.Split();
+                                foreach (string word in words)
+                                {
+                                    AppendWithBreak(word);
+                                }
+                            }
+                            else
+                            {
+                                AppendWithBreak(result);
+                            }
+                        }
+
+                        break;
+
+                    case LineBreakInline _:
+                        if (Options.LinesMaxLength == 0)
+                            _result.AppendNewLine();
+                        break;
+
+                    case CodeInline codeInline:
+                        result = codeInline.Delimiter + codeInline.Content + codeInline.Delimiter;
+                        if (appendToCurrentParagraph)
+                            AppendWithBreak(result);
+                        break;
+
+                    case ContainerInline _:
+                        result = ConvertContainerInline((MarkdownContainerInlineNode) markdownNode)?.ToString();
+                        if (result != null && appendToCurrentParagraph)
+                            AppendWithBreak(result);
+                        break;
+
+                    case AutolinkInline autolinkInline:
+                        result = "<" + autolinkInline.Url + ">";
+                        if (appendToCurrentParagraph)
+                            AppendWithBreak(result);
+                        break;
+
+                    case HtmlInline _:
+                        throw new InvalidProgramException(
+                            $"Converting of Inline type '{nameof(HtmlInline)}' should be in another way");
+
+                    default:
+                        throw new NotImplementedException(
+                            $"Converting of Inline type '{inline.GetType()}' is not implemented");
+                }
+            }
+
+            if (node is HtmlNode htmlNode)
+            {
+                var converter = new Converter(Options, Logger, _result.EndOfLine);
+                result = converter.ConvertAndReturn(htmlNode);
+                if (appendToCurrentParagraph)
+                    AppendWithBreak(result);
+            }
+
+            return result;
+        }
+
+        private StringBuilder ConvertContainerInline(MarkdownContainerInlineNode containerInlineNode)
+        {
+            var containerInline = containerInlineNode.ContainerInline;
+            var linkInline = containerInline as LinkInline;
+            var emphasisInline = containerInline as EmphasisInline;
+            bool appendToCurrentParagraph = false;
+            StringBuilder result = null;
+
+            if (linkInline != null)
+            {
+                result = new StringBuilder();
+                if (linkInline.IsImage)
+                    result.Append('!');
+                result.Append('[');
+            }
+            else if (emphasisInline != null)
+            {
+                result = new StringBuilder();
+                for (int i = 0; i < emphasisInline.DelimiterCount; i++)
+                    result.Append(emphasisInline.DelimiterChar);
+            }
+            else if (containerInline is LinkDelimiterInline)
+            {
+                result = new StringBuilder();
+                result.Append('[');
+            }
+            else
+            {
+                appendToCurrentParagraph = true;
+            }
+
+            foreach (Node child in containerInlineNode.Children)
+            {
+                string inlineResult = ConvertInline(child, appendToCurrentParagraph);
+                if (!appendToCurrentParagraph)
+                    result.Append(inlineResult);
+            }
+
+            if (linkInline != null)
+            {
+                result.Append("](");
+                result.Append(linkInline.Url);
+                result.Append(')');
+            }
+            else if (emphasisInline != null)
+            {
+                for (int i = 0; i < emphasisInline.DelimiterCount; i++)
+                    result.Append(emphasisInline.DelimiterChar);
+            }
+
+            return result;
+        }
+
+        private void AppendWithBreak(string word)
+        {
+            int linesMaxLength = IsBreakAcceptable ? Options.LinesMaxLength : int.MaxValue;
+
+            bool insertSpace = !_result.IsLastCharWhitespace();
+
+            if (_result.CurrentColumn + word.Length + (insertSpace ? 1 : 0) > linesMaxLength && !Consts.SpecialCharsRegex.IsMatch(word))
+            {
+                if (_result.CurrentColumn > 0)
+                {
+                    _result.AppendNewLine();
+                    insertSpace = false;
+                }
+            }
+
+            if (insertSpace)
+                _result.Append(' ');
+            _result.Append(word);
+        }
+
+        private bool IsBreakAcceptable => Options.LinesMaxLength > 0 && !_notBreak;
     }
 }
