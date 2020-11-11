@@ -1,16 +1,33 @@
-﻿using Antlr4.Runtime;
+﻿using System;
+using Antlr4.Runtime;
 
 namespace MarkConv.Html
 {
     public abstract class HtmlMarkdownToken : IToken
     {
+        public TextFile File { get; }
+
         public abstract string Text { get; }
 
         public abstract int Type { get; }
 
-        public int Line => 0;
+        public int Line
+        {
+            get
+            {
+                File.GetLineColumnFromLinear(StartIndex, out int line, out _);
+                return line;
+            }
+        }
 
-        public int Column => 0;
+        public int Column
+        {
+            get
+            {
+                File.GetLineColumnFromLinear(StartIndex, out _, out int column);
+                return column;
+            }
+        }
 
         public int Channel => 0;
 
@@ -24,8 +41,9 @@ namespace MarkConv.Html
 
         public ICharStream InputStream { get; }
 
-        protected HtmlMarkdownToken(int index, int start, int stop)
+        protected HtmlMarkdownToken(TextFile file, int index, int start, int stop)
         {
+            File = file ?? throw new ArgumentNullException(nameof(file));
             TokenIndex = index;
             StartIndex = start;
             StopIndex = stop;

@@ -1,5 +1,6 @@
 ﻿using Antlr4.Runtime;
 using Antlr4.Runtime.Tree;
+using MarkConv.Html;
 
 namespace MarkConv.Nodes
 {
@@ -8,19 +9,20 @@ namespace MarkConv.Nodes
         public IParseTree ParseTree { get; }
 
         protected HtmlNode(ParserRuleContext parserRuleContext)
-            : base(parserRuleContext.Start.StartIndex, parserRuleContext.Stop.StopIndex - parserRuleContext.Start.StartIndex + 1)
+            : base(((HtmlMarkdownToken)parserRuleContext.Start).File,
+                parserRuleContext.Start.StartIndex, parserRuleContext.Stop.StopIndex - parserRuleContext.Start.StartIndex + 1)
         {
             ParseTree = parserRuleContext;
         }
 
         protected HtmlNode(ITerminalNode commentNode)
-            : base(commentNode.Symbol.StartIndex, commentNode.Symbol.StopIndex - commentNode.Symbol.StartIndex + 1)
+            : base(((HtmlMarkdownToken)commentNode.Symbol).File, commentNode.Symbol.StartIndex, commentNode.Symbol.StopIndex - commentNode.Symbol.StartIndex + 1)
         {
             ParseTree = commentNode;
         }
 
         protected HtmlNode(ITerminalNode commentNode, int start, int length)
-            : base(start, length)
+            : base(((HtmlMarkdownToken)commentNode.Symbol).File, start, length)
         {
             ParseTree = commentNode;
         }

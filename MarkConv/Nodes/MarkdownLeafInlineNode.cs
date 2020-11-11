@@ -6,6 +6,6 @@ namespace MarkConv.Nodes
     {
         public LeafInline LeafInline => (LeafInline) MarkdownObject;
 
-        public MarkdownLeafInlineNode(LeafInline leafInline) : base(leafInline) {}
+        public MarkdownLeafInlineNode(LeafInline leafInline, TextFile file) : base(leafInline, file) {}
     }
 }

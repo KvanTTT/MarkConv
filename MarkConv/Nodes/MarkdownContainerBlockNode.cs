@@ -10,8 +10,8 @@ namespace MarkConv.Nodes
 
         public List<Node> Children { get; }
 
-        public MarkdownContainerBlockNode(ContainerBlock containerBlock, List<Node> children)
-            : base(containerBlock)
+        public MarkdownContainerBlockNode(ContainerBlock containerBlock, List<Node> children, TextFile file)
+            : base(containerBlock, file)
         {
             Children = children ?? throw new ArgumentNullException(nameof(children));
         }

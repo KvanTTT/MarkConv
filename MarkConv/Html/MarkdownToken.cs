@@ -11,8 +11,8 @@ namespace MarkConv.Html
 
         public override int Type => HtmlLexer.MARKDOWN_FRAGMENT;
 
-        public MarkdownToken(int index, int start, int stop, MarkdownNode markdownNode)
-            : base(index, start, stop)
+        public MarkdownToken(TextFile file, int index, int start, int stop, MarkdownNode markdownNode)
+            : base(file, index, start, stop)
         {
             MarkdownNode = markdownNode ?? throw new ArgumentNullException(nameof(markdownNode));
         }

@@ -10,8 +10,8 @@ namespace MarkConv.Nodes
 
         public List<Node> Children { get; }
 
-        public MarkdownContainerInlineNode(ContainerInline containerInline, List<Node> children)
-            : base(containerInline)
+        public MarkdownContainerInlineNode(ContainerInline containerInline, List<Node> children, TextFile file)
+            : base(containerInline, file)
         {
             Children = children ?? throw new ArgumentNullException(nameof(children));
         }

@@ -8,8 +8,8 @@ namespace MarkConv.Html
 
         public override int Type { get; }
 
-        public HtmlToken(int type, int index, int start, int stop, string text)
-            : base(index, start, stop)
+        public HtmlToken(TextFile file, int type, int index, int start, int stop, string text)
+            : base(file, index, start, stop)
         {
             Type = type;
             Text = text ?? throw new ArgumentNullException(nameof(text));
