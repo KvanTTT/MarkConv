@@ -10,16 +10,18 @@ namespace MarkConv
 
         public Processor(ProcessorOptions options = null) => Options = options ?? new ProcessorOptions();
 
-        public string Process(string original)
+        public string Process(string data)
         {
-            return ProcessAndGetTableOfContents(original).Result;
+            return ProcessAndGetTableOfContents(new TextFile(data, "")).Result;
         }
 
-        public virtual ProcessorResult ProcessAndGetTableOfContents(string original)
+        public virtual ProcessorResult ProcessAndGetTableOfContents(TextFile file)
         {
-            var converter = new Converter(Options, Logger);
-            var result = converter.Convert(original);
-            return new ProcessorResult(result, new List<string> { "TODO"});
+            var parser = new HtmlMarkdownParser(Options, Logger);
+            var node = parser.ParseHtmlMarkdown(file);
+            var converter = new Converter(Options, Logger, parser.EndOfLine);
+            var result = converter.ConvertAndReturn(node);
+            return new ProcessorResult(result, new List<string> { "TODO" });
         }
     }
 }
