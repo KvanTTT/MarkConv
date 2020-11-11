@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using System.Text.RegularExpressions;
 using Antlr4.Runtime;
 using MarkConv.Html;
@@ -22,9 +21,13 @@ namespace MarkConv
 
         public ProcessorOptions Options { get; }
 
+        private TextFile _file;
+
         private readonly List<Link> _links = new List<Link>();
 
         public IReadOnlyList<Link> Links => _links;
+
+        public string EndOfLine { get; private set; }
 
         public HtmlMarkdownParser(ProcessorOptions options, ILogger logger)
         {
@@ -32,14 +35,33 @@ namespace MarkConv
             Logger = logger;
         }
 
-        public Node ParseHtmlMarkdown(string content)
+        public Node ParseHtmlMarkdown(TextFile file)
         {
-            var builder = new MarkdownPipelineBuilder
+            var builder = new MarkdownPipelineBuilder { PreciseSourceLocation = true };
+            _file = file;
+            MarkdownDocument document = Markdown.Parse(_file.Data, builder.Build());
+            EndOfLine = GetEndOfLine();
+            return new MarkdownContainerBlockNode(document, ParseHtmlMarkdown(document), _file);
+        }
+
+        private string GetEndOfLine()
+        {
+            int crlfCount = 0;
+            int lfCount = 0;
+
+            var lineStartIndexes = _file.LineIndexes;
+            var data = _file.Data;
+
+            for (var index = 1; index < lineStartIndexes.Length; index++)
             {
-                PreciseSourceLocation = true
-            };
-            MarkdownDocument document = Markdown.Parse(content, builder.Build());
-            return new MarkdownContainerBlockNode(document, ParseHtmlMarkdown(document));
+                int lineStartIndex = lineStartIndexes[index];
+                if (lineStartIndex - 2 > 0 && data[lineStartIndex - 2] == '\r')
+                    crlfCount++;
+                else
+                    lfCount++;
+            }
+
+            return crlfCount > lfCount ? "\r\n" : "\n";
         }
 
         private List<Node> ParseHtmlMarkdown(ContainerBlock containerBlock)
@@ -66,32 +88,19 @@ namespace MarkConv
             foreach (MarkdownObject markdownObject in markdownObjects)
             {
                 var blockSpan = markdownObject.Span;
-                if (markdownObject is HtmlBlock htmlBlock)
+                if (markdownObject is HtmlBlock || markdownObject is HtmlInline)
                 {
-                    var builder = new StringBuilder();
+                    var lexer = new HtmlLexer(new AntlrInputStream(_file.GetSubstring(blockSpan.Start, blockSpan.Length)));
+                    var currentTokens = lexer.GetAllTokens();
 
-                    ReadOnlySpan<char> origSpan = default;
-                    var lines = htmlBlock.Lines.Lines;
-                    for (var index = 0; index < htmlBlock.Lines.Count; index++)
-                    {
-                        var line = lines[index];
-                        var slice = line.Slice;
-                        if (origSpan == default)
-                            origSpan = slice.Text.AsSpan();
-
-                        builder.Append(origSpan.Slice(slice.Start, slice.Length));
-                        builder.Append('\n');
-                    }
-
-                    TokenizeAndAppend(tokens, builder.ToString(), blockSpan.Start);
-                }
-                else if (markdownObject is HtmlInline htmlInline)
-                {
-                    TokenizeAndAppend(tokens, htmlInline.Tag, blockSpan.Start);
+                    foreach (IToken token in currentTokens)
+                        tokens.Add(new HtmlToken(_file, token.Type, tokens.Count,
+                            token.StartIndex + blockSpan.Start, token.StopIndex + blockSpan.Start, token.Text));
                 }
                 else
                 {
-                    tokens.Add(new MarkdownToken(tokens.Count, blockSpan.Start, blockSpan.End, ParseMarkdown(markdownObject)));
+                    tokens.Add(new MarkdownToken(_file, tokens.Count, blockSpan.Start, blockSpan.End,
+                        ParseMarkdown(markdownObject)));
                 }
             }
 
@@ -103,16 +112,6 @@ namespace MarkConv
                 children.Add(ProcessContent(contentContext));
 
             return children;
-        }
-
-        private static void TokenizeAndAppend(List<IToken> tokens, string input, int offset)
-        {
-            var lexer = new HtmlLexer(new AntlrInputStream(input));
-            var currentTokens = lexer.GetAllTokens();
-
-            foreach (IToken token in currentTokens)
-                tokens.Add(new HtmlToken(token.Type, tokens.Count,
-                    token.StartIndex + offset, token.StopIndex + offset, token.Text));
         }
 
         private Node ProcessContent(HtmlParser.ContentContext contentContext)
@@ -202,10 +201,10 @@ namespace MarkConv
                     throw new InvalidProgramException($"Parsing of {nameof(HtmlBlock)} should be implemented in {nameof(ParseHtmlMarkdown)}");
 
                 case LeafBlock leafBlock:
-                    return new MarkdownLeafBlockNode(leafBlock, ParseMarkdownInline(leafBlock.Inline));
+                    return new MarkdownLeafBlockNode(leafBlock, ParseMarkdownInline(leafBlock.Inline), _file);
 
                 case ContainerBlock containerBlock:
-                    return new MarkdownContainerBlockNode(containerBlock, ParseHtmlMarkdown(containerBlock));
+                    return new MarkdownContainerBlockNode(containerBlock, ParseHtmlMarkdown(containerBlock), _file);
 
                 default:
                     throw new NotImplementedException($"Converting of Block type '{block.GetType()}' is not implemented");
@@ -222,7 +221,7 @@ namespace MarkConv
                     throw new InvalidProgramException($"Parsing of {nameof(HtmlInline)} should be implemented in {nameof(ParseHtmlMarkdown)}");
 
                 case LiteralInline literalInline:
-                    result = new MarkdownLeafInlineNode(literalInline);
+                    result = new MarkdownLeafInlineNode(literalInline, _file);
                     var offset = literalInline.Span.Start;
                     var matches = UrlRegex.Matches(literalInline.Content.ToString());
                     foreach (Match url in matches)
@@ -230,27 +229,19 @@ namespace MarkConv
                     return result;
 
                 case AutolinkInline autolinkInline:
-                    result = new MarkdownLeafInlineNode(autolinkInline);
+                    result = new MarkdownLeafInlineNode(autolinkInline, _file);
                     var span = autolinkInline.Span;
                     _links.Add(new Link(result, autolinkInline.Url, start: span.Start + 1, length: span.Length - 2));
                     return result;
 
                 case LeafInline leafInline:
-                    return new MarkdownLeafInlineNode(leafInline);
+                    return new MarkdownLeafInlineNode(leafInline, _file);
 
                 case ContainerInline containerInline:
-                    List<Node> children;
-                    if (containerInline.Any(child => child is HtmlInline))
-                    {
-                        children = ParseHtmlMarkdown(containerInline.Cast<MarkdownObject>().ToList());
-                    }
-                    else
-                    {
-                        children = new List<Node>(containerInline.Count());
-                        foreach (Inline inline2 in containerInline)
-                            children.Add(ParseMarkdownInline(inline2));
-                    }
-                    result = new MarkdownContainerInlineNode(containerInline, children);
+                    List<Node> children = containerInline.Any(child => child is HtmlInline)
+                        ? ParseHtmlMarkdown(containerInline.Cast<MarkdownObject>().ToList())
+                        : containerInline.Select(ParseMarkdownInline).Cast<Node>().ToList();
+                    result = new MarkdownContainerInlineNode(containerInline, children, _file);
 
                     if (containerInline is LinkInline linkInline)
                     {

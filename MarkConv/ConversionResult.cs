@@ -5,14 +5,16 @@ namespace MarkConv
 {
     public class ConversionResult
     {
-        private const string NewLine = "\n";
         private int _currentIndent; // TODO: normalize indents
         private readonly StringBuilder _result;
 
+        public string EndOfLine { get; }
+
         public int CurrentColumn { get; private set; }
 
-        public ConversionResult(int capacity = 0)
+        public ConversionResult(string endOfLine = "\n", int capacity = 0)
         {
+            EndOfLine = endOfLine ?? throw new ArgumentNullException(nameof(endOfLine));
             _result = new StringBuilder(capacity);
         }
 
@@ -68,23 +70,26 @@ namespace MarkConv
 
         public void EnsureNewLine(bool doubleNl = false)
         {
+            int endOfLineLength = EndOfLine.Length;
+
             if (doubleNl)
             {
-                if (_result.Length < 2)
+                if (_result.Length < 2 * endOfLineLength)
                     return;
 
                 if (_result[^1] != '\n')
                 {
                     AppendNewLine();
                     AppendNewLine();
+                    return;
                 }
 
-                if (_result[^2] != '\n')
+                if (_result[_result.Length - 2 * endOfLineLength + 1] != '\n')
                     AppendNewLine();
             }
             else
             {
-                if (_result.Length < 1)
+                if (_result.Length < 1 * endOfLineLength)
                     return;
 
                 if (_result[^1] != '\n')
@@ -94,7 +99,7 @@ namespace MarkConv
 
         public void AppendNewLine()
         {
-            _result.Append(NewLine);
+            _result.Append(EndOfLine);
             CurrentColumn = 0;
         }
 
