@@ -7,6 +7,37 @@ namespace MarkConv.Tests
     public class LinkTests : TestsBase
     {
         [Fact]
+        public void ShouldCollectLinksFromHtmlAndMarkdown()
+        {
+            var logger = new Logger();
+            var parser = new HtmlMarkdownParser(new ProcessorOptions(), logger);
+            parser.ParseHtmlMarkdown(ReadFileFromResources("Links.md"));
+            var links = parser.Links;
+            Assert.Equal("https://google.com", links[0].Address);
+            Assert.Equal("https://habrastorage.org/web/dcd/2e2/016/dcd2e201667847a1932eab96b60c0086.jpg", links[1].Address);
+            Assert.Equal("#header", links[2].Address);
+            Assert.Equal("https://raw.githubusercontent.com/lunet-io/markdig/master/img/markdig.png", links[3].Address);
+            Assert.Equal("https://github.com/lunet-io/markdig", links[4].Address);
+            Assert.Equal("https://twitter.com/", links[5].Address);
+            Assert.Equal("https://example.com/", links[6].Address);
+            Assert.Equal("https://stackoverflow.com/", links[7].Address);
+            Assert.Equal("https://github.com/KvanTTT/MarkConv", links[8].Address);
+            Assert.Equal("https://habrastorage.org/web/4bf/3c9/eaf/4bf3c9eaffe447ccb472240698033d3f.png", links[9].Address);
+        }
+
+        [Fact]
+        public void CheckAliveUrls()
+        {
+            var logger = new Logger();
+            var parser = new HtmlMarkdownParser(new ProcessorOptions(), logger);
+            var textFile = new TextFile("<https://github.com/KvanTTT/MarkConv> <https://github.com/KvanTTT/MarkConv1>", "Links.md");
+            var root = parser.ParseHtmlMarkdown(textFile);
+            var checker = new Checker(logger);
+            checker.Check(root, parser.Links);
+            Assert.Single(logger.WarningMessages);
+        }
+
+        [Fact]
         public void ConvertVisualCodeToHabrRelativeLinks()
         {
             Compare("RelativeLinks.Common.md", "RelativeLinks.Common-to-Habr.md",
@@ -98,13 +129,6 @@ namespace MarkConv.Tests
             Assert.Equal(1, logger.WarningMessages.Count(message => message.Contains("Incorrect mapping")));
             Assert.Equal(1, logger.WarningMessages.Count(message => message.Contains("File Invalid.png does not exist")));
             Assert.Equal(1, logger.WarningMessages.Count(message => message.Contains("Replacement link")));
-        }
-
-        [Fact]
-        public void CheckAliveUrls()
-        {
-            Assert.True(Link.IsUrlAlive("https://github.com/KvanTTT/MarkConv"));
-            Assert.False(Link.IsUrlAlive("https://github.com/KvanTTT/MarkConv1"));
         }
 
         private void Compare(string inputFileName, string outputFileName, MarkdownType inputKind, MarkdownType outputKind)

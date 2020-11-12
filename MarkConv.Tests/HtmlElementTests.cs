@@ -31,8 +31,8 @@ namespace MarkConv.Tests
             };
 
             var processor = new Processor(options);
-            string actual = processor.Process(ReadFileFromResources("DetailsSummary.GitHub.md"));
-            Assert.True(string.IsNullOrWhiteSpace(actual));
+            var actual = processor.ProcessAndGetTableOfContents(ReadFileFromResources("DetailsSummary.GitHub.md"));
+            Assert.True(string.IsNullOrWhiteSpace(actual.Result));
         }
 
         [Fact]
