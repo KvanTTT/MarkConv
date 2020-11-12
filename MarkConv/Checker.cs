@@ -17,7 +17,7 @@ namespace MarkConv
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
         }
 
-        public void Check(Node root, IReadOnlyList<Link> links)
+        public void Check(Node root, IReadOnlyList<Link> links, IReadOnlyDictionary<string, Anchor> anchors)
         {
             Parallel.ForEach(links, link =>
             {
@@ -25,12 +25,15 @@ namespace MarkConv
                 {
                     if (!IsUrlAlive(link.Address))
                     {
-                        _logger.Warn($"Link {link.Address} at {link.Node.LineColumnSpan} is probably broken");
+                        _logger.Warn($"Absolute Link {link.Address} at {link.Node.LineColumnSpan} is probably broken");
                     }
                 }
-                else if (link is RelativeLink)
+                else if (link is RelativeLink relativeLink)
                 {
-
+                    if (!anchors.ContainsKey(relativeLink.Address))
+                    {
+                        _logger.Warn($"Relative link {link.Address} at {link.Node.LineColumnSpan} is broken");
+                    }
                 }
             });
         }

@@ -15,7 +15,7 @@ namespace MarkConv.Tests
             var links = parser.Links;
             Assert.Equal("https://google.com", links[0].Address);
             Assert.Equal("https://habrastorage.org/web/dcd/2e2/016/dcd2e201667847a1932eab96b60c0086.jpg", links[1].Address);
-            Assert.Equal("#header", links[2].Address);
+            Assert.Equal("header", links[2].Address);
             Assert.Equal("https://raw.githubusercontent.com/lunet-io/markdig/master/img/markdig.png", links[3].Address);
             Assert.Equal("https://github.com/lunet-io/markdig", links[4].Address);
             Assert.Equal("https://twitter.com/", links[5].Address);
@@ -30,11 +30,17 @@ namespace MarkConv.Tests
         {
             var logger = new Logger();
             var parser = new HtmlMarkdownParser(new ProcessorOptions(), logger);
-            var textFile = new TextFile("<https://github.com/KvanTTT/MarkConv> <https://github.com/KvanTTT/MarkConv1>", "Links.md");
+            var textFile = new TextFile(@"<https://github.com/KvanTTT/MarkConv>
+<https://github.com/KvanTTT/MarkConv1>
+[Correct Header](#header)
+[Broken Header](#broken-header)
+
+# Header
+", "Links.md");
             var root = parser.ParseHtmlMarkdown(textFile);
             var checker = new Checker(logger);
-            checker.Check(root, parser.Links);
-            Assert.Single(logger.WarningMessages);
+            checker.Check(root, parser.Links, parser.Anchors);
+            Assert.Equal(2, logger.WarningMessages.Count);
         }
 
         [Fact]
