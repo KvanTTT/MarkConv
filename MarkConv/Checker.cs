@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Net.Http;
 using System.Threading.Tasks;
+using MarkConv.Links;
 using MarkConv.Nodes;
 
 namespace MarkConv
@@ -20,12 +21,16 @@ namespace MarkConv
         {
             Parallel.ForEach(links, link =>
             {
-                if (link.LinkType == LinkType.Absolute)
+                if (link is AbsoluteLink)
                 {
                     if (!IsUrlAlive(link.Address))
                     {
                         _logger.Warn($"Link {link.Address} at {link.Node.LineColumnSpan} is probably broken");
                     }
+                }
+                else if (link is RelativeLink)
+                {
+
                 }
             });
         }

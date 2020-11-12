@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text.RegularExpressions;
 using Antlr4.Runtime;
 using MarkConv.Html;
+using MarkConv.Links;
 using MarkConv.Nodes;
 using Markdig;
 using Markdig.Syntax;
@@ -13,10 +14,6 @@ namespace MarkConv
 {
     public class HtmlMarkdownParser
     {
-        private static readonly Regex UrlRegex = new Regex(
-            @"https?:\/\/(?:www\.|(?!www))[a-zA-Z0-9][a-zA-Z0-9-]+[a-zA-Z0-9]\.[^\s]{2,}|www\.[a-zA-Z0-9][a-zA-Z0-9-]+[a-zA-Z0-9]\.[^\s]{2,}|https?:\/\/(?:www\.|(?!www))[a-zA-Z0-9]+\.[^\s]{2,}|www\.[a-zA-Z0-9]+\.[^\s]{2,}",
-            RegexOptions.Compiled);
-
         public ILogger Logger { get; }
 
         public ProcessorOptions Options { get; }
@@ -177,7 +174,7 @@ namespace MarkConv
                 selfClosingTagSymbol == null ? null : new HtmlStringNode(selfClosingTagSymbol));
 
             if (address != null)
-                _links.Add(new Link(result, address.String, isImage, start: address.Start, length: address.Length));
+                _links.Add(Link.Create(result, address.String, isImage, address.Start, address.Length));
 
             return result;
         }
@@ -223,15 +220,15 @@ namespace MarkConv
                 case LiteralInline literalInline:
                     result = new MarkdownLeafInlineNode(literalInline, _file);
                     var offset = literalInline.Span.Start;
-                    var matches = UrlRegex.Matches(literalInline.Content.ToString());
+                    var matches = Consts.UrlRegex.Matches(literalInline.Content.ToString());
                     foreach (Match url in matches)
-                        _links.Add(new Link(result, url.Value, start: offset + url.Index, length: url.Length));
+                        _links.Add(new AbsoluteLink(result, url.Value, start: offset + url.Index, length: url.Length));
                     return result;
 
                 case AutolinkInline autolinkInline:
                     result = new MarkdownLeafInlineNode(autolinkInline, _file);
                     var span = autolinkInline.Span;
-                    _links.Add(new Link(result, autolinkInline.Url, start: span.Start + 1, length: span.Length - 2));
+                    _links.Add(Link.Create(result, autolinkInline.Url, start: span.Start + 1, length: span.Length - 2));
                     return result;
 
                 case LeafInline leafInline:
@@ -246,7 +243,7 @@ namespace MarkConv
                     if (containerInline is LinkInline linkInline)
                     {
                         var urlSpan = linkInline.UrlSpan.Value;
-                        _links.Add(new Link(result, linkInline.Url, linkInline.IsImage, start: urlSpan.Start, length: urlSpan.Length));
+                        _links.Add(Link.Create(result, linkInline.Url, linkInline.IsImage, urlSpan.Start, urlSpan.Length));
                     }
 
                     return result;
