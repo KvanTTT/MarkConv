@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
-using System.Text.RegularExpressions;
 using Antlr4.Runtime;
 using MarkConv.Html;
 using MarkConv.Links;
@@ -38,7 +37,8 @@ namespace MarkConv
 
         public Node ParseHtmlMarkdown(TextFile file)
         {
-            var builder = new MarkdownPipelineBuilder { PreciseSourceLocation = true };
+            var builder = new MarkdownPipelineBuilder {PreciseSourceLocation = true};
+            builder.UseAutoLinks();
             _file = file;
             MarkdownDocument document = Markdown.Parse(_file.Data, builder.Build());
             EndOfLine = GetEndOfLine();
@@ -206,38 +206,7 @@ namespace MarkConv
                     var result = new MarkdownLeafBlockNode(leafBlock, inlineNode, _file);
 
                     if (leafBlock is HeadingBlock)
-                    {
-                        var title = inlineNode.Substring;
-                        string address = ConvertHeaderTitleToLink(title);
-
-                        if (_anchors.TryGetValue(address, out Anchor foundAnchor))
-                        {
-                            int newNumber;
-                            string newAddress = address;
-
-                            do
-                            {
-                                if (title != foundAnchor.Title || foundAnchor.Number == 0)
-                                {
-                                    newAddress = $"{newAddress}-1";
-                                    newNumber = 1;
-                                }
-                                else
-                                {
-                                    var number = foundAnchor.Number;
-                                    newNumber = number + 1;
-                                    newAddress = $"{newAddress.Remove(newAddress.Length - number.ToString().Length)}{newNumber}";
-                                }
-                            }
-                            while (_anchors.TryGetValue(newAddress, out foundAnchor));
-
-                            _anchors.Add(newAddress, new Anchor(result, title, newAddress, newNumber));
-                        }
-                        else
-                        {
-                            _anchors.Add(address, new Anchor(result, title, address, 0));
-                        }
-                    }
+                        ConvertHeadingBlock(inlineNode, result);
 
                     return result;
 
@@ -246,6 +215,39 @@ namespace MarkConv
 
                 default:
                     throw new NotImplementedException($"Converting of Block type '{block.GetType()}' is not implemented");
+            }
+        }
+
+        private void ConvertHeadingBlock(MarkdownNode inlineNode, MarkdownLeafBlockNode result)
+        {
+            var title = inlineNode.Substring;
+            string address = ConvertHeaderTitleToLink(title);
+
+            if (_anchors.TryGetValue(address, out Anchor foundAnchor))
+            {
+                int newNumber;
+                string newAddress = address;
+
+                do
+                {
+                    if (title != foundAnchor.Title || foundAnchor.Number == 0)
+                    {
+                        newAddress = $"{newAddress}-1";
+                        newNumber = 1;
+                    }
+                    else
+                    {
+                        var number = foundAnchor.Number;
+                        newNumber = number + 1;
+                        newAddress = $"{newAddress.Remove(newAddress.Length - number.ToString().Length)}{newNumber}";
+                    }
+                } while (_anchors.TryGetValue(newAddress, out foundAnchor));
+
+                _anchors.Add(newAddress, new Anchor(result, title, newAddress, newNumber));
+            }
+            else
+            {
+                _anchors.Add(address, new Anchor(result, title, address, 0));
             }
         }
 
@@ -296,12 +298,7 @@ namespace MarkConv
                     throw new InvalidProgramException($"Parsing of {nameof(HtmlInline)} should be implemented in {nameof(ParseHtmlMarkdown)}");
 
                 case LiteralInline literalInline:
-                    result = new MarkdownLeafInlineNode(literalInline, _file);
-                    var offset = literalInline.Span.Start;
-                    var matches = Consts.UrlRegex.Matches(literalInline.Content.ToString());
-                    foreach (Match url in matches)
-                        _links.Add(new AbsoluteLink(result, url.Value, start: offset + url.Index, length: url.Length));
-                    return result;
+                    return new MarkdownLeafInlineNode(literalInline, _file);
 
                 case AutolinkInline autolinkInline:
                     result = new MarkdownLeafInlineNode(autolinkInline, _file);
