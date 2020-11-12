@@ -1,6 +1,8 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using MarkConv.Links;
 using MarkConv.Nodes;
 using Markdig.Syntax;
 using Markdig.Syntax.Inlines;
@@ -16,18 +18,20 @@ namespace MarkConv
         private bool _notBreak;
         private bool _lastBlockIsMarkdown;
 
-        private readonly ConversionResult _result;
+        private ParseResult _parseResult;
+        private ConversionResult _result;
 
-        public Converter(ProcessorOptions options, ILogger logger, string endOfLine)
+        public Converter(ProcessorOptions options, ILogger logger)
         {
             Options = options ?? new ProcessorOptions();
             Logger = logger;
-            _result = new ConversionResult(endOfLine);
         }
 
-        public string ConvertAndReturn(Node node)
+        public string ConvertAndReturn(ParseResult parseResult)
         {
-            Convert(node);
+            _parseResult = parseResult ?? throw new ArgumentNullException(nameof(parseResult));
+            _result = new ConversionResult(parseResult.EndOfLine);
+            Convert(parseResult.Node);
             return _result.ToString();
         }
 
@@ -444,9 +448,7 @@ namespace MarkConv
                             {
                                 string[] words = result.Split();
                                 foreach (string word in words)
-                                {
                                     AppendWithBreak(word);
-                                }
                             }
                             else
                             {
@@ -491,8 +493,10 @@ namespace MarkConv
 
             if (node is HtmlNode htmlNode)
             {
-                var converter = new Converter(Options, Logger, _result.EndOfLine);
-                result = converter.ConvertAndReturn(htmlNode);
+                var converter = new Converter(Options, Logger);
+                result = converter.ConvertAndReturn(new ParseResult(htmlNode,
+                    (Dictionary<Node, Link>)_parseResult.Links, (Dictionary<string, Anchor>)_parseResult.Anchors,
+                    _parseResult.EndOfLine));
                 if (appendToCurrentParagraph)
                     AppendWithBreak(result);
             }

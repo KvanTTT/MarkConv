@@ -1,9 +1,7 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Net.Http;
 using System.Threading.Tasks;
 using MarkConv.Links;
-using MarkConv.Nodes;
 
 namespace MarkConv
 {
@@ -17,9 +15,9 @@ namespace MarkConv
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
         }
 
-        public void Check(Node root, IReadOnlyList<Link> links, IReadOnlyDictionary<string, Anchor> anchors)
+        public void Check(ParseResult parseResult)
         {
-            Parallel.ForEach(links, link =>
+            Parallel.ForEach(parseResult.Links.Values, link =>
             {
                 if (link is AbsoluteLink)
                 {
@@ -30,7 +28,7 @@ namespace MarkConv
                 }
                 else if (link is RelativeLink relativeLink)
                 {
-                    if (!anchors.ContainsKey(relativeLink.Address))
+                    if (!parseResult.Anchors.ContainsKey(relativeLink.Address))
                     {
                         _logger.Warn($"Relative link {link.Address} at {link.Node.LineColumnSpan} is broken");
                     }

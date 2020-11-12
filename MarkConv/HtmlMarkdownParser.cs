@@ -20,14 +20,9 @@ namespace MarkConv
 
         private TextFile _file;
 
-        private readonly List<Link> _links = new List<Link>();
+        private readonly Dictionary<Node, Link> _links = new Dictionary<Node, Link>();
         private readonly Dictionary<string, Anchor> _anchors = new Dictionary<string, Anchor>();
-
-        public IReadOnlyList<Link> Links => _links;
-
-        public Dictionary<string, Anchor> Anchors => _anchors;
-
-        public string EndOfLine { get; private set; }
+        private string _endOfLine;
 
         public HtmlMarkdownParser(ProcessorOptions options, ILogger logger)
         {
@@ -35,14 +30,15 @@ namespace MarkConv
             Logger = logger;
         }
 
-        public Node ParseHtmlMarkdown(TextFile file)
+        public ParseResult ParseHtmlMarkdown(TextFile file)
         {
             var builder = new MarkdownPipelineBuilder {PreciseSourceLocation = true};
             builder.UseAutoLinks();
             _file = file;
             MarkdownDocument document = Markdown.Parse(_file.Data, builder.Build());
-            EndOfLine = GetEndOfLine();
-            return new MarkdownContainerBlockNode(document, ParseHtmlMarkdown(document), _file);
+            _endOfLine = GetEndOfLine();
+            return new ParseResult(new MarkdownContainerBlockNode(document, ParseHtmlMarkdown(document), _file),
+                _links, _anchors, _endOfLine);
         }
 
         private string GetEndOfLine()
@@ -178,7 +174,7 @@ namespace MarkConv
                 selfClosingTagSymbol == null ? null : new HtmlStringNode(selfClosingTagSymbol));
 
             if (address != null)
-                _links.Add(Link.Create(result, address.String, isImage, address.Start, address.Length));
+                _links.Add(result, Link.Create(result, address.String, isImage, address.Start, address.Length));
 
             return result;
         }
@@ -303,7 +299,7 @@ namespace MarkConv
                 case AutolinkInline autolinkInline:
                     result = new MarkdownLeafInlineNode(autolinkInline, _file);
                     var span = autolinkInline.Span;
-                    _links.Add(Link.Create(result, autolinkInline.Url, start: span.Start + 1, length: span.Length - 2));
+                    _links.Add(result, Link.Create(result, autolinkInline.Url, start: span.Start + 1, length: span.Length - 2));
                     return result;
 
                 case LeafInline leafInline:
@@ -318,7 +314,7 @@ namespace MarkConv
                     if (containerInline is LinkInline linkInline)
                     {
                         var urlSpan = linkInline.UrlSpan.Value;
-                        _links.Add(Link.Create(result, linkInline.Url, linkInline.IsImage, urlSpan.Start, urlSpan.Length));
+                        _links.Add(result, Link.Create(result, linkInline.Url, linkInline.IsImage, urlSpan.Start, urlSpan.Length));
                     }
 
                     return result;
