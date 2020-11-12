@@ -8,5 +8,7 @@ namespace MarkConv.Links
             : base(node, address, false, start, length)
         {
         }
+
+        public override string ToString() => $"#{Address}";
     }
 }

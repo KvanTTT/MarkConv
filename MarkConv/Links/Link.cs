@@ -25,7 +25,7 @@ namespace MarkConv.Links
                 return new AbsoluteLink(node, address, isImage, start, length);
 
             if (address.StartsWith("#"))
-                return new RelativeLink(node, address, start, length);
+                return new RelativeLink(node, address.Substring(1), start, length);
 
             return new LocalLink(node, address, isImage, start, length);
         }
