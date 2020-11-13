@@ -12,16 +12,17 @@ namespace MarkConv
 
         public string Process(string data)
         {
-            return ProcessAndGetTableOfContents(new TextFile(data, "")).Result;
+            return Process(new TextFile(data, ""));
         }
 
-        public virtual ProcessorResult ProcessAndGetTableOfContents(TextFile file)
+        public virtual string Process(TextFile file)
         {
             var parser = new Parser(Options, Logger);
             var parseResult = parser.Parse(file);
+            var checker = new Checker(Logger);
+            checker.Check(parseResult);
             var converter = new Converter(Options, Logger);
-            var result = converter.ConvertAndReturn(parseResult);
-            return new ProcessorResult(result, new List<string> { "TODO" });
+            return converter.ConvertAndReturn(parseResult);
         }
     }
 }

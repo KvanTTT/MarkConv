@@ -129,7 +129,7 @@ namespace MarkConv.Cli
                 Directory.CreateDirectory(localOutputDirectory);
             }
 
-            File.WriteAllText(Path.Combine(localOutputDirectory, outputFileName), converted.Result);
+            File.WriteAllText(Path.Combine(localOutputDirectory, outputFileName), converted);
 
             logger.Info($"File {outputFileName} is ready");
         }

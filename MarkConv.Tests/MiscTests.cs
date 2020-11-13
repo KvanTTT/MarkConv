@@ -57,31 +57,5 @@ namespace MarkConv.Tests
 
             Assert.Single(logger.WarningMessages);
         }
-
-        /*[Fact]
-        public void ShouldGenerateTableOfContents()
-        {
-            string source = Utils.ReadFileFromResources("RelativeLinks.Common.md");
-
-            var options = new ProcessorOptions
-                {InputMarkdownType = MarkdownType.GitHub, OutputMarkdownType = MarkdownType.GitHub};
-            var linesProcessor = new LinesProcessor(options);
-            LinesProcessorResult linesProcessorResult = linesProcessor.Process(source);
-            List<string> tableOfContents = linesProcessor.GenerateTableOfContents(linesProcessorResult);
-            string actual = string.Join("\n", tableOfContents);
-
-            Assert.Equal(
-                "* [Header 2](#header-2)\n" +
-                "    * [Header 3](#header-3)\n" +
-                "    * [Header 3](#header-3-1)\n" +
-                "    * [Header 3 1](#header-3-1-1)\n" +
-                "    * [Header 3 1](#header-3-1-2)\n" +
-                "* [Заголовок 2](#заголовок-2)\n" +
-                "    * [Заголовок 3](#заголовок-3)\n" +
-                "    * [Заголовок 3](#заголовок-3-1)\n" +
-                "    * [Заголовок 3 1](#заголовок-3-1-1)\n" +
-                "    * [Заголовок Header 3](#заголовок-header-3)\n" +
-                "* [Header With Link](#header-with-link)", actual);
-        }*/
     }
 }
