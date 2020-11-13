@@ -20,6 +20,8 @@ namespace MarkConv
 
         private ParseResult _parseResult;
         private ConversionResult _result;
+        private Dictionary<string, Anchor> _newAnchors;
+        private HeaderToLinkConverter _headerToLinkConverter;
 
         public Converter(ProcessorOptions options, ILogger logger)
         {
@@ -31,6 +33,8 @@ namespace MarkConv
         {
             _parseResult = parseResult ?? throw new ArgumentNullException(nameof(parseResult));
             _result = new ConversionResult(parseResult.EndOfLine);
+            _newAnchors = new Dictionary<string, Anchor>();
+            _headerToLinkConverter = new HeaderToLinkConverter(_newAnchors);
             Convert(parseResult.Node);
             return _result.ToString();
         }
@@ -455,7 +459,6 @@ namespace MarkConv
                                 AppendWithBreak(result);
                             }
                         }
-
                         break;
 
                     case LineBreakInline _:
@@ -545,7 +548,20 @@ namespace MarkConv
             if (linkInline != null)
             {
                 result.Append("](");
-                result.Append(linkInline.Url);
+
+                var link = _parseResult.Links[containerInlineNode];
+                string newAddress = null;
+                if (link is RelativeLink relativeLink)
+                {
+                    if (Options.InputMarkdownType != Options.OutputMarkdownType)
+                    {
+                        newAddress = "#" + (_parseResult.Anchors.TryGetValue(relativeLink.Address, out Anchor anchor)
+                            ? _headerToLinkConverter.Convert(anchor.Node, Options.OutputMarkdownType)
+                            : _headerToLinkConverter.Convert(relativeLink.Address, Options.OutputMarkdownType));
+                    }
+                }
+
+                result.Append(newAddress ?? linkInline.Url);
                 result.Append(')');
             }
             else if (emphasisInline != null)

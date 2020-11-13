@@ -11,18 +11,18 @@ namespace MarkConv.Tests
         {
             var logger = new Logger();
             var parser = new HtmlMarkdownParser(new ProcessorOptions(), logger);
-            parser.ParseHtmlMarkdown(ReadFileFromResources("Links.md"));
-            var links = parser.Links;
-            Assert.Equal("https://google.com", links[0].Address);
-            Assert.Equal("https://habrastorage.org/web/dcd/2e2/016/dcd2e201667847a1932eab96b60c0086.jpg", links[1].Address);
-            Assert.Equal("header", links[2].Address);
-            Assert.Equal("https://raw.githubusercontent.com/lunet-io/markdig/master/img/markdig.png", links[3].Address);
-            Assert.Equal("https://github.com/lunet-io/markdig", links[4].Address);
-            Assert.Equal("https://twitter.com/", links[5].Address);
-            Assert.Equal("https://example.com/", links[6].Address);
-            Assert.Equal("https://stackoverflow.com/", links[7].Address);
-            Assert.Equal("https://github.com/KvanTTT/MarkConv", links[8].Address);
-            Assert.Equal("https://habrastorage.org/web/4bf/3c9/eaf/4bf3c9eaffe447ccb472240698033d3f.png", links[9].Address);
+            var parseResult = parser.ParseHtmlMarkdown(ReadFileFromResources("Links.md"));
+            var links = parseResult.Links;
+            Assert.Equal("https://google.com", links.ElementAt(0).Value.Address);
+            Assert.Equal("https://habrastorage.org/web/dcd/2e2/016/dcd2e201667847a1932eab96b60c0086.jpg", links.ElementAt(1).Value.Address);
+            Assert.Equal("header", links.ElementAt(2).Value.Address);
+            Assert.Equal("https://raw.githubusercontent.com/lunet-io/markdig/master/img/markdig.png", links.ElementAt(3).Value.Address);
+            Assert.Equal("https://github.com/lunet-io/markdig", links.ElementAt(4).Value.Address);
+            Assert.Equal("https://twitter.com/", links.ElementAt(5).Value.Address);
+            Assert.Equal("https://example.com/", links.ElementAt(6).Value.Address);
+            Assert.Equal("https://stackoverflow.com/", links.ElementAt(7).Value.Address);
+            Assert.Equal("https://github.com/KvanTTT/MarkConv", links.ElementAt(8).Value.Address);
+            Assert.Equal("https://habrastorage.org/web/4bf/3c9/eaf/4bf3c9eaffe447ccb472240698033d3f.png", links.ElementAt(9).Value.Address);
         }
 
         [Fact]
@@ -37,24 +37,19 @@ namespace MarkConv.Tests
 
 # Header
 ", "Links.md");
-            var root = parser.ParseHtmlMarkdown(textFile);
+            var parseResult = parser.ParseHtmlMarkdown(textFile);
             var checker = new Checker(logger);
-            checker.Check(root, parser.Links, parser.Anchors);
+            checker.Check(parseResult);
             Assert.Equal(2, logger.WarningMessages.Count);
         }
 
-        [Fact]
-        public void ConvertVisualCodeToHabrRelativeLinks()
+        [Theory]
+        [InlineData(MarkdownType.GitHub, MarkdownType.Habr)]
+        [InlineData(MarkdownType.Habr, MarkdownType.GitHub)]
+        public void ShouldConvertRelativeLinks(MarkdownType inMarkdownType, MarkdownType outMarkdownType)
         {
-            Compare("RelativeLinks.Common.md", "RelativeLinks.Common-to-Habr.md",
-                MarkdownType.GitHub, MarkdownType.Habr);
-        }
-
-        [Fact]
-        public void ConvertHabrToCommonRelativeLinks()
-        {
-            Compare("RelativeLinks.Habr.md", "RelativeLinks.Habr-to-Common.md",
-                MarkdownType.Habr, MarkdownType.GitHub);
+            Compare($"RelativeLinks.{inMarkdownType}.md", $"RelativeLinks.{outMarkdownType}.md",
+                inMarkdownType, outMarkdownType);
         }
 
         [Fact]
@@ -65,18 +60,18 @@ namespace MarkConv.Tests
         }
 
         [Fact]
-        public void GenerateHabrLink()
+        public void GenerateHabrLinkFromHeader()
         {
             string header = @"АБВГДЕЁЖЗИЙКЛМНОПРСТУФХЦЧШЩЪЫЬЭЮЯ  ABCabc    0123456789!""№;%:?*() -+=`~<>@#$^&[]{}\/|'_";
-            string habraLink = Header.HeaderToTranslitLink(header);
+            string habraLink = HeaderToLinkConverter.ConvertHeaderTitleToLink(header, MarkdownType.Habr);
             Assert.Equal(@"abvgdeyozhziyklmnoprstufhcchshschyeyuya--abcabc----0123456789--_", habraLink);
         }
 
         [Fact]
-        public void GenerateVisualCodeLink()
+        public void GenerateGitHubLinkFromHeader()
         {
             string header = @"ABCabc АБВгде    0123456789!""№;%:?*() -+=`~<>@#$^&[]{}\/|'_";
-            string resultLink = Header.HeaderToLink(header);
+            string resultLink = HeaderToLinkConverter.ConvertHeaderTitleToLink(header, MarkdownType.GitHub);
             Assert.Equal(@"abcabc-абвгде----0123456789--_", resultLink);
         }
 
@@ -148,8 +143,6 @@ namespace MarkConv.Tests
 
             var logger = new Logger();
             CompareFiles(inputFileName, outputFileName, options, logger);
-
-            Assert.Single(logger.WarningMessages);
         }
     }
 }
