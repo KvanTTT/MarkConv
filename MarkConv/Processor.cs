@@ -17,8 +17,8 @@ namespace MarkConv
 
         public virtual ProcessorResult ProcessAndGetTableOfContents(TextFile file)
         {
-            var parser = new HtmlMarkdownParser(Options, Logger);
-            var parseResult = parser.ParseHtmlMarkdown(file);
+            var parser = new Parser(Options, Logger);
+            var parseResult = parser.Parse(file);
             var converter = new Converter(Options, Logger);
             var result = converter.ConvertAndReturn(parseResult);
             return new ProcessorResult(result, new List<string> { "TODO" });

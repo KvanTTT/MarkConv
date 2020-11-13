@@ -11,7 +11,7 @@ using Markdig.Syntax.Inlines;
 
 namespace MarkConv
 {
-    public class HtmlMarkdownParser
+    public class Parser
     {
         public ILogger Logger { get; }
 
@@ -24,13 +24,13 @@ namespace MarkConv
         private HeaderToLinkConverter _headerToLinkConverter;
         private string _endOfLine;
 
-        public HtmlMarkdownParser(ProcessorOptions options, ILogger logger)
+        public Parser(ProcessorOptions options, ILogger logger)
         {
             Options = options ?? new ProcessorOptions();
             Logger = logger;
         }
 
-        public ParseResult ParseHtmlMarkdown(TextFile file)
+        public ParseResult Parse(TextFile file)
         {
             var builder = new MarkdownPipelineBuilder {PreciseSourceLocation = true};
             builder.UseAutoLinks();
@@ -40,7 +40,7 @@ namespace MarkConv
             _headerToLinkConverter = new HeaderToLinkConverter(_anchors);
             MarkdownDocument document = Markdown.Parse(_file.Data, builder.Build());
             _endOfLine = GetEndOfLine();
-            return new ParseResult(new MarkdownContainerBlockNode(document, ParseHtmlMarkdown(document), _file),
+            return new ParseResult(new MarkdownContainerBlockNode(document, Parse(document), _file),
                 _links, _anchors, _endOfLine);
         }
 
@@ -64,12 +64,12 @@ namespace MarkConv
             return crlfCount > lfCount ? "\r\n" : "\n";
         }
 
-        private List<Node> ParseHtmlMarkdown(ContainerBlock containerBlock)
+        private List<Node> Parse(ContainerBlock containerBlock)
         {
             List<Node> children;
             if (containerBlock.Any(child => child is HtmlBlock))
             {
-                children = ParseHtmlMarkdown(containerBlock.Cast<MarkdownObject>().ToList());
+                children = Parse(containerBlock.Cast<MarkdownObject>().ToList());
             }
             else
             {
@@ -81,7 +81,7 @@ namespace MarkConv
             return children;
         }
 
-        private List<Node> ParseHtmlMarkdown(List<MarkdownObject> markdownObjects)
+        private List<Node> Parse(List<MarkdownObject> markdownObjects)
         {
             var tokens = new List<IToken>(markdownObjects.Count);
 
@@ -109,15 +109,15 @@ namespace MarkConv
 
             var children = new List<Node>(root.content().Length);
             foreach (var contentContext in root.content())
-                children.Add(ProcessContent(contentContext));
+                children.Add(ParseContent(contentContext));
 
             return children;
         }
 
-        private Node ProcessContent(HtmlParser.ContentContext contentContext)
+        private Node ParseContent(HtmlParser.ContentContext contentContext)
         {
             if (contentContext.element() != null)
-                return ProcessElementNode(contentContext.element());
+                return ParseElementNode(contentContext.element());
 
             if (contentContext.HTML_COMMENT() != null)
             {
@@ -136,11 +136,11 @@ namespace MarkConv
             return markdownToken.MarkdownNode;
         }
 
-        private HtmlElementNode ProcessElementNode(HtmlParser.ElementContext elementContext)
+        private HtmlElementNode ParseElementNode(HtmlParser.ElementContext elementContext)
         {
             var content = new List<Node>(elementContext.content().Length);
             foreach (var contentContext in elementContext.content())
-                content.Add(ProcessContent(contentContext));
+                content.Add(ParseContent(contentContext));
 
             var tagName = new HtmlStringNode(elementContext.TAG_NAME(0));
             var attributes = new Dictionary<string, HtmlAttributeNode>();
@@ -198,7 +198,7 @@ namespace MarkConv
             switch (block)
             {
                 case HtmlBlock _:
-                    throw new InvalidProgramException($"Parsing of {nameof(HtmlBlock)} should be implemented in {nameof(ParseHtmlMarkdown)}");
+                    throw new InvalidProgramException($"Parsing of {nameof(HtmlBlock)} should be implemented in {nameof(Parse)}");
 
                 case LeafBlock leafBlock:
                     var inlineNode = ParseMarkdownInline(leafBlock.Inline);
@@ -210,7 +210,7 @@ namespace MarkConv
                     return result;
 
                 case ContainerBlock containerBlock:
-                    return new MarkdownContainerBlockNode(containerBlock, ParseHtmlMarkdown(containerBlock), _file);
+                    return new MarkdownContainerBlockNode(containerBlock, Parse(containerBlock), _file);
 
                 default:
                     throw new NotImplementedException($"Converting of Block type '{block.GetType()}' is not implemented");
@@ -224,7 +224,7 @@ namespace MarkConv
             switch (inline)
             {
                 case HtmlInline _:
-                    throw new InvalidProgramException($"Parsing of {nameof(HtmlInline)} should be implemented in {nameof(ParseHtmlMarkdown)}");
+                    throw new InvalidProgramException($"Parsing of {nameof(HtmlInline)} should be implemented in {nameof(Parse)}");
 
                 case LiteralInline literalInline:
                     return new MarkdownLeafInlineNode(literalInline, _file);
@@ -240,7 +240,7 @@ namespace MarkConv
 
                 case ContainerInline containerInline:
                     List<Node> children = containerInline.Any(child => child is HtmlInline)
-                        ? ParseHtmlMarkdown(containerInline.Cast<MarkdownObject>().ToList())
+                        ? Parse(containerInline.Cast<MarkdownObject>().ToList())
                         : containerInline.Select(ParseMarkdownInline).Cast<Node>().ToList();
 
                     int start = -1, length = -1;
