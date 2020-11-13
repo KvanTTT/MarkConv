@@ -6,8 +6,8 @@ namespace MarkConv.Nodes
     {
         public MarkdownObject MarkdownObject { get; }
 
-        protected MarkdownNode(MarkdownObject markdownObject, TextFile file)
-            : base(file, markdownObject.Span.Start, markdownObject.Span.Length)
+        protected MarkdownNode(MarkdownObject markdownObject, TextFile file, int start = -1, int length = -1)
+            : base(file, start == -1 ? markdownObject.Span.Start : start, length == -1 ? markdownObject.Span.Length : length)
         {
             MarkdownObject = markdownObject;
         }

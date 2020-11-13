@@ -242,7 +242,16 @@ namespace MarkConv
                     List<Node> children = containerInline.Any(child => child is HtmlInline)
                         ? ParseHtmlMarkdown(containerInline.Cast<MarkdownObject>().ToList())
                         : containerInline.Select(ParseMarkdownInline).Cast<Node>().ToList();
-                    result = new MarkdownContainerInlineNode(containerInline, children, _file);
+
+                    int start = -1, length = -1;
+                    if (children.Count > 0 && containerInline.Span.Length == 1)
+                    {
+                        start = children[0].Start;
+                        var last = children[^1];
+                        length = last.Start + last.Length - start;
+                    }
+
+                    result = new MarkdownContainerInlineNode(containerInline, children, _file, start, length);
 
                     if (containerInline is LinkInline linkInline)
                     {
