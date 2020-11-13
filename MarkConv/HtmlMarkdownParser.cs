@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using Antlr4.Runtime;
 using MarkConv.Html;
 using MarkConv.Links;
@@ -20,8 +19,9 @@ namespace MarkConv
 
         private TextFile _file;
 
-        private readonly Dictionary<Node, Link> _links = new Dictionary<Node, Link>();
-        private readonly Dictionary<string, Anchor> _anchors = new Dictionary<string, Anchor>();
+        private Dictionary<Node, Link> _links;
+        private Dictionary<string, Anchor> _anchors;
+        private HeaderToLinkConverter _headerToLinkConverter;
         private string _endOfLine;
 
         public HtmlMarkdownParser(ProcessorOptions options, ILogger logger)
@@ -35,6 +35,9 @@ namespace MarkConv
             var builder = new MarkdownPipelineBuilder {PreciseSourceLocation = true};
             builder.UseAutoLinks();
             _file = file;
+            _links = new Dictionary<Node, Link>();
+            _anchors = new Dictionary<string, Anchor>();
+            _headerToLinkConverter = new HeaderToLinkConverter(_anchors);
             MarkdownDocument document = Markdown.Parse(_file.Data, builder.Build());
             _endOfLine = GetEndOfLine();
             return new ParseResult(new MarkdownContainerBlockNode(document, ParseHtmlMarkdown(document), _file),
@@ -202,7 +205,7 @@ namespace MarkConv
                     var result = new MarkdownLeafBlockNode(leafBlock, inlineNode, _file);
 
                     if (leafBlock is HeadingBlock)
-                        ConvertHeadingBlock(inlineNode, result);
+                        _headerToLinkConverter.Convert(result, Options.InputMarkdownType);
 
                     return result;
 
@@ -212,76 +215,6 @@ namespace MarkConv
                 default:
                     throw new NotImplementedException($"Converting of Block type '{block.GetType()}' is not implemented");
             }
-        }
-
-        private void ConvertHeadingBlock(MarkdownNode inlineNode, MarkdownLeafBlockNode result)
-        {
-            var title = inlineNode.Substring;
-            string address = ConvertHeaderTitleToLink(title);
-
-            if (_anchors.TryGetValue(address, out Anchor foundAnchor))
-            {
-                int newNumber;
-                string newAddress = address;
-
-                do
-                {
-                    if (title != foundAnchor.Title || foundAnchor.Number == 0)
-                    {
-                        newAddress = $"{newAddress}-1";
-                        newNumber = 1;
-                    }
-                    else
-                    {
-                        var number = foundAnchor.Number;
-                        newNumber = number + 1;
-                        newAddress = $"{newAddress.Remove(newAddress.Length - number.ToString().Length)}{newNumber}";
-                    }
-                } while (_anchors.TryGetValue(newAddress, out foundAnchor));
-
-                _anchors.Add(newAddress, new Anchor(result, title, newAddress, newNumber));
-            }
-            else
-            {
-                _anchors.Add(address, new Anchor(result, title, address, 0));
-            }
-        }
-
-        private string ConvertHeaderTitleToLink(string title)
-        {
-            var result = new StringBuilder(title.Length);
-
-            foreach (char c in title)
-            {
-                var lower = char.ToLowerInvariant(c);
-                if (Options.InputMarkdownType == MarkdownType.Habr)
-                {
-                    if (lower >= 'a' && lower <= 'z' || lower >= '0' && lower <= '9')
-                    {
-                        result.Append(lower);
-                    }
-                    else if (Consts.RussianTransliterationMap.TryGetValue(lower, out string replacement))
-                    {
-                        result.Append(replacement);
-                    }
-                }
-                else
-                {
-                    if (char.IsLetterOrDigit(lower))
-                    {
-                        result.Append(lower);
-                    }
-                    else
-                    {
-                        if (lower == ' ' || lower == '-')
-                            result.Append('-');
-                        else if (lower == '_')
-                            result.Append('_');
-                    }
-                }
-            }
-
-            return result.ToString();
         }
 
         private MarkdownNode ParseMarkdownInline(Inline inline)
