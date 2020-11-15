@@ -20,7 +20,7 @@ mode ATTR;
 
 ATTR_VALUE:      ( '"' ~[<"]* '"'
                  | '\'' ~[<']* '\''
-                 | ~[ \t\r\n>]+
+                 | (~[ \t\r\n>/] | '/' ~'>')+
                  ) -> popMode;
 ATTR_WS:         [ \t\r\n]+ -> channel(HIDDEN);
 ATTR_ERROR:      . -> channel(HIDDEN), popMode;
