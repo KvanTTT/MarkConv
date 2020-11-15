@@ -17,45 +17,5 @@ namespace MarkConv.Tests
             fileName = $"{fileName}.md";
             CompareFiles(fileName, fileName, options);
         }
-
-        [Fact]
-        public void ShouldEscapeHtmlComments()
-        {
-            var options = new ProcessorOptions();
-            var processor = new Processor(options);
-
-            var actual = processor.Process(
-                                        "``\n" +
-                                           "\n" +
-                                           "`<!--`\n" +
-                                           "\n" +
-                                           "```\n" +
-                                           "-->\n" +
-                                           "```\n");
-
-            Assert.Equal("``\n" +
-                         "\n" +
-                         "`<!--`\n" +
-                         "\n" +
-                         "```\n" +
-                         "-->\n" +
-                         "```", actual);
-        }
-
-        [Fact]
-        public void ShouldWarnIncorrectHeaderLevel()
-        {
-            var options = new ProcessorOptions();
-            var logger = new Logger();
-            var processor = new Processor(options) { Logger = logger };
-            string actual = processor.Process(
-                "## Header 2\n" +
-                "### Header 3\n" +
-                "### Header 3 1\n" +
-                "## Header 2 1\n" +
-                "# Header 1\n");
-
-            Assert.Single(logger.WarningMessages);
-        }
     }
 }

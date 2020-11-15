@@ -53,13 +53,6 @@ namespace MarkConv.Tests
         }
 
         [Fact]
-        public void ShouldNotChangeAnythingInsideCodeSection()
-        {
-            Compare("RelativeLinksAndCode.md", "RelativeLinksAndCode-Converted.md",
-                MarkdownType.GitHub, MarkdownType.GitHub);
-        }
-
-        [Fact]
         public void GenerateHabrLinkFromHeader()
         {
             string header = @"АБВГДЕЁЖЗИЙКЛМНОПРСТУФХЦЧШЩЪЫЬЭЮЯ  ABCabc    0123456789!""№;%:?*() -+=`~<>@#$^&[]{}\/|'_";
