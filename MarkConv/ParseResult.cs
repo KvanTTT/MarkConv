@@ -7,6 +7,8 @@ namespace MarkConv
 {
     public class ParseResult
     {
+        public TextFile File { get; }
+
         public Node Node { get; }
 
         public IReadOnlyDictionary<Node, Link> Links { get; }
@@ -15,8 +17,9 @@ namespace MarkConv
 
         public string EndOfLine { get; }
 
-        public ParseResult(Node node, Dictionary<Node, Link> links, Dictionary<string, Anchor> anchors, string endOfLine)
+        public ParseResult(TextFile file, Node node, Dictionary<Node, Link> links, Dictionary<string, Anchor> anchors, string endOfLine)
         {
+            File = file ?? throw new ArgumentNullException(nameof(file));
             Node = node ?? throw new ArgumentNullException(nameof(node));
             Links = links ?? throw new ArgumentNullException(nameof(links));
             Anchors = anchors ?? throw new ArgumentNullException(nameof(anchors));

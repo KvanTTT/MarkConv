@@ -14,7 +14,7 @@ namespace MarkConv.Tests
         public void ShouldNormalizeLineBreaks()
         {
             var options = new ProcessorOptions { NormalizeBreaks = true };
-            var processor = new Processor(options);
+            var processor = new Processor(options, new Logger());
             string actual = processor.Process(
                 "\n" +
                 "# Header\n" +

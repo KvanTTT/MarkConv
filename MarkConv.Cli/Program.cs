@@ -82,8 +82,7 @@ namespace MarkConv.Cli
 
             if (parameters.HeaderImageLink != null)
                 options.HeaderImageLink = parameters.HeaderImageLink;
-            else if (options.ImagesMap.TryGetValue(fileNameWoExt + ImagesMap.HeaderImageLinkSrc,
-                out Image image))
+            else if (options.ImagesMap.TryGetValue(fileNameWoExt + ImagesMap.HeaderImageLinkSrc, out Image image))
                 options.HeaderImageLink = image.Address;
 
             if (parameters.RemoveTitleHeader.HasValue)

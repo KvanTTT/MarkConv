@@ -21,9 +21,8 @@ namespace MarkConv.Tests
         protected static void CompareFiles(string inputFileName, string outputFileName, ProcessorOptions options = null,
             Logger logger = null)
         {
-            var processor = new Processor(options) {Logger = logger ?? new Logger()};
-            string source = ReadFileFromResources(inputFileName).Data;
-            string actual = processor.Process(source);
+            var processor = new Processor(options, logger ?? new Logger());
+            string actual = processor.Process(ReadFileFromResources(inputFileName));
             string expected = ReadFileFromResources(outputFileName).Data;
 
             Assert.Equal(expected, actual);

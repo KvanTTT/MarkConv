@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using Antlr4.Runtime;
+using Html;
 using MarkConv.Html;
 using MarkConv.Links;
 using MarkConv.Nodes;
@@ -40,7 +41,7 @@ namespace MarkConv
             _headerToLinkConverter = new HeaderToLinkConverter(_anchors);
             MarkdownDocument document = Markdown.Parse(_file.Data, builder.Build());
             _endOfLine = GetEndOfLine();
-            return new ParseResult(new MarkdownContainerBlockNode(document, Parse(document), _file),
+            return new ParseResult(_file, new MarkdownContainerBlockNode(document, Parse(document), _file),
                 _links, _anchors, _endOfLine);
         }
 

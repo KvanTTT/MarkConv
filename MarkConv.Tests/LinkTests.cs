@@ -29,6 +29,7 @@ namespace MarkConv.Tests
         public void CheckAliveUrls()
         {
             var logger = new Logger();
+            var options = new ProcessorOptions();
             var parser = new Parser(new ProcessorOptions(), logger);
             var textFile = new TextFile(@"<https://github.com/KvanTTT/MarkConv>
 <https://github.com/KvanTTT/MarkConv1>
@@ -38,7 +39,7 @@ namespace MarkConv.Tests
 # Header
 ", "Links.md");
             var parseResult = parser.Parse(textFile);
-            var checker = new Checker(logger);
+            var checker = new Checker(options, logger);
             checker.Check(parseResult);
             Assert.Equal(2, logger.WarningMessages.Count);
         }
@@ -72,7 +73,7 @@ namespace MarkConv.Tests
         public void ShouldAddHeaderImageLink()
         {
             var options = new ProcessorOptions { HeaderImageLink = "https://github.com/KvanTTT/MarkConv" };
-            var processor = new Processor(options);
+            var processor = new Processor(options, new Logger());
             string actual = processor.Process(
                 "# Header\n" +
                 "\n" +
@@ -92,7 +93,7 @@ namespace MarkConv.Tests
         public void ShouldRemoveFirstLevelHeader()
         {
             var options = new ProcessorOptions { RemoveTitleHeader = true };
-            var processor = new Processor(options);
+            var processor = new Processor(options, new Logger());
             string actual = processor.Process(
                 "# Header\n" +
                 "\n" +
