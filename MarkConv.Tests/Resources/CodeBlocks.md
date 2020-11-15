@@ -7,6 +7,7 @@ alert(s);
     But let's throw in a <b>tag</b>.
 
 1. Indented code block
+
     ```python
     s = "Python syntax highlighting"
     print(s)

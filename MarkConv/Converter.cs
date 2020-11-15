@@ -17,16 +17,18 @@ namespace MarkConv
 
         private bool _notBreak;
         private bool _lastBlockIsMarkdown;
+        private readonly bool _inline;
 
         private ParseResult _parseResult;
         private ConversionResult _result;
         private Dictionary<string, Anchor> _newAnchors;
         private HeaderToLinkConverter _headerToLinkConverter;
 
-        public Converter(ProcessorOptions options, ILogger logger)
+        public Converter(ProcessorOptions options, ILogger logger, bool inline = false)
         {
             Options = options ?? new ProcessorOptions();
             Logger = logger;
+            _inline = inline;
         }
 
         public string ConvertAndReturn(ParseResult parseResult)
@@ -35,25 +37,25 @@ namespace MarkConv
             _result = new ConversionResult(parseResult.EndOfLine);
             _newAnchors = new Dictionary<string, Anchor>();
             _headerToLinkConverter = new HeaderToLinkConverter(_newAnchors);
-            Convert(parseResult.Node);
+            Convert(parseResult.Node, false);
             return _result.ToString();
         }
 
-        private void Convert(Node node)
+        private void Convert(Node node, bool ensureNewLine)
         {
             if (node is HtmlNode htmlNode)
             {
-                ConvertHtmlNode(htmlNode);
+                ConvertHtmlNode(htmlNode, ensureNewLine);
                 _lastBlockIsMarkdown = false;
             }
             else if (node is MarkdownNode markdownNode)
             {
-                ConvertMarkdown(markdownNode);
+                ConvertMarkdown(markdownNode, ensureNewLine);
                 _lastBlockIsMarkdown = true;
             }
         }
 
-        private void ConvertHtmlNode(HtmlNode htmlNode)
+        private void ConvertHtmlNode(HtmlNode htmlNode, bool ensureNewLine)
         {
             switch (htmlNode)
             {
@@ -82,14 +84,14 @@ namespace MarkConv
 
         private void ConvertHtmlTextNode(HtmlStringNode htmlStringNode)
         {
-            _result.Append(htmlStringNode.String);
+            _result.Append(htmlStringNode.String.TrimEnd());
         }
 
         private void ConvertHtmlComment(HtmlCommentNode htmlCommentNode)
         {
             if (!Options.RemoveComments)
             {
-                _result.EnsureNewLine(_lastBlockIsMarkdown);
+                EnsureNewLineIfNotInline();
                 _result.Append("<!--");
                 _result.Append(htmlCommentNode.Comment);
                 _result.Append("-->");
@@ -131,16 +133,12 @@ namespace MarkConv
             }
 
             if (removeDetails)
-            {
                 return true;
-            }
 
             if (!convertDetails)
-            {
                 return false;
-            }
 
-            _result.EnsureNewLine(_lastBlockIsMarkdown);
+            EnsureNewLineIfNotInline();
 
             if (Options.OutputMarkdownType == MarkdownType.GitHub)
             {
@@ -156,7 +154,6 @@ namespace MarkConv
 
                 ConvertChildren(htmlElementNode);
 
-                _result.EnsureNewLine();
                 _result.Append("</details>");
             }
             else if (Options.OutputMarkdownType == MarkdownType.Habr)
@@ -168,7 +165,6 @@ namespace MarkConv
 
                 ConvertChildren(htmlElementNode);
 
-                _result.EnsureNewLine();
                 _result.Append("</spoiler>");
             }
             else if (Options.OutputMarkdownType == MarkdownType.Dev)
@@ -184,7 +180,6 @@ namespace MarkConv
 
                 ConvertChildren(htmlElementNode);
 
-                _result.EnsureNewLine();
                 _result.Append("{% enddetails %}");
             }
 
@@ -206,8 +201,7 @@ namespace MarkConv
 
         private void ConvertHtmlElement(HtmlElementNode htmlNode)
         {
-            if (_lastBlockIsMarkdown)
-                _result.EnsureNewLine(true);
+            EnsureNewLineIfNotInline();
 
             _result.Append('<');
             _result.Append(htmlNode.Name.String);
@@ -245,15 +239,24 @@ namespace MarkConv
         private void ConvertChildren(HtmlElementNode htmlElementNode)
         {
             foreach (Node child in htmlElementNode.Content)
-            {
-                Convert(child);
-            }
+                Convert(child, true);
+
+            EnsureNewLineIfNotInline();
         }
 
-        private void ConvertMarkdown(MarkdownNode markdownNode)
+        private void EnsureNewLineIfNotInline()
+        {
+            if (!_inline)
+                _result.EnsureNewLine(_lastBlockIsMarkdown);
+        }
+
+        private void ConvertMarkdown(MarkdownNode markdownNode, bool ensureNewLine)
         {
             var markdownObject = markdownNode.MarkdownObject;
             _result.SetIndent(markdownObject.Column);
+
+            if (ensureNewLine && !_inline)
+                _result.EnsureNewLine(true);
 
             switch (markdownObject)
             {
@@ -304,10 +307,7 @@ namespace MarkConv
         private void ConvertMarkdownDocument(MarkdownContainerBlockNode markdownDocument)
         {
             foreach (Node child in markdownDocument.Children)
-            {
-                _result.EnsureNewLine(true);
-                Convert(child);
-            }
+                Convert(child, true);
         }
 
         private void ConvertHeadingBlock(MarkdownLeafBlockNode headingBlockNode)
@@ -321,7 +321,7 @@ namespace MarkConv
                 _result.Append(' ');
             }
 
-            Convert(headingBlockNode.Inline);
+            Convert(headingBlockNode.Inline, false);
 
             if (headingBlock.HeaderChar != '\0')
             {
@@ -362,7 +362,7 @@ namespace MarkConv
                         _result.Append(listBlock.BulletType);
                     }
 
-                    Convert(child);
+                    Convert(child, false);
                 }
             }
         }
@@ -376,8 +376,9 @@ namespace MarkConv
                 if (index == 0)
                     _result.Append(' ', itemBlock.Column - _result.CurrentColumn);
                 else
-                    _result.EnsureNewLine();
-                Convert(listItemBlockNode.Children[index]);
+                    _result.EnsureNewLine(!(itemBlock is ListBlock || itemBlock is QuoteBlock));
+
+                Convert(listItemBlockNode.Children[index], false);
             }
         }
 
@@ -395,7 +396,7 @@ namespace MarkConv
                 _result.Append(quoteBlock.QuoteChar);
                 _result.Append(' ');
                 _result.SetIndent(childQuoteBlock.Column);
-                Convert(quoteBlockNode.Children[index]);
+                Convert(quoteBlockNode.Children[index], false);
             }
         }
 
@@ -496,7 +497,7 @@ namespace MarkConv
 
             if (node is HtmlNode htmlNode)
             {
-                var converter = new Converter(Options, Logger);
+                var converter = new Converter(Options, Logger, true);
                 result = converter.ConvertAndReturn(new ParseResult(htmlNode,
                     (Dictionary<Node, Link>)_parseResult.Links, (Dictionary<string, Anchor>)_parseResult.Anchors,
                     _parseResult.EndOfLine));
@@ -577,7 +578,7 @@ namespace MarkConv
         {
             int linesMaxLength = IsBreakAcceptable ? Options.LinesMaxLength : int.MaxValue;
 
-            bool insertSpace = !_result.IsLastCharWhitespace();
+            bool insertSpace = !_result.IsLastCharWhitespace() && _lastBlockIsMarkdown;
 
             if (_result.CurrentColumn + word.Length + (insertSpace ? 1 : 0) > linesMaxLength && !Consts.SpecialCharsRegex.IsMatch(word))
             {

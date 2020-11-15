@@ -1,6 +1,7 @@
 {% details %}
 
 Details without summary
+
 {% enddetails %}
 {% details Title %}
 
@@ -13,5 +14,6 @@ Some code
 {% details Nested Details %}
 
 Nested text
+
 {% enddetails %}
 {% enddetails %}
