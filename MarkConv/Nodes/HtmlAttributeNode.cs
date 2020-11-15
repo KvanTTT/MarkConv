@@ -1,4 +1,5 @@
 ﻿using System;
+using Html;
 
 namespace MarkConv.Nodes
 {

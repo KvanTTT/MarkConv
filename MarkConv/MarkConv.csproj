@@ -10,6 +10,7 @@
     <Antlr4 Update="HtmlParser.g4">
       <Visitor>false</Visitor>
       <Listener>false</Listener>
+      <CustomToolNamespace>Html</CustomToolNamespace>
     </Antlr4>
   </ItemGroup>
 
