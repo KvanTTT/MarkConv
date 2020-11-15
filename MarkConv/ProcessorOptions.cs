@@ -32,7 +32,7 @@ namespace MarkConv
 
         public string RootDirectory { get; set; } = "";
 
-        public Dictionary<string, ImageHash> ImagesMap = new Dictionary<string, ImageHash>();
+        public Dictionary<string, Image> ImagesMap = new Dictionary<string, Image>();
 
         public bool RemoveDetails { get; set; }
 

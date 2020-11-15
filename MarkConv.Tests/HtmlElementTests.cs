@@ -7,8 +7,8 @@ namespace MarkConv.Tests
         [Theory]
         [InlineData(MarkdownType.GitHub, MarkdownType.Habr)]
         [InlineData(MarkdownType.GitHub, MarkdownType.Dev)]
-        //[InlineData(MarkdownType.Habr, MarkdownType.GitHub)] TODO
-        //[InlineData(MarkdownType.Habr, MarkdownType.Dev)] TODO
+        //[InlineData(MarkdownType.Habr, MarkdownType.GitHub)] //TODO
+        //[InlineData(MarkdownType.Habr, MarkdownType.Dev)] //TODO
         public void ShouldConvertDetailsSummary(MarkdownType inMarkdownType, MarkdownType outMarkdownType)
         {
             var options = new ProcessorOptions
@@ -30,7 +30,7 @@ namespace MarkConv.Tests
                 RemoveDetails = true
             };
 
-            var processor = new Processor(options);
+            var processor = new Processor(options, new Logger());
             var actual = processor.Process(ReadFileFromResources("DetailsSummary.GitHub.md"));
             Assert.True(string.IsNullOrWhiteSpace(actual));
         }
@@ -55,7 +55,7 @@ namespace MarkConv.Tests
                 InputMarkdownType = MarkdownType.Habr,
                 OutputMarkdownType = MarkdownType.GitHub
             };
-            var processor = new Processor(options);
+            var processor = new Processor(options, new Logger());
 
             string source =
                 "<anchor>key</anchor>\n" +
@@ -70,7 +70,7 @@ namespace MarkConv.Tests
         {
             var options = new ProcessorOptions { OutputMarkdownType = MarkdownType.Habr };
             var logger = new Logger();
-            var processor = new Processor(options) {Logger = logger};
+            var processor = new Processor(options, logger);
 
             string inputText = new string('a', HabrConstsAndMessages.HabrMaxTextLengthWithoutCut);
             processor.Process(inputText);

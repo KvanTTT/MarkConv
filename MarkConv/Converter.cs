@@ -204,17 +204,28 @@ namespace MarkConv
             EnsureNewLineIfNotInline();
 
             _result.Append('<');
-            _result.Append(htmlNode.Name.String);
+            string name = htmlNode.Name.String;
+            _result.Append(name);
 
             foreach (HtmlAttributeNode htmlAttribute in htmlNode.Attributes.Values)
             {
                 _result.Append(' ');
 
-                _result.Append(htmlAttribute.Name.String);
+                string attrName = htmlAttribute.Name.String;
+                _result.Append(attrName);
                 _result.Append('=');
 
+                string attrValue = htmlAttribute.Value.String;
+                if (name == "img" && attrName == "src")
+                {
+                    if (Options.ImagesMap.TryGetValue(attrValue, out Image image))
+                    {
+                        attrValue = image.Address;
+                    }
+                }
+
                 _result.Append('\"');
-                _result.Append(htmlAttribute.Value.String);
+                _result.Append(attrValue);
                 _result.Append('\"');
             }
 
@@ -230,7 +241,7 @@ namespace MarkConv
 
                 _result.Append('<');
                 _result.Append('/');
-                _result.Append(htmlNode.Name.String);
+                _result.Append(name);
                 _result.Append('>');
             }
         }
@@ -498,7 +509,7 @@ namespace MarkConv
             if (node is HtmlNode htmlNode)
             {
                 var converter = new Converter(Options, Logger, true);
-                result = converter.ConvertAndReturn(new ParseResult(htmlNode,
+                result = converter.ConvertAndReturn(new ParseResult(node.File, htmlNode,
                     (Dictionary<Node, Link>)_parseResult.Links, (Dictionary<string, Anchor>)_parseResult.Anchors,
                     _parseResult.EndOfLine));
                 if (appendToCurrentParagraph)
@@ -549,6 +560,7 @@ namespace MarkConv
             if (linkInline != null)
             {
                 result.Append("](");
+                string url = linkInline.Url;
 
                 var link = _parseResult.Links[containerInlineNode];
                 string newAddress = null;
@@ -561,8 +573,15 @@ namespace MarkConv
                             : _headerToLinkConverter.Convert(relativeLink.Address, Options.OutputMarkdownType));
                     }
                 }
+                else
+                {
+                    if (Options.ImagesMap.TryGetValue(url, out Image image))
+                    {
+                        url = image.Address;
+                    }
+                }
 
-                result.Append(newAddress ?? linkInline.Url);
+                result.Append(newAddress ?? url);
                 result.Append(')');
             }
             else if (emphasisInline != null)
