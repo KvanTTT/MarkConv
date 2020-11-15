@@ -1,4 +1,5 @@
 ﻿using System;
+using System.IO;
 using System.Net.Http;
 using System.Threading.Tasks;
 using MarkConv.Links;
@@ -7,33 +8,45 @@ namespace MarkConv
 {
     public class Checker : IDisposable
     {
-        private readonly HttpClient _httpClient = new HttpClient {Timeout = TimeSpan.FromMilliseconds(2000)};
+        private readonly HttpClient _httpClient = new HttpClient {Timeout = TimeSpan.FromMilliseconds(3000)};
+        private readonly ProcessorOptions _options;
         private readonly ILogger _logger;
 
-        public Checker(ILogger logger)
+        public Checker(ProcessorOptions options, ILogger logger)
         {
+            _options = options ?? throw new ArgumentNullException(nameof(options));
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
         }
 
         public void Check(ParseResult parseResult)
         {
-            Parallel.ForEach(parseResult.Links.Values, link =>
+            var rootDirectory = Path.GetDirectoryName(parseResult.File.Name) ?? "";
+
+            if (_options.CheckLinks)
             {
-                if (link is AbsoluteLink)
+                Parallel.ForEach(parseResult.Links.Values, link =>
                 {
-                    if (!IsUrlAlive(link.Address))
+                    switch (link)
                     {
-                        _logger.Warn($"Absolute Link {link.Address} at {link.Node.LineColumnSpan} is probably broken");
+                        case AbsoluteLink _:
+                            if (!IsUrlAlive(link.Address))
+                                _logger.Warn(
+                                    $"Absolute Link {link.Address} at {link.Node.LineColumnSpan} is probably broken");
+                            break;
+
+                        case RelativeLink relativeLink:
+                            if (!parseResult.Anchors.ContainsKey(relativeLink.Address))
+                                _logger.Warn($"Relative link {link.Address} at {link.Node.LineColumnSpan} is broken");
+                            break;
+
+                        case LocalLink localLink:
+                            var fullPath = Path.Combine(rootDirectory, localLink.Address);
+                            if (!File.Exists(fullPath))
+                                _logger.Warn($"Local file {fullPath} at {link.Node.LineColumnSpan} does not exist");
+                            break;
                     }
-                }
-                else if (link is RelativeLink relativeLink)
-                {
-                    if (!parseResult.Anchors.ContainsKey(relativeLink.Address))
-                    {
-                        _logger.Warn($"Relative link {link.Address} at {link.Node.LineColumnSpan} is broken");
-                    }
-                }
-            });
+                });
+            }
         }
 
         private bool IsUrlAlive(string url)
