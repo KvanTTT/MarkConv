@@ -4,8 +4,6 @@ namespace MarkConv.Nodes
 {
     public abstract class Node
     {
-        public Node Parent { get; set; }
-
         public TextFile File { get; }
 
         public int Start { get; }
@@ -24,7 +22,7 @@ namespace MarkConv.Nodes
 
         public string Substring => File.GetSubstring(Start, Length);
 
-        public Node(TextFile file, int start, int length)
+        protected Node(TextFile file, int start, int length)
         {
             File = file ?? throw new ArgumentNullException(nameof(file));
             Start = start;
