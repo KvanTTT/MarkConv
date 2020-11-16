@@ -2,6 +2,28 @@ parser grammar HtmlParser;
 
 options { tokenVocab=HtmlLexer; }
 
+@parser::members
+{private MarkConv.ILogger _logger;
+
+public HtmlParser(ITokenStream input, MarkConv.ILogger logger)
+	: this(input)
+{
+	_logger = logger ?? throw new System.ArgumentNullException(nameof(logger));
+}
+
+private void ProcessClosingTag()
+{
+	var elementContext = (ElementContext) RuleContext;
+	var tagNames = elementContext.TAG_NAME();
+	var openingSymbol = (MarkConv.Html.HtmlMarkdownToken)tagNames[0].Symbol;
+	var closingSymbol = (MarkConv.Html.HtmlMarkdownToken)tagNames[1].Symbol;
+	var openingTagName = openingSymbol.Text;
+	var closingTagName = closingSymbol.Text;
+	if (openingTagName != closingTagName)
+		_logger.Warn($"Incorrect nesting: element </{closingTagName}> at {closingSymbol.LineColumnSpan} closes <{openingTagName}> at {openingSymbol.LineColumnSpan}");
+}
+}
+
 root
     : content* EOF
     ;
@@ -15,7 +37,7 @@ content
 
 element
     : TAG_OPEN TAG_NAME attribute*
-      (TAG_CLOSE (content* TAG_OPEN TAG_SLASH TAG_NAME TAG_CLOSE)? | TAG_SLASH_CLOSE)
+      (TAG_CLOSE (content* TAG_OPEN TAG_SLASH TAG_NAME {ProcessClosingTag();} TAG_CLOSE)? | TAG_SLASH_CLOSE)
     ;
 
 attribute
