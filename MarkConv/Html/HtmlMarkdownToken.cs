@@ -31,7 +31,7 @@ namespace MarkConv.Html
             }
         }
 
-        public int Channel => 0;
+        public string LineColumnSpan => File.RenderToLineColumn(StartIndex, StopIndex - StartIndex + 1);
 
         public int TokenIndex { get; }
 

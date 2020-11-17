@@ -30,6 +30,23 @@ namespace MarkConv
             InitLineIndexes();
         }
 
+        public string RenderToLineColumn(int start, int length)
+        {
+            GetLineColumnFromLinear(start, out int startLine, out int startColumn);
+            GetLineColumnFromLinear(start + length, out int endLine, out int endColumn);
+
+            if (startLine == endLine)
+            {
+                return startColumn == endColumn
+                    ? $"[{startLine},{startColumn})"
+                    : $"[{startLine},{startColumn}..{endColumn})";
+            }
+
+            return startColumn == endColumn
+                ? $"[{startLine}..{endLine},{startColumn})"
+                : $"[{startLine},{startColumn}..{endLine},{endColumn})";
+        }
+
         public void GetLineColumnFromLinear(int position, out int line, out int column)
         {
             if (position < 0 || position > Data.Length)

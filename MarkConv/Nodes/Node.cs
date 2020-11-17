@@ -10,15 +10,7 @@ namespace MarkConv.Nodes
 
         public int Length { get; }
 
-        public string LineColumnSpan
-        {
-            get
-            {
-                File.GetLineColumnFromLinear(Start, out int startLine, out int startColumn);
-                File.GetLineColumnFromLinear(Start + Length, out int endLine, out int endColumn);
-                return $"[{startLine},{startColumn}..{endLine},{endColumn})";
-            }
-        }
+        public string LineColumnSpan => File.RenderToLineColumn(Start, Length);
 
         public string Substring => File.GetSubstring(Start, Length);
 
