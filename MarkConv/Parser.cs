@@ -86,12 +86,15 @@ namespace MarkConv
         {
             var tokens = new List<IToken>(markdownObjects.Count);
 
+            var errorListener = new AntlrErrorListener(Logger);
+
             foreach (MarkdownObject markdownObject in markdownObjects)
             {
                 var blockSpan = markdownObject.Span;
                 if (markdownObject is HtmlBlock || markdownObject is HtmlInline)
                 {
                     var lexer = new HtmlLexer(new AntlrInputStream(_file.GetSubstring(blockSpan.Start, blockSpan.Length)));
+                    lexer.AddErrorListener(errorListener);
                     var currentTokens = lexer.GetAllTokens();
 
                     foreach (IToken token in currentTokens)
@@ -105,7 +108,8 @@ namespace MarkConv
                 }
             }
 
-            var parser = new HtmlParser(new CommonTokenStream(new ListTokenSource(tokens)));
+            var parser = new HtmlParser(new CommonTokenStream(new ListTokenSource(tokens)), Logger);
+            parser.AddErrorListener(errorListener);
             var root = parser.root();
 
             var children = new List<Node>(root.content().Length);
@@ -143,7 +147,7 @@ namespace MarkConv
             foreach (var contentContext in elementContext.content())
                 content.Add(ParseContent(contentContext));
 
-            var tagName = new HtmlStringNode(elementContext.TAG_NAME(0));
+            var tagName = new HtmlStringNode(elementContext.TAG_NAME());
             var attributes = new Dictionary<string, HtmlAttributeNode>();
 
             foreach (HtmlParser.AttributeContext attributeContext in elementContext.attribute())
@@ -161,16 +165,25 @@ namespace MarkConv
 
             HtmlStringNode address = null;
             bool isImage = false;
+            string tagNameString = tagName.String;
+            string addressAttrName = null;
 
-            // TODO: should check if such attributes presented and throw an error if not
-            if (tagName.String == "a")
+            if (tagNameString == "a")
             {
-                address = attributes["href"].Value;
+                addressAttrName = "href";
             }
-            else if (tagName.String == "img")
+            else if (tagNameString == "img")
             {
-                address = attributes["src"].Value;
+                addressAttrName = "src";
                 isImage = true;
+            }
+
+            if (addressAttrName != null)
+            {
+                if (attributes.TryGetValue(addressAttrName, out HtmlAttributeNode htmlAttributeNode))
+                    address = htmlAttributeNode.Value;
+                else
+                    Logger.Warn($"Element <{tagNameString}> does not contain required '{addressAttrName}' attribute at {tagName.LineColumnSpan}");
             }
 
             var selfClosingTagSymbol = elementContext.TAG_SLASH_CLOSE();
