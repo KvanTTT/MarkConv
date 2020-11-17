@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using Antlr4.Runtime;
+using Antlr4.Runtime.Tree;
 using Html;
 using MarkConv.Html;
 using MarkConv.Links;
@@ -147,7 +148,11 @@ namespace MarkConv
             foreach (var contentContext in elementContext.content())
                 content.Add(ParseContent(contentContext));
 
-            var tagName = new HtmlStringNode(elementContext.TAG_NAME());
+            bool voidElement = elementContext.voidElementTag() != null;
+
+            var tagName = new HtmlStringNode(voidElement
+                ? (ITerminalNode) elementContext.voidElementTag().GetChild(0)
+                : elementContext.TAG_NAME(0));
             var attributes = new Dictionary<string, HtmlAttributeNode>();
 
             foreach (HtmlParser.AttributeContext attributeContext in elementContext.attribute())
@@ -186,7 +191,9 @@ namespace MarkConv
                     Logger.Warn($"Element <{tagNameString}> does not contain required '{addressAttrName}' attribute at {tagName.LineColumnSpan}");
             }
 
-            var selfClosingTagSymbol = elementContext.TAG_SLASH_CLOSE();
+            var selfClosingTagSymbol = voidElement
+                ? (ITerminalNode)elementContext.GetChild(elementContext.ChildCount - 1)
+                : elementContext.TAG_SLASH_CLOSE();
             var result = new HtmlElementNode(elementContext, tagName, attributes, content,
                 selfClosingTagSymbol == null ? null : new HtmlStringNode(selfClosingTagSymbol));
 

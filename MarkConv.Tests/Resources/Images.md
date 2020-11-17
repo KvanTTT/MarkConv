@@ -10,7 +10,7 @@
 
 <img src=Markdown.png/>
 
-<img src=Habr.png></img>
+<img src=Habr.png>
 
 <img src='GitHub.jpg'/>
 

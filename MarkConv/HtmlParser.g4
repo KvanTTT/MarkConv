@@ -36,8 +36,28 @@ content
     ;
 
 element
-    : TAG_OPEN TAG_NAME attribute*
-      (TAG_CLOSE (content* TAG_OPEN TAG_SLASH TAG_NAME {ProcessClosingTag();} TAG_CLOSE)? | TAG_SLASH_CLOSE)
+    : TAG_OPEN (
+       TAG_NAME attribute*
+           (TAG_CLOSE (content* TAG_OPEN TAG_SLASH TAG_NAME {ProcessClosingTag();} TAG_CLOSE)? | TAG_SLASH_CLOSE) |
+       voidElementTag attribute* (TAG_CLOSE | TAG_SLASH_CLOSE)
+      )
+    ;
+
+voidElementTag
+    : TAG_AREA
+    | TAG_BASE
+    | TAG_BR
+    | TAG_COL
+    | TAG_EMBED
+    | TAG_HR
+    | TAG_IMG
+    | TAG_INPUT
+    | TAG_LINK
+    | TAG_META
+    | TAG_PARAM
+    | TAG_SOURCE
+    | TAG_TRACK
+    | TAG_WBR
     ;
 
 attribute

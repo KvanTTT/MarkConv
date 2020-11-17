@@ -231,7 +231,7 @@ namespace MarkConv
 
             if (htmlNode.SelfClosingTag != null)
             {
-                _result.Append("/>");
+                _result.Append(htmlNode.SelfClosingTag.Substring);
             }
             else
             {
