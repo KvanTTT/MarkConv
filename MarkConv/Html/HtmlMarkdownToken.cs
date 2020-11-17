@@ -11,6 +11,8 @@ namespace MarkConv.Html
 
         public abstract int Type { get; }
 
+        public abstract int Channel { get; }
+
         public int Line
         {
             get

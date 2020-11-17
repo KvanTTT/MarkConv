@@ -96,7 +96,7 @@ namespace MarkConv
 
                     foreach (IToken token in currentTokens)
                         tokens.Add(new HtmlToken(_file, token.Type, tokens.Count,
-                            token.StartIndex + blockSpan.Start, token.StopIndex + blockSpan.Start, token.Text));
+                            token.StartIndex + blockSpan.Start, token.StopIndex + blockSpan.Start, token.Text, token.Channel));
                 }
                 else
                 {
