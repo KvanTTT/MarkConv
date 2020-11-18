@@ -347,7 +347,16 @@ namespace MarkConv
             else
             {
                 _result.AppendNewLine();
-                _result.Append(headingBlock.Level == 1 ? '=' : '-', 3); // TODO: correct repeating count (extract from span)
+                var headingStr = headingBlockNode.Substring.TrimEnd();
+                int wsIndex = headingStr.Length - 1;
+                while (wsIndex > 0)
+                {
+                    if (char.IsWhiteSpace(headingStr[wsIndex]))
+                        break;
+                    wsIndex--;
+                }
+                int headingSeparatorCharCount = headingStr.Length - wsIndex - 1;
+                _result.Append(headingBlock.Level == 1 ? '=' : '-', headingSeparatorCharCount); // TODO: correct repeating count (extract from span)
             }
         }
 

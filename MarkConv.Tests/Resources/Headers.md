@@ -2,7 +2,7 @@
 
 Header
 12
-===
+======
 
 Before Header
 
@@ -11,7 +11,7 @@ Before Header
 After Header
 
 Header 22
----
+-----
 
 Before Thematic Break Block
 
