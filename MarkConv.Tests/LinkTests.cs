@@ -29,8 +29,8 @@ namespace MarkConv.Tests
         public void CheckAliveUrls()
         {
             var logger = new Logger();
-            var options = new ProcessorOptions();
-            var parser = new Parser(new ProcessorOptions(), logger);
+            var options = new ProcessorOptions { CheckLinks = true };
+            var parser = new Parser(options, logger);
             var textFile = new TextFile(@"<https://github.com/KvanTTT/MarkConv>
 <https://github.com/KvanTTT/MarkConv1>
 [Correct Header](#header)
@@ -75,17 +75,33 @@ namespace MarkConv.Tests
             var options = new ProcessorOptions { HeaderImageLink = "https://github.com/KvanTTT/MarkConv" };
             var processor = new Processor(options, new Logger());
             string actual = processor.Process(
-                "# Header\n" +
-                "\n" +
-                "Paragraph [Some link](https://google.com)\n" +
-                "\n" +
-                "![Header Image](https://hsto.org/storage3/20b/eb7/170/20beb7170a61ec7cf9f4c02f8271f49c.jpg)");
+@"# Header
 
-            Assert.Equal("# Header\n" +
-                "\n" +
-                "Paragraph [Some link](https://google.com)\n" +
-                "\n" +
-                "[![Header Image](https://hsto.org/storage3/20b/eb7/170/20beb7170a61ec7cf9f4c02f8271f49c.jpg)](https://github.com/KvanTTT/MarkConv)",
+Paragraph [Some link](https://google.com)
+
+![Header Image](https://hsto.org/storage3/20b/eb7/170/20beb7170a61ec7cf9f4c02f8271f49c.jpg)");
+
+            Assert.Equal(
+@"# Header
+
+Paragraph [Some link](https://google.com)
+
+[![Header Image](https://hsto.org/storage3/20b/eb7/170/20beb7170a61ec7cf9f4c02f8271f49c.jpg)](https://github.com/KvanTTT/MarkConv)",
+                actual);
+
+            actual = processor.Process(
+                @"# Header
+
+Paragraph [Some link](https://google.com)
+
+<img src=""https://hsto.org/storage3/20b/eb7/170/20beb7170a61ec7cf9f4c02f8271f49c.jpg"" alt=""Header Image"">");
+
+            Assert.Equal(
+                @"# Header
+
+Paragraph [Some link](https://google.com)
+
+[<img src=""https://hsto.org/storage3/20b/eb7/170/20beb7170a61ec7cf9f4c02f8271f49c.jpg"" alt=""Header Image"">](https://github.com/KvanTTT/MarkConv)",
                 actual);
         }
 

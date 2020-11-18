@@ -18,12 +18,10 @@ namespace MarkConv
         private bool _notBreak;
         private bool _lastBlockIsMarkdown;
         private readonly bool _inline;
-        private int _headingNumber = -1;
 
         private ParseResult _parseResult;
         private ConversionResult _result;
-        private Dictionary<string, Anchor> _newAnchors;
-        private HeaderToLinkConverter _headerToLinkConverter;
+        private ConverterState _converterState;
 
         public Converter(ProcessorOptions options, ILogger logger, bool inline = false)
         {
@@ -35,10 +33,18 @@ namespace MarkConv
         public string ConvertAndReturn(ParseResult parseResult)
         {
             _parseResult = parseResult ?? throw new ArgumentNullException(nameof(parseResult));
+            _converterState = new ConverterState();
             _result = new ConversionResult(parseResult.EndOfLine);
-            _newAnchors = new Dictionary<string, Anchor>();
-            _headerToLinkConverter = new HeaderToLinkConverter(_newAnchors);
             Convert(parseResult.Node, false);
+            return _result.ToString();
+        }
+
+        private string ConvertAndReturn(ParseResult parseResult, ConverterState converterState, Node node)
+        {
+            _parseResult = parseResult ?? throw new ArgumentNullException(nameof(parseResult));
+            _converterState = converterState ?? throw new ArgumentNullException(nameof(parseResult));
+            _result = new ConversionResult(parseResult.EndOfLine);
+            Convert(node, false);
             return _result.ToString();
         }
 
@@ -204,8 +210,22 @@ namespace MarkConv
         {
             EnsureNewLineIfNotInline();
 
-            _result.Append('<');
             string name = htmlNode.Name.String;
+
+            string headerImageLink = null;
+
+            if (name == "img")
+            {
+                _converterState.ImageLinkNumber++;
+
+                if (_converterState.ImageLinkNumber == 0 && !string.IsNullOrWhiteSpace(Options.HeaderImageLink))
+                {
+                    headerImageLink = Options.HeaderImageLink;
+                    _result.Append('[');
+                }
+            }
+
+            _result.Append('<');
             _result.Append(name);
 
             foreach (HtmlAttributeNode htmlAttribute in htmlNode.Attributes.Values)
@@ -245,8 +265,14 @@ namespace MarkConv
                 _result.Append(name);
                 _result.Append('>');
             }
-        }
 
+            if (headerImageLink != null)
+            {
+                _result.Append("](");
+                _result.Append(headerImageLink);
+                _result.Append(")");
+            }
+        }
 
         private void ConvertChildren(HtmlElementNode htmlElementNode)
         {
@@ -324,9 +350,9 @@ namespace MarkConv
 
         private void ConvertHeadingBlock(MarkdownLeafBlockNode headingBlockNode)
         {
-            _headingNumber++;
+            _converterState.HeadingNumber++;
 
-            if (_headingNumber == 0 && Options.RemoveTitleHeader)
+            if (_converterState.HeadingNumber == 0 && Options.RemoveTitleHeader)
                 return;
 
             var headingBlock = (HeadingBlock)headingBlockNode.LeafBlock;
@@ -524,9 +550,7 @@ namespace MarkConv
             if (node is HtmlNode htmlNode)
             {
                 var converter = new Converter(Options, Logger, true);
-                result = converter.ConvertAndReturn(new ParseResult(node.File, htmlNode,
-                    (Dictionary<Node, Link>)_parseResult.Links, (Dictionary<string, Anchor>)_parseResult.Anchors,
-                    _parseResult.EndOfLine));
+                result = converter.ConvertAndReturn(_parseResult, _converterState, htmlNode);
                 if (appendToCurrentParagraph)
                     AppendWithBreak(result);
             }
@@ -541,12 +565,23 @@ namespace MarkConv
             var emphasisInline = containerInline as EmphasisInline;
             bool appendToCurrentParagraph = false;
             StringBuilder result = null;
+            string headerImageLink = null;
 
             if (linkInline != null)
             {
                 result = new StringBuilder();
                 if (linkInline.IsImage)
+                {
+                    _converterState.ImageLinkNumber++;
+
+                    if (_converterState.ImageLinkNumber == 0 && !string.IsNullOrWhiteSpace(Options.HeaderImageLink))
+                    {
+                        headerImageLink = Options.HeaderImageLink;
+                        result.Append('[');
+                    }
+
                     result.Append('!');
+                }
                 result.Append('[');
             }
             else if (emphasisInline != null)
@@ -584,8 +619,8 @@ namespace MarkConv
                     if (Options.InputMarkdownType != Options.OutputMarkdownType)
                     {
                         newAddress = "#" + (_parseResult.Anchors.TryGetValue(relativeLink.Address, out Anchor anchor)
-                            ? _headerToLinkConverter.Convert(anchor.Node, Options.OutputMarkdownType)
-                            : _headerToLinkConverter.Convert(relativeLink.Address, Options.OutputMarkdownType));
+                            ? _converterState.HeaderToLinkConverter.Convert(anchor.Node, Options.OutputMarkdownType)
+                            : _converterState.HeaderToLinkConverter.Convert(relativeLink.Address, Options.OutputMarkdownType));
                     }
                 }
                 else
@@ -598,6 +633,13 @@ namespace MarkConv
 
                 result.Append(newAddress ?? url);
                 result.Append(')');
+
+                if (headerImageLink != null)
+                {
+                    result.Append("](");
+                    result.Append(headerImageLink);
+                    result.Append(')');
+                }
             }
             else if (emphasisInline != null)
             {
