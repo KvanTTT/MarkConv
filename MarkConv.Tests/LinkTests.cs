@@ -92,19 +92,18 @@ namespace MarkConv.Tests
         [Fact]
         public void ShouldRemoveFirstLevelHeader()
         {
-            var options = new ProcessorOptions { RemoveTitleHeader = true };
-            var processor = new Processor(options, new Logger());
-            string actual = processor.Process(
-                "# Header\n" +
-                "\n" +
-                "Paragraph text\n" +
-                "\n" +
-                "## Header 2");
+            var processor = new Processor(new ProcessorOptions { RemoveTitleHeader = true }, new Logger());
 
             Assert.Equal(
-                "Paragraph text\n" +
-                "\n" +
-                "## Header 2", actual);
+@"Paragraph text
+
+## Header 2",
+
+processor.Process(@"# Header
+
+Paragraph text
+
+## Header 2"));
         }
 
         [Fact]

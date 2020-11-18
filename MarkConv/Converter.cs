@@ -18,6 +18,7 @@ namespace MarkConv
         private bool _notBreak;
         private bool _lastBlockIsMarkdown;
         private readonly bool _inline;
+        private int _headingNumber = -1;
 
         private ParseResult _parseResult;
         private ConversionResult _result;
@@ -323,6 +324,11 @@ namespace MarkConv
 
         private void ConvertHeadingBlock(MarkdownLeafBlockNode headingBlockNode)
         {
+            _headingNumber++;
+
+            if (_headingNumber == 0 && Options.RemoveTitleHeader)
+                return;
+
             var headingBlock = (HeadingBlock)headingBlockNode.LeafBlock;
 
             if (headingBlock.HeaderChar != '\0')
