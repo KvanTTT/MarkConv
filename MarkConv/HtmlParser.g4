@@ -58,6 +58,7 @@ voidElementTag
     | TAG_SOURCE
     | TAG_TRACK
     | TAG_WBR
+    | TAG_CUT
     ;
 
 attribute

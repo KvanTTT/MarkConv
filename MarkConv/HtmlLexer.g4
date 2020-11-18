@@ -30,6 +30,8 @@ TAG_SOURCE:      'source';
 TAG_TRACK:       'track';
 TAG_WBR:         'wbr';
 
+TAG_CUT:         'cut'; // Habr tag element
+
 TAG_NAME:        [:a-zA-Z][:a-zA-Z\-_.0-9]*;
 TAG_WS:          [ \t\r\n]+ -> channel(HIDDEN);
 TAG_ERROR:       . -> channel(HIDDEN), popMode;

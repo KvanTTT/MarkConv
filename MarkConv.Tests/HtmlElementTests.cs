@@ -15,7 +15,7 @@ namespace MarkConv.Tests
             Assert.Equal(5, messages.Count);
             Assert.Equal("Incorrect nesting: element </x> at [3,3..4) closes <y> at [2,2..3)", messages[0]);
             Assert.Equal("Incorrect nesting: element </y> at [4,3..4) closes <x> at [1,2..3)", messages[1]);
-            Assert.Equal("Parse error: extraneous input '/' expecting {'area', 'base', 'br', 'col', 'embed', 'hr', 'img', 'input', 'link', 'meta', 'param', 'source', 'track', 'wbr', TAG_NAME} at [9,2..3)", messages[2]);
+            Assert.Equal("Parse error: extraneous input '/' expecting {'area', 'base', 'br', 'col', 'embed', 'hr', 'img', 'input', 'link', 'meta', 'param', 'source', 'track', 'wbr', 'cut', TAG_NAME} at [9,2..3)", messages[2]);
             Assert.Equal("Element <img> does not contain required 'src' attribute at [6,2..5)", messages[3]);
             Assert.Equal("Element <a> does not contain required 'href' attribute at [7,2..3)", messages[4]);
         }
