@@ -13,39 +13,32 @@ namespace MarkConv.Tests
         [Fact]
         public void ShouldNormalizeLineBreaks()
         {
-            var options = new ProcessorOptions { NormalizeBreaks = true };
-            var processor = new Processor(options, new Logger());
-            string actual = processor.Process(
-                "\n" +
-                "# Header\n" +
-                "\n" +
-                "\n" +
-                "Paragraph\n" +
-                "## Header 2\n" +
-                "Paragraph 2\n" +
-                "\n" +
-                "\n");
+            var processor = new Processor(new ProcessorOptions(), new Logger());
 
             Assert.Equal(
-                "# Header\n" +
-                "\n" +
-                "Paragraph\n" +
-                "\n" +
-                "## Header 2\n" +
-                "\n" +
-                "Paragraph 2"
-                , actual);
+@"# Header
+
+Paragraph
+
+## Header 2
+
+Paragraph 2"
+                , processor.Process(
+    @"
+# Header
+
+
+Paragraph
+## Header 2
+Paragraph 2
+
+
+"));
         }
 
         private static void Compare(int lineMaxLength, string sourceFileName, string expectedFileName)
         {
-            var options = new ProcessorOptions
-            {
-                LinesMaxLength = lineMaxLength,
-                Normalize = false,
-                NormalizeBreaks = false
-            };
-
+            var options = new ProcessorOptions { LinesMaxLength = lineMaxLength };
             CompareFiles(sourceFileName, expectedFileName, options);
         }
     }

@@ -29,19 +29,10 @@ namespace MarkConv.Cli
         public bool? RemoveTitleHeader { get; set; } = null;
 
         [Option]
-        public bool? RemoveUnwantedBreaks { get; set; } = null;
-
-        [Option]
-        public bool Normalize { get; set; } = false;
-
-        [Option]
         public bool CheckLinks { get; set; } = false;
 
         [Option]
         public bool CompareImages { get; set; } = false;
-
-        [Option]
-        public bool TableOfContents { get; set; } = false;
 
         [Option]
         public bool RemoveSpoilers { get; set; } = false;

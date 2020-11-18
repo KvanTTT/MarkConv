@@ -18,10 +18,6 @@ namespace MarkConv
 
         public bool RemoveTitleHeader { get; set; }
 
-        public bool NormalizeBreaks { get; set; } = true;
-
-        public bool Normalize { get; set; }
-
         public string IndentString { get; set; } = "    ";
 
         public bool CheckLinks { get; set; } = true;

@@ -130,8 +130,7 @@ Paragraph text
             var options = new ProcessorOptions
             {
                 InputMarkdownType = inputKind,
-                OutputMarkdownType = outputKind,
-                NormalizeBreaks = false
+                OutputMarkdownType = outputKind
             };
 
             var logger = new Logger();

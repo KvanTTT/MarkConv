@@ -88,9 +88,6 @@ namespace MarkConv.Cli
             if (parameters.RemoveTitleHeader.HasValue)
                 options.RemoveTitleHeader = parameters.RemoveTitleHeader.Value;
 
-            if (parameters.RemoveUnwantedBreaks.HasValue)
-                options.NormalizeBreaks = parameters.RemoveUnwantedBreaks.Value;
-
             options.RemoveDetails = parameters.RemoveSpoilers;
             options.RemoveComments = parameters.RemoveComments;
 
