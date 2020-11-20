@@ -89,48 +89,48 @@ namespace MarkConv.Tests
             var logger = new Logger();
             var processor = new Processor(options, logger);
 
-            string inputText = new string('a', HabrConstsAndMessages.HabrMaxTextLengthWithoutCut);
+            string inputText = new string('a', Postprocessor.HabrMaxTextLengthWithoutCut);
             processor.Process(inputText);
-            Assert.Equal(HabrConstsAndMessages.HabrMaxTextLengthWithoutCutMessage, logger.WarningMessages[0]);
+            Assert.Equal(Postprocessor.HabrMaxTextLengthWithoutCutMessage, logger.WarningMessages[0]);
             logger.Clear();
 
-            inputText = new string('a', HabrConstsAndMessages.HabrMaxTextLengthWithoutCut - 1);
-            processor.Process(inputText);
-            Assert.Empty(logger.WarningMessages);
-            logger.Clear();
-
-            inputText = new string('a', HabrConstsAndMessages.HabrMaxTextLengthBeforeCut + 1) + "<cut/>" +
-                        new string('a', HabrConstsAndMessages.HabrMinTextLengthAfterCut);
-            processor.Process(inputText);
-            Assert.Equal(HabrConstsAndMessages.HabrMaxTextLengthBeforeCutMessage, logger.WarningMessages[0]);
-            logger.Clear();
-
-            inputText = new string('a', HabrConstsAndMessages.HabrMaxTextLengthBeforeCut) + "<cut/>" +
-                        new string('a', HabrConstsAndMessages.HabrMinTextLengthAfterCut);
+            inputText = new string('a', Postprocessor.HabrMaxTextLengthWithoutCut - 1);
             processor.Process(inputText);
             Assert.Empty(logger.WarningMessages);
             logger.Clear();
 
-            inputText = new string('a', HabrConstsAndMessages.HabrMinTextLengthBeforeCut - 1) + "<cut/>" +
+            inputText = new string('a', Postprocessor.HabrMaxTextLengthBeforeCut + 1) + "<cut/>" +
+                        new string('a', Postprocessor.HabrMinTextLengthAfterCut);
+            processor.Process(inputText);
+            Assert.Equal(Postprocessor.HabrMaxTextLengthBeforeCutMessage, logger.WarningMessages[0]);
+            logger.Clear();
+
+            inputText = new string('a', Postprocessor.HabrMaxTextLengthBeforeCut) + "<cut/>" +
+                        new string('a', Postprocessor.HabrMinTextLengthAfterCut);
+            processor.Process(inputText);
+            Assert.Empty(logger.WarningMessages);
+            logger.Clear();
+
+            inputText = new string('a', Postprocessor.HabrMinTextLengthBeforeCut - 1) + "<cut/>" +
                         new string('a', 1000);
             processor.Process(inputText);
-            Assert.Equal(HabrConstsAndMessages.HabrMinTextLengthBeforeCutMessage, logger.WarningMessages[0]);
+            Assert.Equal(Postprocessor.HabrMinTextLengthBeforeCutMessage, logger.WarningMessages[0]);
             logger.Clear();
 
-            inputText = new string('a', HabrConstsAndMessages.HabrMinTextLengthBeforeCut) + "<cut/>" +
+            inputText = new string('a', Postprocessor.HabrMinTextLengthBeforeCut) + "<cut/>" +
                         new string('a', 1000);
             processor.Process(inputText);
             Assert.Empty(logger.WarningMessages);
             logger.Clear();
 
             inputText = new string('a', 1000) + "<cut/>" +
-                        new string('a', HabrConstsAndMessages.HabrMinTextLengthAfterCut - 3);
+                        new string('a', Postprocessor.HabrMinTextLengthAfterCut - 3);
             processor.Process(inputText);
-            Assert.Equal(HabrConstsAndMessages.HabrMinTextLengthAfterCutMessage, logger.WarningMessages[0]);
+            Assert.Equal(Postprocessor.HabrMinTextLengthAfterCutMessage, logger.WarningMessages[0]);
             logger.Clear();
 
             inputText = new string('a', 1000) + "<cut/>" +
-                        new string('a', HabrConstsAndMessages.HabrMinTextLengthAfterCut - 2);
+                        new string('a', Postprocessor.HabrMinTextLengthAfterCut - 2);
             processor.Process(inputText);
             Assert.Empty(logger.WarningMessages);
             logger.Clear();
