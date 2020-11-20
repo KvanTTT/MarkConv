@@ -41,7 +41,7 @@ namespace MarkConv.Cli
                 inputFiles = new[] {inputFileOrDirectory};
             }
 
-            var parallelOptions = new ParallelOptions {MaxDegreeOfParallelism = -1};
+            var parallelOptions = new ParallelOptions {MaxDegreeOfParallelism = 1};
             var logger = new ConsoleLogger();
 
             Parallel.ForEach(inputFiles, parallelOptions, inputFile =>
@@ -128,6 +128,7 @@ namespace MarkConv.Cli
             File.WriteAllText(Path.Combine(localOutputDirectory, outputFileName), converted);
 
             logger.Info($"File {outputFileName} is ready");
+            logger.Info("");
         }
 
         private static int ProcessErrors(IEnumerable<Error> errors) => 1;
