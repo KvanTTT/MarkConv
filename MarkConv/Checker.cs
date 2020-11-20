@@ -23,9 +23,11 @@ namespace MarkConv
         {
             var rootDirectory = Path.GetDirectoryName(parseResult.File.Name) ?? "";
 
+            var parallelOptions = new ParallelOptions {MaxDegreeOfParallelism = 8};
+
             if (_options.CheckLinks)
             {
-                Parallel.ForEach(parseResult.Links.Values, link =>
+                Parallel.ForEach(parseResult.Links.Values, parallelOptions, link =>
                 {
                     switch (link)
                     {

@@ -33,15 +33,20 @@ namespace MarkConv.Tests
             var parser = new Parser(options, logger);
             var textFile = new TextFile(@"<https://github.com/KvanTTT/MarkConv>
 <https://github.com/KvanTTT/MarkConv1>
+[Incorrect Link Format]((http://asdf.qwer))
+[Incorrect Link Format 2]((http://zxcv.qwer))
 [Correct Header](#header)
 [Broken Header](#broken-header)
+[Correct Link](http://ru.wikipedia.org/wiki/%D0%9F%D1%80%D0%B5%D0%BE%D0%B1%D1%80%D0%B0%D0%B7%D0%BE%D0%B2%D0%B0%D0%BD%D0%B8%D0%B5_%D0%A5%D0%B0%D1%84%D0%B0)
+[Redirect from http to https](http://msdn.microsoft.com/en-us/library/bb933790.aspx)
 
 # Header
 ", "Links.md");
             var parseResult = parser.Parse(textFile);
             var checker = new Checker(options, logger);
             checker.Check(parseResult);
-            Assert.Equal(2, logger.WarningMessages.Count);
+
+            Assert.Equal(5, logger.WarningMessages.Count);
         }
 
         [Theory]
