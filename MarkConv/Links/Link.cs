@@ -1,12 +1,15 @@
 ﻿using System;
-using System.Dynamic;
-using MarkConv.Links;
+using System.Text.RegularExpressions;
 using MarkConv.Nodes;
 
 namespace MarkConv.Links
 {
     public abstract class Link
     {
+        private static readonly Regex UrlRegex = new Regex(
+            @"https?:\/\/(?:www\.|(?!www))[a-zA-Z0-9][a-zA-Z0-9-]+[a-zA-Z0-9]\.[^\s]{2,}|www\.[a-zA-Z0-9][a-zA-Z0-9-]+[a-zA-Z0-9]\.[^\s]{2,}|https?:\/\/(?:www\.|(?!www))[a-zA-Z0-9]+\.[^\s]{2,}|www\.[a-zA-Z0-9]+\.[^\s]{2,}",
+            RegexOptions.Compiled);
+
         public Node Node { get; }
 
         public string Address { get; }
@@ -21,7 +24,7 @@ namespace MarkConv.Links
             int length = -1)
         {
             address = address.Trim();
-            if (Consts.UrlRegex.IsMatch(address))
+            if (UrlRegex.IsMatch(address))
                 return new AbsoluteLink(node, address, isImage, start, length);
 
             if (address.StartsWith("#"))

@@ -1,6 +1,7 @@
 ﻿using System;
 using System.IO;
 using System.Net.Http;
+using System.Threading;
 using System.Threading.Tasks;
 using MarkConv.Links;
 
@@ -53,8 +54,11 @@ namespace MarkConv
         {
             try
             {
-                using var response = _httpClient.GetAsync(url).Result;
-                return response.IsSuccessStatusCode;
+                if (Uri.TryCreate(url, UriKind.Absolute, out Uri requestUri))
+                {
+                    var result = _httpClient.GetAsync(requestUri, HttpCompletionOption.ResponseHeadersRead, CancellationToken.None).Result;
+                    return result.IsSuccessStatusCode;
+                }
             }
             catch
             {
