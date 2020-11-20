@@ -36,7 +36,9 @@ namespace MarkConv
                             break;
 
                         case RelativeLink relativeLink:
-                            if (!parseResult.Anchors.ContainsKey(relativeLink.Address))
+                            string normalizedAddress = HeaderToLinkConverter.ConvertHeaderTitleToLink(relativeLink.Address,
+                                _options.InputMarkdownType);
+                            if (!parseResult.Anchors.ContainsKey(normalizedAddress))
                                 _logger.Warn($"Relative link {link.Address} at {link.Node.LineColumnSpan} is broken");
                             break;
 

@@ -54,6 +54,19 @@ namespace MarkConv.Tests
         }
 
         [Fact]
+        public void ShouldConvertRelativeLinkInvariantCase()
+        {
+            var options = new ProcessorOptions { InputMarkdownType = MarkdownType.GitHub, OutputMarkdownType = MarkdownType.Habr };
+            var logger = new Logger();
+            var processor = new Processor(options, logger);
+            processor.Process(@"[Заголовок](#Заголовок)
+
+# Заголовок");
+
+            Assert.Empty(logger.WarningMessages);
+        }
+
+        [Fact]
         public void GenerateHabrLinkFromHeader()
         {
             string header = @"АБВГДЕЁЖЗИЙКЛМНОПРСТУФХЦЧШЩЪЫЬЭЮЯ  ABCabc    0123456789!""№;%:?*() -+=`~<>@#$^&[]{}\/|'_";
