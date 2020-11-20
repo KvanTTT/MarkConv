@@ -152,7 +152,7 @@ namespace MarkConv
 
             var tagName = new HtmlStringNode(voidElement
                 ? (ITerminalNode) elementContext.voidElementTag().GetChild(0)
-                : elementContext.TAG_NAME(0));
+                : elementContext.TAG_NAME());
             var attributes = new Dictionary<string, HtmlAttributeNode>();
 
             foreach (HtmlParser.AttributeContext attributeContext in elementContext.attribute())
@@ -191,11 +191,11 @@ namespace MarkConv
                     Logger.Warn($"Element <{tagNameString}> does not contain required '{addressAttrName}' attribute at {tagName.LineColumnSpan}");
             }
 
-            var selfClosingTagSymbol = voidElement
-                ? (ITerminalNode)elementContext.GetChild(elementContext.ChildCount - 1)
-                : elementContext.TAG_SLASH_CLOSE();
+            var closingTag = elementContext.GetChild(elementContext.ChildCount - 1);
             var result = new HtmlElementNode(elementContext, tagName, attributes, content,
-                selfClosingTagSymbol == null ? null : new HtmlStringNode(selfClosingTagSymbol));
+                closingTag is ParserRuleContext parserRuleContext
+                    ? new HtmlStringNode(parserRuleContext)
+                    : new HtmlStringNode((ITerminalNode) closingTag));
 
             if (address != null)
                 _links.Add(result, Link.Create(result, address.String, isImage, address.Start, address.Length));

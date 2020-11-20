@@ -13,10 +13,9 @@ public HtmlParser(ITokenStream input, MarkConv.ILogger logger)
 
 private void ProcessClosingTag()
 {
-	var elementContext = (ElementContext) RuleContext;
-	var tagNames = elementContext.TAG_NAME();
-	var openingSymbol = (MarkConv.Html.HtmlMarkdownToken)tagNames[0].Symbol;
-	var closingSymbol = (MarkConv.Html.HtmlMarkdownToken)tagNames[1].Symbol;
+	var openingSymbol = (MarkConv.Html.HtmlMarkdownToken)((ElementContext) RuleContext.Parent).TAG_NAME().Symbol;
+	var tagCloseContext = (TagCloseContext) RuleContext;
+	var closingSymbol = (MarkConv.Html.HtmlMarkdownToken)tagCloseContext.TAG_NAME().Symbol;
 	var openingTagName = openingSymbol.Text;
 	var closingTagName = closingSymbol.Text;
 	if (openingTagName != closingTagName)
@@ -37,10 +36,13 @@ content
 
 element
     : TAG_OPEN (
-       TAG_NAME attribute*
-           (TAG_CLOSE (content* TAG_OPEN TAG_SLASH TAG_NAME {ProcessClosingTag();} TAG_CLOSE)? | TAG_SLASH_CLOSE) |
+       TAG_NAME attribute* (TAG_CLOSE content* tagClose | TAG_SLASH_CLOSE) |
        voidElementTag attribute* (TAG_CLOSE | TAG_SLASH_CLOSE)
       )
+    ;
+
+tagClose
+    : TAG_OPEN TAG_SLASH TAG_NAME {ProcessClosingTag();} TAG_CLOSE
     ;
 
 voidElementTag

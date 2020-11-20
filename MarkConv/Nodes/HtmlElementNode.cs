@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using Html;
 
 namespace MarkConv.Nodes
@@ -11,7 +12,9 @@ namespace MarkConv.Nodes
 
         public List<Node> Content { get; }
 
-        public HtmlStringNode SelfClosingTag { get; }
+        public HtmlStringNode ClosingTag { get; }
+
+        public bool SelfClosing => !(ClosingTag.ParseTree is HtmlParser.TagCloseContext);
 
         public bool TryGetChild(string key, out Node child)
         {
@@ -29,13 +32,13 @@ namespace MarkConv.Nodes
         }
 
         public HtmlElementNode(HtmlParser.ElementContext elementContext, HtmlStringNode name, Dictionary<string, HtmlAttributeNode> attributes, List<Node> content,
-            HtmlStringNode selfClosingTag)
+            HtmlStringNode closingTag)
             : base(elementContext)
         {
             Name = name;
             Attributes = attributes;
             Content = content;
-            SelfClosingTag = selfClosingTag;
+            ClosingTag = closingTag ?? throw new ArgumentNullException(nameof(closingTag));
         }
     }
 }

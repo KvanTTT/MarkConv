@@ -250,21 +250,13 @@ namespace MarkConv
                 _result.Append('\"');
             }
 
-            if (htmlNode.SelfClosingTag != null)
-            {
-                _result.Append(htmlNode.SelfClosingTag.Substring);
-            }
-            else
+            if (!htmlNode.SelfClosing)
             {
                 _result.Append('>');
-
                 ConvertChildren(htmlNode);
-
-                _result.Append('<');
-                _result.Append('/');
-                _result.Append(name);
-                _result.Append('>');
             }
+
+            _result.Append(htmlNode.ClosingTag.Substring);
 
             if (headerImageLink != null)
             {

@@ -15,16 +15,16 @@ namespace MarkConv.Nodes
             ParseTree = parserRuleContext;
         }
 
-        protected HtmlNode(ITerminalNode commentNode)
-            : base(((HtmlMarkdownToken)commentNode.Symbol).File, commentNode.Symbol.StartIndex, commentNode.Symbol.StopIndex - commentNode.Symbol.StartIndex + 1)
+        protected HtmlNode(ITerminalNode terminalNode)
+            : base(((HtmlMarkdownToken)terminalNode.Symbol).File, terminalNode.Symbol.StartIndex, terminalNode.Symbol.StopIndex - terminalNode.Symbol.StartIndex + 1)
         {
-            ParseTree = commentNode;
+            ParseTree = terminalNode;
         }
 
-        protected HtmlNode(ITerminalNode commentNode, int start, int length)
-            : base(((HtmlMarkdownToken)commentNode.Symbol).File, start, length)
+        protected HtmlNode(ITerminalNode terminalNode, int start, int length)
+            : base(((HtmlMarkdownToken)terminalNode.Symbol).File, start, length)
         {
-            ParseTree = commentNode;
+            ParseTree = terminalNode;
         }
     }
 }

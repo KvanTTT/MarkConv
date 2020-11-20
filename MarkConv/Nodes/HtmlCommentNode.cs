@@ -7,8 +7,8 @@ namespace MarkConv.Nodes
     {
         public string Comment { get; }
 
-        public HtmlCommentNode(ITerminalNode commentNode, string comment, int start, int length)
-            : base(commentNode, start, length)
+        public HtmlCommentNode(ITerminalNode terminalNode, string comment, int start, int length)
+            : base(terminalNode, start, length)
         {
             Comment = comment ?? throw new ArgumentNullException(nameof(comment));
         }

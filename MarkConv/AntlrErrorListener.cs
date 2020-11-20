@@ -20,7 +20,11 @@ namespace MarkConv
         public void SyntaxError(IRecognizer recognizer, IToken offendingSymbol, int line, int charPositionInLine, string msg,
             RecognitionException e)
         {
-            _logger.Warn($"Parse error: {msg} at {((HtmlMarkdownToken)offendingSymbol).LineColumnSpan}");
+            string lineColumn = offendingSymbol is HtmlMarkdownToken htmlMarkdownToken
+                ? htmlMarkdownToken.LineColumnSpan
+                : $"[{line},{charPositionInLine})";
+
+            _logger.Warn($"Parse error: {msg} at {lineColumn}");
         }
     }
 }
