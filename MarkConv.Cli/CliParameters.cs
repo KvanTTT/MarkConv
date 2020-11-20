@@ -29,7 +29,7 @@ namespace MarkConv.Cli
         public bool? RemoveTitleHeader { get; set; } = null;
 
         [Option]
-        public bool CheckLinks { get; set; } = false;
+        public bool CheckLinks { get; set; } = true;
 
         [Option]
         public bool CompareImages { get; set; } = false;
