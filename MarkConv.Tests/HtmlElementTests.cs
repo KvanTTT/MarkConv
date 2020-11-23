@@ -64,25 +64,6 @@ namespace MarkConv.Tests
         }
 
         [Fact]
-        public void ShouldConvertAnchors()
-        {
-            var options = new ProcessorOptions
-            {
-                LinesMaxLength = 0,
-                InputMarkdownType = MarkdownType.Habr,
-                OutputMarkdownType = MarkdownType.GitHub
-            };
-            var processor = new Processor(options, new Logger());
-
-            string source =
-                "<anchor>key</anchor>\n" +
-                "\n" +
-                "## Header";
-            string actual = processor.Process(source);
-            Assert.Equal("## Header", actual);
-        }
-
-        [Fact]
         public void ShouldWarnAboutCutRestrictions()
         {
             var options = new ProcessorOptions { OutputMarkdownType = MarkdownType.Habr };
