@@ -23,7 +23,14 @@ namespace MarkConv
             _currentIndent = indent;
         }
 
-        public bool IsLastCharWhitespace() => _result.Length == 0 || char.IsWhiteSpace(_result[^1]);
+        public bool IsLastCharWhitespaceOrLeadingPunctuation()
+        {
+            if (_result.Length == 0)
+                return true;
+
+            var lastChar = _result[^1];
+            return char.IsWhiteSpace(lastChar) || lastChar == '(' || lastChar == '[' || lastChar == '{';
+        }
 
         public void Append(string str)
         {
@@ -84,7 +91,7 @@ namespace MarkConv
                     return;
                 }
 
-                if (_result[_result.Length - 2 * endOfLineLength + 1] != '\n')
+                if (_result[^(endOfLineLength == 1 ? 2 : 3)] != '\n')
                     AppendNewLine();
             }
             else

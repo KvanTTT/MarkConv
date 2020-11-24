@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using MarkConv.Links;
@@ -17,7 +16,7 @@ namespace MarkConv
         private ProcessorOptions Options { get; }
 
         private bool _notBreak;
-        private bool _lastBlockIsMarkdown;
+        private bool _lastBlockIsMarkdown = true;
         private readonly bool _inline;
 
         private ParseResult _parseResult;
@@ -545,6 +544,7 @@ namespace MarkConv
                         break;
 
                     case LineBreakInline _:
+                        result = " ";
                         if (Options.LinesMaxLength == 0)
                             _result.AppendNewLine();
                         break;
@@ -575,9 +575,10 @@ namespace MarkConv
                         throw new NotImplementedException(
                             $"Converting of Inline type '{inline.GetType()}' is not implemented");
                 }
-            }
 
-            if (node is HtmlNode htmlNode)
+                _lastBlockIsMarkdown = true;
+            }
+            else if (node is HtmlNode htmlNode)
             {
                 var converter = new Converter(Options, Logger, true);
                 result = converter.ConvertAndReturn(_parseResult, _converterState, htmlNode);
@@ -684,7 +685,9 @@ namespace MarkConv
         {
             int linesMaxLength = IsBreakAcceptable ? Options.LinesMaxLength : int.MaxValue;
 
-            bool insertSpace = !_result.IsLastCharWhitespace() && _lastBlockIsMarkdown;
+            bool insertSpace = !_result.IsLastCharWhitespaceOrLeadingPunctuation() &&
+                               !char.IsWhiteSpace(word[0]) && !IsTrailingPunctuation(word) &&
+                               _lastBlockIsMarkdown;
 
             if (_result.CurrentColumn + word.Length + (insertSpace ? 1 : 0) > linesMaxLength && !Consts.SpecialCharsRegex.IsMatch(word))
             {
@@ -701,5 +704,25 @@ namespace MarkConv
         }
 
         private bool IsBreakAcceptable => Options.LinesMaxLength > 0 && !_notBreak;
+
+        private static bool IsTrailingPunctuation(string word)
+        {
+            if (word.Length == 0)
+                return true;
+
+            char c = word[0];
+            if (c == ',' || c == '.' || c == ';' || c == ':' || c == '?' || c == '\'' || c == '"' ||
+                c == ')' || c == '}' || c == ']')
+            {
+                return true;
+            }
+
+            if (c == '!')
+            {
+                return word.Length == 1 || word[1] != '[';
+            }
+
+            return false;
+        }
     }
 }
