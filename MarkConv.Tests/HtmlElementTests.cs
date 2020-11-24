@@ -64,6 +64,24 @@ namespace MarkConv.Tests
         }
 
         [Fact]
+        public void ShouldIgnoreCaseOfHtmlNames()
+        {
+            var logger = new Logger();
+            var processor = new Processor(new ProcessorOptions(), logger);
+            var result = processor.Process(@"<details>
+<SUMMARY>title
+</summary>
+CONTENT
+</DETAILS>");
+            Assert.Equal(@"<details>
+<summary>title
+</summary>
+CONTENT
+</details>", result);
+            Assert.Empty(logger.WarningMessages);
+        }
+
+        [Fact]
         public void ShouldWarnAboutCutRestrictions()
         {
             var options = new ProcessorOptions { OutputMarkdownType = MarkdownType.Habr };

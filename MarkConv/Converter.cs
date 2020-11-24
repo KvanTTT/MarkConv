@@ -107,7 +107,7 @@ namespace MarkConv
 
         private bool ConvertDetailsOrSpoilerElement(HtmlElementNode htmlElementNode)
         {
-            string name = htmlElementNode.Name.String;
+            string name = htmlElementNode.Name.String.ToLowerInvariant();
             string detailsTitle = null;
             bool removeDetails = false;
             bool convertDetails = false;
@@ -197,7 +197,7 @@ namespace MarkConv
         {
             if (Options.InputMarkdownType == MarkdownType.GitHub && Options.OutputMarkdownType != MarkdownType.GitHub)
             {
-                if (htmlElementNode.Name.String == "summary")
+                if (htmlElementNode.Name.String.Equals("summary", StringComparison.OrdinalIgnoreCase))
                 {
                     return true;
                 }
@@ -210,7 +210,7 @@ namespace MarkConv
         {
             EnsureNewLineIfNotInline();
 
-            string name = htmlNode.Name.String;
+            string name = htmlNode.Name.String.ToLowerInvariant();
 
             string headerImageLink = null;
 
@@ -232,7 +232,7 @@ namespace MarkConv
             {
                 _result.Append(' ');
 
-                string attrName = htmlAttribute.Name.String;
+                string attrName = htmlAttribute.Name.String.ToLowerInvariant();
                 _result.Append(attrName);
                 _result.Append('=');
 
@@ -256,7 +256,7 @@ namespace MarkConv
                 ConvertChildren(htmlNode);
             }
 
-            _result.Append(htmlNode.ClosingTag.Substring);
+            _result.Append(htmlNode.ClosingTag.Substring.ToLowerInvariant());
 
             if (headerImageLink != null)
             {

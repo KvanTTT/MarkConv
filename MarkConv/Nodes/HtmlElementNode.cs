@@ -20,7 +20,7 @@ namespace MarkConv.Nodes
         {
             foreach (Node node in Content)
             {
-                if (node is HtmlElementNode childHtmlElementNode && childHtmlElementNode.Name.String == key)
+                if (node is HtmlElementNode childHtmlElementNode && childHtmlElementNode.Name.String.Equals(key, StringComparison.OrdinalIgnoreCase))
                 {
                     child = node;
                     return true;

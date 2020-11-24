@@ -95,7 +95,7 @@ namespace MarkConv
                 var blockSpan = markdownObject.Span;
                 if (markdownObject is HtmlBlock || markdownObject is HtmlInline)
                 {
-                    var lexer = new HtmlLexer(new AntlrInputStream(_file.GetSubstring(blockSpan.Start, blockSpan.Length)));
+                    var lexer = new HtmlLexer(new CaseInsensitiveInputStream(_file.GetSubstring(blockSpan.Start, blockSpan.Length)));
                     lexer.AddErrorListener(errorListener);
                     var currentTokens = lexer.GetAllTokens();
 
