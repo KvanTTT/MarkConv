@@ -25,3 +25,8 @@ Content after markdown block
    content 2
 
    </details>
+
+<details>
+<summary>HTML after list
+</summary>
+</details>

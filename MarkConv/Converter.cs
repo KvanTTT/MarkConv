@@ -345,7 +345,10 @@ namespace MarkConv
         private void ConvertMarkdownDocument(MarkdownContainerBlockNode markdownDocument)
         {
             foreach (Node child in markdownDocument.Children)
+            {
+                _result.SetIndent(markdownDocument.MarkdownObject.Column);
                 Convert(child, true);
+            }
         }
 
         private void ConvertTable(MarkdownContainerBlockNode tableBlockNode)
