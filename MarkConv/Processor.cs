@@ -1,7 +1,5 @@
 ﻿using System;
 
-[assembly: CLSCompliant(false)]
-
 namespace MarkConv
 {
     public class Processor
