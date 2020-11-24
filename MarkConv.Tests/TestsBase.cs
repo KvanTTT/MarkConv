@@ -6,7 +6,7 @@ namespace MarkConv.Tests
 {
     public abstract class TestsBase
     {
-        public static string ProjectDir { get; private set; }
+        protected static string ProjectDir { get; private set; }
 
         static TestsBase()
         {

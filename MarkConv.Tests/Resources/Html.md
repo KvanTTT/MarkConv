@@ -1,4 +1,4 @@
-Inline html: <img align="right" src="https://habrastorage.org/web/4bf/3c9/eaf/4bf3c9eaffe447ccb472240698033d3f.png" alt="Markdown Logo"/> Next fragment <a href="https://github.com/KvanTTT/MarkConv">Html Link</a>
+Inline html: <img align="right" src="https://habrastorage.org/web/4bf/3c9/eaf/4bf3c9eaffe447ccb472240698033d3f.png" alt="Markdown Logo"/> Next fragment <a href="https://github.com/KvanTTT/MarkConv"> Html Link </a>
 Line after inline break
 
 <!-- Comment -->

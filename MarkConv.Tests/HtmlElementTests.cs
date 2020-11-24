@@ -86,13 +86,13 @@ namespace MarkConv.Tests
             Assert.Equal(Postprocessor.HabrMaxTextLengthBeforeCutMessage, logger.WarningMessages[0]);
             logger.Clear();
 
-            inputText = new string('a', Postprocessor.HabrMaxTextLengthBeforeCut) + "<cut/>" +
+            inputText = new string('a', Postprocessor.HabrMaxTextLengthBeforeCut - 1) + "<cut/>" +
                         new string('a', Postprocessor.HabrMinTextLengthAfterCut);
             processor.Process(inputText);
             Assert.Empty(logger.WarningMessages);
             logger.Clear();
 
-            inputText = new string('a', Postprocessor.HabrMinTextLengthBeforeCut - 1) + "<cut/>" +
+            inputText = new string('a', Postprocessor.HabrMinTextLengthBeforeCut - 2) + "<cut/>" +
                         new string('a', 1000);
             processor.Process(inputText);
             Assert.Equal(Postprocessor.HabrMinTextLengthBeforeCutMessage, logger.WarningMessages[0]);
@@ -105,7 +105,7 @@ namespace MarkConv.Tests
             logger.Clear();
 
             inputText = new string('a', 1000) + "<cut/>" +
-                        new string('a', Postprocessor.HabrMinTextLengthAfterCut - 3);
+                        new string('a', Postprocessor.HabrMinTextLengthAfterCut - 4);
             processor.Process(inputText);
             Assert.Equal(Postprocessor.HabrMinTextLengthAfterCutMessage, logger.WarningMessages[0]);
             logger.Clear();
