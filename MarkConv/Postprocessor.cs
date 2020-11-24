@@ -19,10 +19,10 @@ namespace MarkConv
         public static readonly string HabrMinTextLengthAfterCutMessage =
             $"Text after cut can not be less than {HabrMinTextLengthAfterCut} characters";
 
-        public static readonly Regex CutTagRegex = new Regex(@"<(habra)?cut\s*(text\s*=\s*""(.*?)""\s*)?/>");
+        private static readonly Regex CutTagRegex = new Regex(@"<(habra)?cut\s*(text\s*=\s*""(.*?)""\s*)?/?>");
 
-        private ProcessorOptions _options;
-        private ILogger _logger;
+        private readonly ProcessorOptions _options;
+        private readonly ILogger _logger;
 
         public Postprocessor(ProcessorOptions options, ILogger logger)
         {
