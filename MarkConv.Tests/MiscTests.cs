@@ -11,6 +11,7 @@ namespace MarkConv.Tests
         [InlineData("Quotes")]
         [InlineData("CodeBlocks")]
         [InlineData("Html")]
+        [InlineData("Tables")]
         public void ShouldConvertMarkdown(string fileName)
         {
             var options = new ProcessorOptions();

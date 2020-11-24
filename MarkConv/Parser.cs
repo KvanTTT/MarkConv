@@ -36,6 +36,7 @@ namespace MarkConv
         {
             var builder = new MarkdownPipelineBuilder {PreciseSourceLocation = true};
             builder.UseAutoLinks();
+            builder.UseGridTables().UsePipeTables();
             _file = file;
             _links = new Dictionary<Node, Link>();
             _anchors = new Dictionary<string, Anchor>();

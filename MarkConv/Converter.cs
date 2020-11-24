@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text;
 using MarkConv.Links;
 using MarkConv.Nodes;
+using Markdig.Extensions.Tables;
 using Markdig.Syntax;
 using Markdig.Syntax.Inlines;
 
@@ -318,6 +319,10 @@ namespace MarkConv
                     ConvertCodeBlock((MarkdownLeafBlockNode)markdownNode);
                     break;
 
+                case Table _:
+                    ConvertTable((MarkdownContainerBlockNode) markdownNode);
+                    break;
+
                 case ParagraphBlock _:
                     ConvertParagraphBlock((MarkdownLeafBlockNode)markdownNode);
                     break;
@@ -329,6 +334,10 @@ namespace MarkConv
                 case HtmlBlock _:
                     break;
 
+                case TableRow _:
+                case TableCell _:
+                    throw new ArgumentException($"{markdownObject.GetType()} should be converter in {nameof(ConvertTable)} method");
+
                 default:
                     throw new NotImplementedException($"Converting of Block type '{markdownObject.GetType()}' is not implemented");
             }
@@ -338,6 +347,40 @@ namespace MarkConv
         {
             foreach (Node child in markdownDocument.Children)
                 Convert(child, true);
+        }
+
+        private void ConvertTable(MarkdownContainerBlockNode tableBlockNode)
+        {
+            var table = (Table) tableBlockNode.MarkdownObject;
+            for (var rowIndex = 0; rowIndex < tableBlockNode.Children.Count; rowIndex++)
+            {
+                Node row = tableBlockNode.Children[rowIndex];
+                var rowNode = (MarkdownContainerBlockNode) row;
+                var rowMarkdown = (TableRow) rowNode.MarkdownObject;
+                _result.SetIndent(rowMarkdown.Column - 1);
+                _result.Append("|");
+
+                foreach (Node cell in rowNode.Children)
+                {
+                    var cellNode = (MarkdownContainerBlockNode) cell;
+                    var cellMarkdown = (TableCell) cellNode.MarkdownObject;
+                    foreach (Node child in cellNode.Children)
+                        Convert(child, false);
+                    _result.Append("|");
+                }
+                if (rowIndex < tableBlockNode.Children.Count - 1)
+                    _result.AppendNewLine();
+
+                if (rowIndex == 0)
+                {
+                    // Add separator
+                    _result.SetIndent(rowMarkdown.Column - 1);
+                    _result.Append('|');
+                    for (var columnIndex = 0; columnIndex < table.ColumnDefinitions.Count - 1; columnIndex++)
+                        _result.Append("---|");
+                    _result.AppendNewLine();
+                }
+            }
         }
 
         private void ConvertHeadingBlock(MarkdownLeafBlockNode headingBlockNode)
