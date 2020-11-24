@@ -1,5 +1,7 @@
 ﻿using System;
 
+[assembly: CLSCompliant(false)]
+
 namespace MarkConv
 {
     public class Processor
@@ -16,7 +18,7 @@ namespace MarkConv
 
         public string Process(string data) => Process(new TextFile(data, ""));
 
-        public virtual string Process(TextFile file)
+        public string Process(TextFile file)
         {
             var parser = new Parser(Options, Logger);
             var parseResult = parser.Parse(file);
