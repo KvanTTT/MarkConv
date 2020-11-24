@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Text;
 
-namespace MarkConv
+namespace MarkConv.Cli
 {
     public class ConsoleLogger : ILogger
     {

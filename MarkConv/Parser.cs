@@ -15,9 +15,8 @@ namespace MarkConv
 {
     public class Parser
     {
-        public ILogger Logger { get; }
-
-        public ProcessorOptions Options { get; }
+        private readonly ProcessorOptions _options;
+        private readonly ILogger _logger;
 
         private TextFile _file;
 
@@ -28,8 +27,8 @@ namespace MarkConv
 
         public Parser(ProcessorOptions options, ILogger logger)
         {
-            Options = options ?? new ProcessorOptions();
-            Logger = logger;
+            _options = options ?? new ProcessorOptions();
+            _logger = logger;
         }
 
         public ParseResult Parse(TextFile file)
@@ -88,7 +87,7 @@ namespace MarkConv
         {
             var tokens = new List<IToken>(markdownObjects.Count);
 
-            var errorListener = new AntlrErrorListener(Logger);
+            var errorListener = new AntlrErrorListener(_logger);
 
             foreach (MarkdownObject markdownObject in markdownObjects)
             {
@@ -110,7 +109,7 @@ namespace MarkConv
                 }
             }
 
-            var parser = new HtmlParser(new CommonTokenStream(new ListTokenSource(tokens)), Logger);
+            var parser = new HtmlParser(new CommonTokenStream(new ListTokenSource(tokens)), _logger);
             parser.AddErrorListener(errorListener);
             var root = parser.root();
 
@@ -189,7 +188,7 @@ namespace MarkConv
                 if (attributes.TryGetValue(addressAttrName, out HtmlAttributeNode htmlAttributeNode))
                     address = htmlAttributeNode.Value;
                 else
-                    Logger.Warn($"Element <{tagNameString}> does not contain required '{addressAttrName}' attribute at {tagName.LineColumnSpan}");
+                    _logger.Warn($"Element <{tagNameString}> does not contain required '{addressAttrName}' attribute at {tagName.LineColumnSpan}");
             }
 
             var closingTag = elementContext.GetChild(elementContext.ChildCount - 1);
@@ -227,7 +226,7 @@ namespace MarkConv
                     var result = new MarkdownLeafBlockNode(leafBlock, inlineNode, _file);
 
                     if (leafBlock is HeadingBlock)
-                        _headerToLinkConverter.Convert(result, Options.InputMarkdownType);
+                        _headerToLinkConverter.Convert(result, _options.InputMarkdownType);
 
                     return result;
 

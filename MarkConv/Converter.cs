@@ -11,13 +11,12 @@ namespace MarkConv
 {
     public class Converter
     {
-        private ILogger Logger { get; }
-
-        private ProcessorOptions Options { get; }
+        private readonly ProcessorOptions _options;
+        private readonly ILogger _logger;
+        private readonly bool _inline;
 
         private bool _notBreak;
         private bool _lastBlockIsMarkdown = true;
-        private readonly bool _inline;
 
         private ParseResult _parseResult;
         private ConversionResult _result;
@@ -25,8 +24,8 @@ namespace MarkConv
 
         public Converter(ProcessorOptions options, ILogger logger, bool inline = false)
         {
-            Options = options ?? new ProcessorOptions();
-            Logger = logger;
+            _options = options ?? new ProcessorOptions();
+            _logger = logger;
             _inline = inline;
         }
 
@@ -96,7 +95,7 @@ namespace MarkConv
 
         private void ConvertHtmlComment(HtmlCommentNode htmlCommentNode)
         {
-            if (!Options.RemoveComments)
+            if (!_options.RemoveComments)
             {
                 EnsureNewLineIfNotInline();
                 _result.Append("<!--");
@@ -112,7 +111,7 @@ namespace MarkConv
             bool removeDetails = false;
             bool convertDetails = false;
 
-            if (Options.RemoveDetails || Options.InputMarkdownType == MarkdownType.GitHub && Options.OutputMarkdownType != MarkdownType.GitHub)
+            if (_options.RemoveDetails || _options.InputMarkdownType == MarkdownType.GitHub && _options.OutputMarkdownType != MarkdownType.GitHub)
             {
                 if (name == "details")
                 {
@@ -121,7 +120,7 @@ namespace MarkConv
                     AssignRemoveOrConvert();
                 }
             }
-            else if (Options.RemoveDetails || Options.InputMarkdownType == MarkdownType.Habr && Options.OutputMarkdownType != MarkdownType.Habr)
+            else if (_options.RemoveDetails || _options.InputMarkdownType == MarkdownType.Habr && _options.OutputMarkdownType != MarkdownType.Habr)
             {
                 if (name == "spoiler")
                 {
@@ -133,7 +132,7 @@ namespace MarkConv
 
             void AssignRemoveOrConvert()
             {
-                if (Options.RemoveDetails)
+                if (_options.RemoveDetails)
                     removeDetails = true;
                 else
                     convertDetails = true;
@@ -147,7 +146,7 @@ namespace MarkConv
 
             EnsureNewLineIfNotInline();
 
-            if (Options.OutputMarkdownType == MarkdownType.GitHub)
+            if (_options.OutputMarkdownType == MarkdownType.GitHub)
             {
                 _result.Append("<details>");
                 _result.AppendNewLine();
@@ -163,7 +162,7 @@ namespace MarkConv
 
                 _result.Append("</details>");
             }
-            else if (Options.OutputMarkdownType == MarkdownType.Habr)
+            else if (_options.OutputMarkdownType == MarkdownType.Habr)
             {
                 _result.Append("<spoiler");
                 if (detailsTitle != null)
@@ -174,7 +173,7 @@ namespace MarkConv
 
                 _result.Append("</spoiler>");
             }
-            else if (Options.OutputMarkdownType == MarkdownType.Dev)
+            else if (_options.OutputMarkdownType == MarkdownType.Dev)
             {
                 _result.Append("{% details");
                 if (detailsTitle != null)
@@ -195,7 +194,7 @@ namespace MarkConv
 
         private bool ConvertSummaryElement(HtmlElementNode htmlElementNode)
         {
-            if (Options.InputMarkdownType == MarkdownType.GitHub && Options.OutputMarkdownType != MarkdownType.GitHub)
+            if (_options.InputMarkdownType == MarkdownType.GitHub && _options.OutputMarkdownType != MarkdownType.GitHub)
             {
                 if (htmlElementNode.Name.String.Equals("summary", StringComparison.OrdinalIgnoreCase))
                 {
@@ -218,9 +217,9 @@ namespace MarkConv
             {
                 _converterState.ImageLinkNumber++;
 
-                if (_converterState.ImageLinkNumber == 0 && !string.IsNullOrWhiteSpace(Options.HeaderImageLink))
+                if (_converterState.ImageLinkNumber == 0 && !string.IsNullOrWhiteSpace(_options.HeaderImageLink))
                 {
-                    headerImageLink = Options.HeaderImageLink;
+                    headerImageLink = _options.HeaderImageLink;
                     _result.Append('[');
                 }
             }
@@ -239,7 +238,7 @@ namespace MarkConv
                 string attrValue = htmlAttribute.Value.String;
                 if (name == "img" && attrName == "src")
                 {
-                    if (Options.ImagesMap.TryGetValue(attrValue, out Image image))
+                    if (_options.ImagesMap.TryGetValue(attrValue, out Image image))
                     {
                         attrValue = image.Address;
                     }
@@ -388,7 +387,7 @@ namespace MarkConv
         {
             _converterState.HeadingNumber++;
 
-            if (_converterState.HeadingNumber == 0 && Options.RemoveTitleHeader)
+            if (_converterState.HeadingNumber == 0 && _options.RemoveTitleHeader)
                 return;
 
             var headingBlock = (HeadingBlock)headingBlockNode.LeafBlock;
@@ -545,7 +544,7 @@ namespace MarkConv
 
                     case LineBreakInline _:
                         result = " ";
-                        if (Options.LinesMaxLength == 0)
+                        if (_options.LinesMaxLength == 0)
                             _result.AppendNewLine();
                         break;
 
@@ -580,7 +579,7 @@ namespace MarkConv
             }
             else if (node is HtmlNode htmlNode)
             {
-                var converter = new Converter(Options, Logger, true);
+                var converter = new Converter(_options, _logger, true);
                 result = converter.ConvertAndReturn(_parseResult, _converterState, htmlNode);
                 if (appendToCurrentParagraph)
                     AppendWithBreak(result);
@@ -605,9 +604,9 @@ namespace MarkConv
                 {
                     _converterState.ImageLinkNumber++;
 
-                    if (_converterState.ImageLinkNumber == 0 && !string.IsNullOrWhiteSpace(Options.HeaderImageLink))
+                    if (_converterState.ImageLinkNumber == 0 && !string.IsNullOrWhiteSpace(_options.HeaderImageLink))
                     {
-                        headerImageLink = Options.HeaderImageLink;
+                        headerImageLink = _options.HeaderImageLink;
                         result.Append('[');
                     }
 
@@ -647,16 +646,16 @@ namespace MarkConv
                 string newAddress = null;
                 if (link is RelativeLink relativeLink)
                 {
-                    if (Options.InputMarkdownType != Options.OutputMarkdownType)
+                    if (_options.InputMarkdownType != _options.OutputMarkdownType)
                     {
                         newAddress = "#" + (_parseResult.Anchors.TryGetValue(relativeLink.Address, out Anchor anchor)
-                            ? _converterState.HeaderToLinkConverter.Convert(anchor.Node, Options.OutputMarkdownType)
-                            : _converterState.HeaderToLinkConverter.Convert(relativeLink.Address, Options.OutputMarkdownType));
+                            ? _converterState.HeaderToLinkConverter.Convert(anchor.Node, _options.OutputMarkdownType)
+                            : _converterState.HeaderToLinkConverter.Convert(relativeLink.Address, _options.OutputMarkdownType));
                     }
                 }
                 else
                 {
-                    if (Options.ImagesMap.TryGetValue(url, out Image image))
+                    if (_options.ImagesMap.TryGetValue(url, out Image image))
                     {
                         url = image.Address;
                     }
@@ -683,7 +682,7 @@ namespace MarkConv
 
         private void AppendWithBreak(string word)
         {
-            int linesMaxLength = IsBreakAcceptable ? Options.LinesMaxLength : int.MaxValue;
+            int linesMaxLength = IsBreakAcceptable ? _options.LinesMaxLength : int.MaxValue;
 
             bool insertSpace = !_result.IsLastCharWhitespaceOrLeadingPunctuation() &&
                                !char.IsWhiteSpace(word[0]) && !IsTrailingPunctuation(word) &&
@@ -703,7 +702,7 @@ namespace MarkConv
             _result.Append(word);
         }
 
-        private bool IsBreakAcceptable => Options.LinesMaxLength > 0 && !_notBreak;
+        private bool IsBreakAcceptable => _options.LinesMaxLength > 0 && !_notBreak;
 
         private static bool IsTrailingPunctuation(string word)
         {
