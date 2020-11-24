@@ -308,8 +308,7 @@ namespace MarkConv
                     break;
 
                 case ListItemBlock _:
-                    ConvertListItemBlock((MarkdownContainerBlockNode)markdownNode);
-                    break;
+                    throw new ArgumentException($"{markdownObject.GetType()} should be converter in {nameof(ConvertListBlock)} method");
 
                 case QuoteBlock _:
                     ConvertQuoteBlock((MarkdownContainerBlockNode)markdownNode);
@@ -320,7 +319,7 @@ namespace MarkConv
                     break;
 
                 case Table _:
-                    ConvertTable((MarkdownContainerBlockNode) markdownNode);
+                    ConvertTable((MarkdownContainerBlockNode)markdownNode);
                     break;
 
                 case ParagraphBlock _:
@@ -331,12 +330,12 @@ namespace MarkConv
                     ConvertInline(markdownNode);
                     break;
 
-                case HtmlBlock _:
-                    break;
-
                 case TableRow _:
                 case TableCell _:
                     throw new ArgumentException($"{markdownObject.GetType()} should be converter in {nameof(ConvertTable)} method");
+
+                case HtmlBlock _:
+                    break;
 
                 default:
                     throw new NotImplementedException($"Converting of Block type '{markdownObject.GetType()}' is not implemented");
@@ -433,39 +432,34 @@ namespace MarkConv
             var listBlock = (ListBlock) listBlockNode.ContainerBlock;
             foreach (Node child in listBlockNode.Children)
             {
-                if (child is MarkdownContainerBlockNode childMarkdownNode && childMarkdownNode.ContainerBlock is ListItemBlock listItemBlock)
+                var childMarkdownNode = (MarkdownContainerBlockNode) child;
+                var listItemBlock = (ListItemBlock) childMarkdownNode.ContainerBlock;
+
+                _result.SetIndent(listItemBlock.Column);
+                _result.EnsureNewLine();
+
+                if (listBlock.IsOrdered)
                 {
-                    _result.SetIndent(listItemBlock.Column);
-                    _result.EnsureNewLine();
-
-                    if (listBlock.IsOrdered)
-                    {
-                        string orderString = listItemBlock.Order.ToString();
-                        _result.Append(orderString);
-                        _result.Append(listBlock.OrderedDelimiter);
-                    }
-                    else
-                    {
-                        _result.Append(listBlock.BulletType);
-                    }
-
-                    Convert(child, false);
+                    string orderString = listItemBlock.Order.ToString();
+                    _result.Append(orderString);
+                    _result.Append(listBlock.OrderedDelimiter);
                 }
-            }
-        }
-
-        private void ConvertListItemBlock(MarkdownContainerBlockNode listItemBlockNode)
-        {
-            var listItemBlock = (ListItemBlock) listItemBlockNode.ContainerBlock;
-            for (var index = 0; index < listItemBlockNode.Children.Count; index++)
-            {
-                var itemBlock = listItemBlock[index];
-                if (index == 0)
-                    _result.Append(' ', itemBlock.Column - _result.CurrentColumn);
                 else
-                    _result.EnsureNewLine(!(itemBlock is ListBlock || itemBlock is QuoteBlock));
+                {
+                    _result.Append(listBlock.BulletType);
+                }
 
-                Convert(listItemBlockNode.Children[index], false);
+                var children = childMarkdownNode.Children;
+                for (var index = 0; index < children.Count; index++)
+                {
+                    var itemBlock = listItemBlock[index];
+                    if (index == 0)
+                        _result.Append(' ', itemBlock.Column - _result.CurrentColumn);
+                    else
+                        _result.EnsureNewLine(!(itemBlock is ListBlock || itemBlock is QuoteBlock));
+
+                    Convert(children[index], false);
+                }
             }
         }
 
@@ -477,9 +471,7 @@ namespace MarkConv
                 Block childQuoteBlock = quoteBlock[index];
                 _result.SetIndent(quoteBlock.Column);
                 if (index > 0 || !(quoteBlock.Parent is QuoteBlock) && !(quoteBlock.Parent is ListItemBlock))
-                {
                     _result.EnsureNewLine();
-                }
                 _result.Append(quoteBlock.QuoteChar);
                 _result.Append(' ');
                 _result.SetIndent(childQuoteBlock.Column);
