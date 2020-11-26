@@ -11,6 +11,8 @@ namespace MarkConv
 {
     public class Converter
     {
+        private static readonly string[] SpacesAndNewLines = { "\n", "\r\n", " ", "\t"};
+
         private readonly ProcessorOptions _options;
         private readonly ILogger _logger;
         private readonly bool _inline;
@@ -90,7 +92,19 @@ namespace MarkConv
 
         private void ConvertHtmlTextNode(HtmlStringNode htmlStringNode)
         {
-            _result.Append(htmlStringNode.String.TrimEnd());
+            var text = htmlStringNode.String.TrimEnd();
+            _lastBlockIsMarkdown = true;
+
+            if (_options.LinesMaxLength != 0)
+            {
+                string[] words = text.Split(SpacesAndNewLines, StringSplitOptions.RemoveEmptyEntries);
+                for (var i = 0; i < words.Length; i++)
+                    AppendWithBreak(words[i], i == 0);
+            }
+            else
+            {
+                AppendWithBreak(text, true);
+            }
         }
 
         private void ConvertHtmlComment(HtmlCommentNode htmlCommentNode)
@@ -680,11 +694,15 @@ namespace MarkConv
             return result;
         }
 
-        private void AppendWithBreak(string word)
+        private void AppendWithBreak(string word, bool forceNotInsertSpace = false)
         {
+            if (string.IsNullOrEmpty(word))
+                return;
+
             int linesMaxLength = IsBreakAcceptable ? _options.LinesMaxLength : int.MaxValue;
 
-            bool insertSpace = !_result.IsLastCharWhitespaceOrLeadingPunctuation() &&
+            bool insertSpace = !forceNotInsertSpace &&
+                               !_result.IsLastCharWhitespaceOrLeadingPunctuation() &&
                                !char.IsWhiteSpace(word[0]) && !IsTrailingPunctuation(word) &&
                                _lastBlockIsMarkdown;
 

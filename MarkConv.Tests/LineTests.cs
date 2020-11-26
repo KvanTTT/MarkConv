@@ -11,11 +11,31 @@ namespace MarkConv.Tests
         }
 
         [Fact]
-        public void ShouldInsertWhitespacesWhileLineMerging()
+        public void ShouldCorrectlyMergeLines()
         {
             var processor = new Processor(new ProcessorOptions { LinesMaxLength = -1 }, new Logger());
-            var result = processor.Process("a,\nb,\nc.\n[a\nb](https://google.com)\nImage:\n![Habr logo](https://habrastorage.org/webt/cf/ei/1k/cfei1ka04yu5e021ovuhsrlsr-s.png)");
-            Assert.Equal("a, b, c. [a b](https://google.com) Image: ![Habr logo](https://habrastorage.org/webt/cf/ei/1k/cfei1ka04yu5e021ovuhsrlsr-s.png)", result);
+            var result = processor.Process(@"a,
+b,
+c.
+[a
+b](https://google.com)
+Image:
+![Habr logo](https://habrastorage.org/webt/cf/ei/1k/cfei1ka04yu5e021ovuhsrlsr-s.png)
+
+<b>text1
+   text2</b>
+
+<details>
+text1
+    text2
+</details>");
+
+            Assert.Equal(@"a, b, c. [a b](https://google.com) Image: ![Habr logo](https://habrastorage.org/webt/cf/ei/1k/cfei1ka04yu5e021ovuhsrlsr-s.png)
+
+<b> text1 text2</b>
+
+<details>text1 text2
+</details>", result);
         }
 
         [Fact]
