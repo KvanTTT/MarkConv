@@ -35,7 +35,7 @@ text1
 <b> text1 text2</b>
 
 <details>
-text1 text2 
+text1 text2
 </details>", result);
         }
 

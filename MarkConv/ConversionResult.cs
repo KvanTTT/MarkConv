@@ -106,9 +106,24 @@ namespace MarkConv
 
         public void AppendNewLine()
         {
+            TrimEndSpaces();
             _result.Append(EndOfLine);
             CurrentColumn = 0;
         }
+
+        private void TrimEndSpaces()
+        {
+            if (_result.Length == 0)
+                return;
+
+            int index = _result.Length - 1;
+            while (IsWhiteSpace(_result[index]))
+                index--;
+
+            _result.Remove(index + 1, _result.Length - index - 1);
+        }
+
+        private bool IsWhiteSpace(char c) => c == ' ' || c == '\t';
 
         public override string ToString() => _result.ToString();
     }

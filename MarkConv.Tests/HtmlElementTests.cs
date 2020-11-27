@@ -69,12 +69,12 @@ namespace MarkConv.Tests
             var logger = new Logger();
             var processor = new Processor(new ProcessorOptions(), logger);
             var result = processor.Process(@"<details>
-<SUMMARY>title </summary>
+<SUMMARY>title</summary>
 CONTENT
 </DETAILS>");
             Assert.Equal(@"<details>
-<summary>title </summary>
-CONTENT 
+<summary>title</summary>
+CONTENT
 </details>", result);
             Assert.Empty(logger.WarningMessages);
         }
@@ -90,7 +90,7 @@ Next Line
 </details>");
 
             Assert.Equal(@"<details>
-<b>bold</b>,<i>italic</i>, <s>strike</s> Next Line 
+<b>bold</b>,<i>italic</i>, <s>strike</s> Next Line
 </details>", result);
         }
 
