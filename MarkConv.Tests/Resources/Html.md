@@ -3,8 +3,7 @@ Line after inline break
 
 <!-- Comment -->
 <details>
-<summary>details 1
-</summary>
+<summary>details 1 </summary>
 Content before markdown block
 
 ```
@@ -18,15 +17,12 @@ Content after markdown block
 1. Item 1
 
    <details>
-
-   <summary>details 2
-   </summary>
+   <summary>details 2 </summary>
 
    content 2
 
    </details>
 
 <details>
-<summary>HTML after list
-</summary>
+<summary>HTML after list </summary>
 </details>

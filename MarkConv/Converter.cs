@@ -92,19 +92,25 @@ namespace MarkConv
 
         private void ConvertHtmlTextNode(HtmlStringNode htmlStringNode)
         {
-            var text = htmlStringNode.String.TrimEnd();
+            var origString = htmlStringNode.String;
+            var text = origString.TrimEnd();
             _lastBlockIsMarkdown = true;
+
+            bool isFirstCharWhitespace = origString.Length > 1 && char.IsWhiteSpace(origString[0]);
 
             if (_options.LinesMaxLength != 0)
             {
                 string[] words = text.Split(SpacesAndNewLines, StringSplitOptions.RemoveEmptyEntries);
                 for (var i = 0; i < words.Length; i++)
-                    AppendWithBreak(words[i], i == 0);
+                    AppendWithBreak(words[i], i == 0 && !isFirstCharWhitespace);
             }
             else
             {
                 AppendWithBreak(text, true);
             }
+
+            if (origString.Length > 1 && char.IsWhiteSpace(origString[^1]) && !_result.IsLastCharWhitespaceOrLeadingPunctuation())
+                _result.Append(' ');
         }
 
         private void ConvertHtmlComment(HtmlCommentNode htmlCommentNode)
@@ -182,6 +188,7 @@ namespace MarkConv
                 if (detailsTitle != null)
                     _result.Append($" title=\"{detailsTitle}\"");
                 _result.Append('>');
+                _result.AppendNewLine();
 
                 ConvertChildren(htmlElementNode);
 
@@ -197,6 +204,7 @@ namespace MarkConv
                 }
 
                 _result.Append(" %}");
+                _result.AppendNewLine();
 
                 ConvertChildren(htmlElementNode);
 
@@ -221,9 +229,11 @@ namespace MarkConv
 
         private void ConvertHtmlElement(HtmlElementNode htmlNode)
         {
-            EnsureNewLineIfNotInline();
-
             string name = htmlNode.Name.String.ToLowerInvariant();
+            bool formattingElement = name == "a" || name == "b" || name == "i" || name == "s" || name == "summary";
+
+            if (!formattingElement)
+                EnsureNewLineIfNotInline();
 
             string headerImageLink = null;
 
@@ -266,7 +276,9 @@ namespace MarkConv
             if (!htmlNode.SelfClosing)
             {
                 _result.Append('>');
-                ConvertChildren(htmlNode);
+                if (!formattingElement)
+                    _result.AppendNewLine();
+                ConvertChildren(htmlNode, !formattingElement);
             }
 
             _result.Append(htmlNode.ClosingTag.Substring.ToLowerInvariant());
@@ -279,12 +291,13 @@ namespace MarkConv
             }
         }
 
-        private void ConvertChildren(HtmlElementNode htmlElementNode)
+        private void ConvertChildren(HtmlElementNode htmlElementNode, bool ensureNewLine = true)
         {
             foreach (Node child in htmlElementNode.Content)
                 Convert(child, true);
 
-            EnsureNewLineIfNotInline();
+            if (ensureNewLine)
+                EnsureNewLineIfNotInline();
         }
 
         private void EnsureNewLineIfNotInline()
