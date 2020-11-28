@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Text;
 
-namespace MarkConv
+namespace MarkConv.Cli
 {
     public class ConsoleLogger : ILogger
     {
@@ -10,14 +10,16 @@ namespace MarkConv
             Console.OutputEncoding = Encoding.UTF8;
         }
 
-        public void Info(string message)
-        {
-            Console.WriteLine($"[INFO] {message}");
-        }
+        public void Info(string message) => WriteMessage(message, true);
 
-        public void Warn(string message)
+        public void Warn(string message) => WriteMessage(message, false);
+
+        private void WriteMessage(string message, bool info)
         {
-            Console.WriteLine($"[WARNING] {message}");
+            if (!string.IsNullOrWhiteSpace(message))
+                Console.WriteLine($"[{(info ? "INFO" : "WARN")}] {message}");
+            else
+                Console.WriteLine();
         }
     }
 }

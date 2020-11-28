@@ -16,12 +16,18 @@ namespace MarkConv
 
         public void Info(string message)
         {
-            InfoMessages.Add(message);
+            lock (InfoMessages)
+            {
+                InfoMessages.Add(message);
+            }
         }
 
         public void Warn(string message)
         {
-            WarningMessages.Add(message);
+            lock (WarningMessages)
+            {
+                WarningMessages.Add(message);
+            }
         }
 
         public void Clear()

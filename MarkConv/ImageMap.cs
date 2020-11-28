@@ -6,12 +6,13 @@ namespace MarkConv
 {
     public static class ImagesMap
     {
+        private static readonly char[] SpaceChars = { ' ', '\t' };
         public const string DefaultImagesMapFileName = "ImagesMap";
         public const string HeaderImageLinkSrc = "HeaderImageLink";
 
-        public static Dictionary<string, ImageHash> Load(string imagesMapFileName, string rootDir, ILogger logger)
+        public static Dictionary<string, Image> Load(string imagesMapFileName, string rootDir, ILogger logger)
         {
-            var imagesMap = new Dictionary<string, ImageHash>();
+            var imagesMap = new Dictionary<string, Image>();
             if (string.IsNullOrEmpty(imagesMapFileName))
             {
                 string defaultImagesMapFile = Path.Combine(rootDir, DefaultImagesMapFileName);
@@ -31,7 +32,7 @@ namespace MarkConv
                 if (string.IsNullOrWhiteSpace(mappingItems[i]) || mappingItems[i].TrimStart().StartsWith("//"))
                     continue;
 
-                string[] parts = mappingItems[i].Split(MarkdownRegex.SpaceChars, StringSplitOptions.RemoveEmptyEntries);
+                string[] parts = mappingItems[i].Split(SpaceChars, StringSplitOptions.RemoveEmptyEntries);
                 if (parts.Length != 2)
                 {
                     logger?.Warn($"Incorrect mapping item \"{mappingItems[i]}\" at line {i + 1}");
@@ -46,9 +47,10 @@ namespace MarkConv
                         logger?.Warn($"Duplicated {source} image at line {i + 1}");
                     }
 
-                    imagesMap[source] = new ImageHash(replacement, rootDir);
+                    imagesMap[source] = new Image(replacement);
                 }
             }
+
             return imagesMap;
         }
     }

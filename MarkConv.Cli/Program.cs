@@ -1,7 +1,7 @@
-﻿using CommandLine;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.IO;
+using CommandLine;
 using System.Linq;
 using System.Threading.Tasks;
 
@@ -14,8 +14,8 @@ namespace MarkConv.Cli
 
         static int Main(string[] args)
         {
-            var parser = new Parser(config => config.HelpWriter = Console.Out);
-            ParserResult<CliParameters> parserResult = parser.ParseArguments<CliParameters>(args);
+            var parser = new CommandLine.Parser(config => config.HelpWriter = Console.Out);
+            var parserResult = parser.ParseArguments<CliParameters>(args);
             return parserResult.MapResult(Convert, ProcessErrors);
         }
 
@@ -41,7 +41,7 @@ namespace MarkConv.Cli
                 inputFiles = new[] {inputFileOrDirectory};
             }
 
-            var parallelOptions = new ParallelOptions {MaxDegreeOfParallelism = -1};
+            var parallelOptions = new ParallelOptions {MaxDegreeOfParallelism = 1};
             var logger = new ConsoleLogger();
 
             Parallel.ForEach(inputFiles, parallelOptions, inputFile =>
@@ -68,9 +68,8 @@ namespace MarkConv.Cli
             string fileName = Path.GetFileNameWithoutExtension(inputFile);
             string fileNameWoExt = Path.GetFileNameWithoutExtension(fileName);
 
-            string data = File.ReadAllText(inputFile);
-            var options =
-                ProcessorOptions.GetDefaultOptions(parameters.InputMarkdownType, parameters.OutputMarkdownType);
+            var file = TextFile.Read(inputFile);
+            var options = ProcessorOptions.GetDefaultOptions(parameters.InputMarkdownType, parameters.OutputMarkdownType);
             options.CheckLinks = parameters.CheckLinks;
             options.CompareImageHashes = parameters.CompareImages;
 
@@ -83,21 +82,17 @@ namespace MarkConv.Cli
 
             if (parameters.HeaderImageLink != null)
                 options.HeaderImageLink = parameters.HeaderImageLink;
-            else if (options.ImagesMap.TryGetValue(fileNameWoExt + ImagesMap.HeaderImageLinkSrc,
-                out ImageHash imageHash))
-                options.HeaderImageLink = imageHash.Path;
+            else if (options.ImagesMap.TryGetValue(fileNameWoExt + ImagesMap.HeaderImageLinkSrc, out Image image))
+                options.HeaderImageLink = image.Address;
 
             if (parameters.RemoveTitleHeader.HasValue)
                 options.RemoveTitleHeader = parameters.RemoveTitleHeader.Value;
 
-            if (parameters.RemoveUnwantedBreaks.HasValue)
-                options.NormalizeBreaks = parameters.RemoveUnwantedBreaks.Value;
-
-            options.RemoveSpoilers = parameters.RemoveSpoilers;
+            options.RemoveDetails = parameters.RemoveSpoilers;
             options.RemoveComments = parameters.RemoveComments;
 
-            var processor = new Processor(options) {Logger = logger};
-            var converted = processor.ProcessAndGetTableOfContents(data);
+            var processor = new Processor(options, logger);
+            var converted = processor.Process(file);
 
             string localOutputDirectory = outputDirectory ?? directory;
 
@@ -125,22 +120,15 @@ namespace MarkConv.Cli
             outputFileName =
                 $"{outputFileName}.{options.OutputMarkdownType.ToString().ToLowerInvariant()}{OutExtension}{MdExtension}";
 
-            if (parameters.TableOfContents)
-            {
-                string tableOfContents = string.Join("\n", converted.TableOfContents);
-                Console.WriteLine("Table of Contents:");
-                Console.WriteLine(tableOfContents);
-                File.WriteAllText(Path.Combine(localOutputDirectory, $"{fileName}-table-of-contents.md"), tableOfContents);
-            }
-
             if (!Directory.Exists(localOutputDirectory))
             {
                 Directory.CreateDirectory(localOutputDirectory);
             }
 
-            File.WriteAllText(Path.Combine(localOutputDirectory, outputFileName), converted.Result);
+            File.WriteAllText(Path.Combine(localOutputDirectory, outputFileName), converted);
 
             logger.Info($"File {outputFileName} is ready");
+            logger.Info("");
         }
 
         private static int ProcessErrors(IEnumerable<Error> errors) => 1;

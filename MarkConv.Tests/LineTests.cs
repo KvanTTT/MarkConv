@@ -2,7 +2,7 @@
 
 namespace MarkConv.Tests
 {
-    public class LineTests
+    public class LineTests : TestsBase
     {
         [Fact]
         public void ShouldNotSplitSpecialLines()
@@ -11,85 +11,72 @@ namespace MarkConv.Tests
         }
 
         [Fact]
-        public void ShouldNotChangeLines()
+        public void ShouldCorrectlyMergeLines()
         {
-            Compare(0, "SpecialLines.md", "SpecialLines.md");
+            var processor = new Processor(new ProcessorOptions { LinesMaxLength = -1 }, new Logger());
+            var result = processor.Process(@"a,
+b,
+c.
+[a
+b](https://google.com)
+Image:
+![Habr logo](https://habrastorage.org/webt/cf/ei/1k/cfei1ka04yu5e021ovuhsrlsr-s.png)
+
+<b>text1
+   text2</b>
+
+<details>
+text1
+    text2
+</details>");
+
+            Assert.Equal(@"a, b, c. [a b](https://google.com) Image: ![Habr logo](https://habrastorage.org/webt/cf/ei/1k/cfei1ka04yu5e021ovuhsrlsr-s.png)
+
+<b> text1 text2</b>
+
+<details>
+text1 text2
+</details>", result);
         }
 
         [Fact]
-        public void ShouldUnwrap()
+        public void ShouldNotInsertWhitespacesBeforePunctuation()
         {
-            Compare(-1, "SpecialLines.md", "SpecialLines.Unwrapped.md");
-        }
-
-        [Fact]
-        public void ShouldWrapToDefinedWidth()
-        {
-            Compare(80, "SpecialLines.md", "SpecialLines.Wrapped.80.md");
+            var processor = new Processor(new ProcessorOptions { LinesMaxLength = -1 }, new Logger());
+            var result = processor.Process("[link](http://google.com), text");
+            Assert.Equal("[link](http://google.com), text", result);
         }
 
         [Fact]
         public void ShouldNormalizeLineBreaks()
         {
-            var options = new ProcessorOptions { NormalizeBreaks = true };
-            var processor = new Processor(options);
-            string actual = processor.Process(
-                "\n" +
-                "# Header\n" +
-                "\n" +
-                "\n" +
-                "Paragraph\n" +
-                "## Header 2\n" +
-                "Paragraph 2\n" +
-                "\n" +
-                "\n");
+            var processor = new Processor(new ProcessorOptions(), new Logger());
 
             Assert.Equal(
-                "# Header\n" +
-                "\n" +
-                "Paragraph\n" +
-                "\n" +
-                "## Header 2\n" +
-                "\n" +
-                "Paragraph 2"
-                , actual);
-        }
+@"# Header
 
-        [Fact]
-        public void ShouldNotRemoveUnwantedLineBreaks()
-        {
-            var options = new ProcessorOptions { NormalizeBreaks = false };
-            var processor = new Processor(options);
-            string actual = processor.Process(
-                "\n" +
-                "# Header\n" +
-                "\n" +
-                "\n" +
-                "Paragraph\n" +
-                "\n" +
-                "\n");
+Paragraph
 
-            Assert.Equal(
-                "\n" +
-                "# Header\n" +
-                "\n" +
-                "\n" +
-                "Paragraph\n" +
-                "\n" +
-                "\n"
-                , actual);
+## Header 2
+
+Paragraph 2"
+                , processor.Process(
+    @"
+# Header
+
+
+Paragraph
+## Header 2
+Paragraph 2
+
+
+"));
         }
 
         private static void Compare(int lineMaxLength, string sourceFileName, string expectedFileName)
         {
-            var options = new ProcessorOptions
-            {
-                LinesMaxLength = lineMaxLength,
-                Normalize = false,
-                NormalizeBreaks = false
-            };
-
-            Utils.CompareFiles(sourceFileName, expectedFileName, options);
+            var options = new ProcessorOptions { LinesMaxLength = lineMaxLength };
+            CompareFiles(sourceFileName, expectedFileName, options);
         }
     }
 }

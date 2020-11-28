@@ -7,5 +7,19 @@
 
   <ItemGroup>
     <Compile Include="..\AssemblyInfoCommon.cs" Link="AssemblyInfoCommon.cs" />
+    <Antlr4 Update="HtmlParser.g4">
+      <Visitor>false</Visitor>
+      <Listener>false</Listener>
+      <CustomToolNamespace>Html</CustomToolNamespace>
+    </Antlr4>
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Antlr4" Version="4.6.6">
+      <PrivateAssets>all</PrivateAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+    </PackageReference>
+    <PackageReference Include="Antlr4.Runtime" Version="4.6.6" />
+    <PackageReference Include="Markdig" Version="0.22.0" />
   </ItemGroup>
 </Project>

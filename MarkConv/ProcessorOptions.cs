@@ -12,15 +12,11 @@ namespace MarkConv
 
         public MarkdownType InputMarkdownType { get; set; } = MarkdownType.GitHub;
 
-        public MarkdownType OutputMarkdownType { get; set; } = MarkdownType.Habr;
+        public MarkdownType OutputMarkdownType { get; set; } = MarkdownType.GitHub;
 
         public string HeaderImageLink { get; set; } = string.Empty;
 
         public bool RemoveTitleHeader { get; set; }
-
-        public bool NormalizeBreaks { get; set; } = true;
-
-        public bool Normalize { get; set; }
 
         public string IndentString { get; set; } = "    ";
 
@@ -32,9 +28,9 @@ namespace MarkConv
 
         public string RootDirectory { get; set; } = "";
 
-        public Dictionary<string, ImageHash> ImagesMap = new Dictionary<string, ImageHash>();
+        public Dictionary<string, Image> ImagesMap = new Dictionary<string, Image>();
 
-        public bool RemoveSpoilers { get; set; }
+        public bool RemoveDetails { get; set; }
 
         public bool RemoveComments { get; set; }
 

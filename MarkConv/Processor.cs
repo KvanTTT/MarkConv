@@ -1,34 +1,31 @@
 ﻿using System;
-using System.Collections.Generic;
-using static MarkConv.MarkdownRegex;
 
 namespace MarkConv
 {
     public class Processor
     {
-        public ILogger Logger { get; set; } = new Logger();
+        private readonly ILogger _logger;
+        private readonly ProcessorOptions _options;
 
-        public ProcessorOptions Options { get; }
-
-        public Processor(ProcessorOptions options = null) => Options = options ?? new ProcessorOptions();
-
-        public string Process(string original)
+        public Processor(ProcessorOptions options, ILogger logger)
         {
-            return ProcessAndGetTableOfContents(original).Result;
+            _options = options ?? new ProcessorOptions();
+            _logger = logger ?? throw new ArgumentNullException(nameof(logger));
         }
 
-        public ProcessorResult ProcessAndGetTableOfContents(string original)
+        public string Process(string data) => Process(new TextFile(data, ""));
+
+        public string Process(TextFile file)
         {
-            var linesProcessor = new LinesProcessor(Options) { Logger = Logger };
-            var linksHtmlProcessor = new LinksHtmlProcessor(Options) { Logger = Logger };
-
-            string[] lines = original.Split(LineBreaks, StringSplitOptions.None);
-            LinesProcessorResult linesProcessorResult = linesProcessor.Process(lines);
-            string result = string.Join("\n", linesProcessorResult.Lines);
-            result = linksHtmlProcessor.Process(result, linesProcessorResult.Headers);
-            List<string> tableOfContents = linesProcessor.GenerateTableOfContents(linesProcessorResult);
-
-            return new ProcessorResult(result, tableOfContents);
+            var parser = new Parser(_options, _logger);
+            var parseResult = parser.Parse(file);
+            var checker = new Checker(_options, _logger);
+            checker.Check(parseResult);
+            var converter = new Converter(_options, _logger);
+            var result = converter.ConvertAndReturn(parseResult);
+            var postprocessor = new Postprocessor(_options, _logger);
+            postprocessor.Postprocess(result);
+            return result;
         }
     }
 }
