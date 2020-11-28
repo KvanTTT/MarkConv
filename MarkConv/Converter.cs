@@ -17,43 +17,40 @@ namespace MarkConv
         private readonly ILogger _logger;
         private readonly bool _inline;
 
+        private readonly ParseResult _parseResult;
+        private readonly ConversionResult _result;
+        private readonly ConverterState _converterState;
+
         private bool _notBreak;
         private bool _lastBlockIsMarkdown = true;
 
-        private ParseResult _parseResult;
-        private ConversionResult _result;
-        private ConverterState _converterState;
-
-        public Converter(ProcessorOptions options, ILogger logger, bool inline = false)
+        public Converter(ProcessorOptions options, ILogger logger, ParseResult parseResult, ConverterState converterState, bool inline = false)
         {
-            _options = options ?? new ProcessorOptions();
+            _options = options;
             _logger = logger;
             _inline = inline;
+            _parseResult = parseResult;
+            _converterState = converterState;
+            _result = new ConversionResult(parseResult.EndOfLine);
         }
 
-        public string ConvertAndReturn(ParseResult parseResult)
+        public string ConvertAndReturn()
         {
-            _parseResult = parseResult ?? throw new ArgumentNullException(nameof(parseResult));
-            _converterState = new ConverterState();
-            _result = new ConversionResult(parseResult.EndOfLine);
-            Convert(parseResult.Node, false);
+            Convert(_parseResult.Node, false);
             return _result.ToString();
         }
 
-        private string ConvertAndReturn(ParseResult parseResult, ConverterState converterState, Node node)
+        private string ConvertAndReturn(Node node)
         {
-            _parseResult = parseResult ?? throw new ArgumentNullException(nameof(parseResult));
-            _converterState = converterState ?? throw new ArgumentNullException(nameof(parseResult));
-            _result = new ConversionResult(parseResult.EndOfLine);
             Convert(node, false);
             return _result.ToString();
         }
 
-        private void Convert(Node node, bool ensureNewLine)
+        private void Convert(Node? node, bool ensureNewLine)
         {
             if (node is HtmlNode htmlNode)
             {
-                ConvertHtmlNode(htmlNode, ensureNewLine);
+                ConvertHtmlNode(htmlNode);
                 _lastBlockIsMarkdown = false;
             }
             else if (node is MarkdownNode markdownNode)
@@ -63,7 +60,7 @@ namespace MarkConv
             }
         }
 
-        private void ConvertHtmlNode(HtmlNode htmlNode, bool ensureNewLine)
+        private void ConvertHtmlNode(HtmlNode htmlNode)
         {
             switch (htmlNode)
             {
@@ -127,7 +124,7 @@ namespace MarkConv
         private bool ConvertDetailsOrSpoilerElement(HtmlElementNode htmlElementNode)
         {
             string name = htmlElementNode.Name.String.ToLowerInvariant();
-            string detailsTitle = null;
+            string? detailsTitle = null;
             bool removeDetails = false;
             bool convertDetails = false;
 
@@ -135,7 +132,7 @@ namespace MarkConv
             {
                 if (name == "details")
                 {
-                    if (htmlElementNode.TryGetChild("summary", out Node child))
+                    if (htmlElementNode.TryGetChild("summary", out Node? child))
                         detailsTitle = (child as HtmlElementNode)?.Content.FirstOrDefault()?.Substring;
                     AssignRemoveOrConvert();
                 }
@@ -144,7 +141,7 @@ namespace MarkConv
             {
                 if (name == "spoiler")
                 {
-                    if (htmlElementNode.TryGetChild("title", out Node child))
+                    if (htmlElementNode.TryGetChild("title", out Node? child))
                         detailsTitle = (child as HtmlElementNode)?.Content.FirstOrDefault()?.Substring;
                     AssignRemoveOrConvert();
                 }
@@ -235,7 +232,7 @@ namespace MarkConv
             if (!formattingElement)
                 EnsureNewLineIfNotInline();
 
-            string headerImageLink = null;
+            string? headerImageLink = null;
 
             if (name == "img")
             {
@@ -262,7 +259,7 @@ namespace MarkConv
                 string attrValue = htmlAttribute.Value.String;
                 if (name == "img" && attrName == "src")
                 {
-                    if (_options.ImagesMap.TryGetValue(attrValue, out Image image))
+                    if (_options.ImagesMap.TryGetValue(attrValue, out Image? image))
                     {
                         attrValue = image.Address;
                     }
@@ -390,7 +387,6 @@ namespace MarkConv
                 foreach (Node cell in rowNode.Children)
                 {
                     var cellNode = (MarkdownContainerBlockNode) cell;
-                    var cellMarkdown = (TableCell) cellNode.MarkdownObject;
                     foreach (Node child in cellNode.Children)
                         Convert(child, false);
                     _result.Append("|");
@@ -510,7 +506,7 @@ namespace MarkConv
         private void ConvertCodeBlock(MarkdownLeafBlockNode codeBlockNode)
         {
             var codeBlock = (CodeBlock) codeBlockNode.LeafBlock;
-            FencedCodeBlock fencedCodeBlock = codeBlock as FencedCodeBlock;
+            FencedCodeBlock? fencedCodeBlock = codeBlock as FencedCodeBlock;
 
             if (fencedCodeBlock != null)
             {
@@ -542,9 +538,9 @@ namespace MarkConv
             ConvertInline(paragraphBlockNode.Inline);
         }
 
-        private string ConvertInline(Node node, bool appendToCurrentParagraph = true)
+        private string? ConvertInline(Node? node, bool appendToCurrentParagraph = true)
         {
-            string result = null;
+            string? result = null;
 
             if (node is MarkdownNode markdownNode)
             {
@@ -606,8 +602,8 @@ namespace MarkConv
             }
             else if (node is HtmlNode htmlNode)
             {
-                var converter = new Converter(_options, _logger, true);
-                result = converter.ConvertAndReturn(_parseResult, _converterState, htmlNode);
+                var converter = new Converter(_options, _logger, _parseResult, _converterState, true);
+                result = converter.ConvertAndReturn(htmlNode);
                 if (appendToCurrentParagraph)
                     AppendWithBreak(result);
             }
@@ -615,14 +611,14 @@ namespace MarkConv
             return result;
         }
 
-        private StringBuilder ConvertContainerInline(MarkdownContainerInlineNode containerInlineNode)
+        private StringBuilder? ConvertContainerInline(MarkdownContainerInlineNode containerInlineNode)
         {
             var containerInline = containerInlineNode.ContainerInline;
-            var linkInline = containerInline as LinkInline;
-            var emphasisInline = containerInline as EmphasisInline;
+            LinkInline? linkInline = containerInline as LinkInline;
+            EmphasisInline? emphasisInline = containerInline as EmphasisInline;
             bool appendToCurrentParagraph = false;
-            StringBuilder result = null;
-            string headerImageLink = null;
+            StringBuilder? result = null;
+            string? headerImageLink = null;
 
             if (linkInline != null)
             {
@@ -659,30 +655,30 @@ namespace MarkConv
 
             foreach (Node child in containerInlineNode.Children)
             {
-                string inlineResult = ConvertInline(child, appendToCurrentParagraph);
+                string? inlineResult = ConvertInline(child, appendToCurrentParagraph);
                 if (!appendToCurrentParagraph)
-                    result.Append(inlineResult);
+                    result!.Append(inlineResult);
             }
 
             if (linkInline != null)
             {
-                result.Append("](");
+                result!.Append("](");
                 string url = linkInline.Url;
 
                 var link = _parseResult.Links[containerInlineNode];
-                string newAddress = null;
+                string? newAddress = null;
                 if (link is RelativeLink relativeLink)
                 {
                     if (_options.InputMarkdownType != _options.OutputMarkdownType)
                     {
-                        newAddress = "#" + (_parseResult.Anchors.TryGetValue(relativeLink.Address, out Anchor anchor)
+                        newAddress = "#" + (_parseResult.Anchors.TryGetValue(relativeLink.Address, out Anchor? anchor)
                             ? _converterState.HeaderToLinkConverter.Convert(anchor.Node, _options.OutputMarkdownType)
                             : _converterState.HeaderToLinkConverter.Convert(relativeLink.Address, _options.OutputMarkdownType));
                     }
                 }
                 else
                 {
-                    if (_options.ImagesMap.TryGetValue(url, out Image image))
+                    if (_options.ImagesMap.TryGetValue(url, out Image? image))
                     {
                         url = image.Address;
                     }
@@ -701,7 +697,7 @@ namespace MarkConv
             else if (emphasisInline != null)
             {
                 for (int i = 0; i < emphasisInline.DelimiterCount; i++)
-                    result.Append(emphasisInline.DelimiterChar);
+                    result!.Append(emphasisInline.DelimiterChar);
             }
 
             return result;

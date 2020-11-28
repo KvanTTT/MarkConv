@@ -6,9 +6,9 @@ namespace MarkConv.Nodes
     {
         public LeafBlock LeafBlock => (LeafBlock) MarkdownObject;
 
-        public MarkdownNode Inline { get; }
+        public MarkdownNode? Inline { get; }
 
-        public MarkdownLeafBlockNode(LeafBlock leafBlock, MarkdownNode inline, TextFile file)
+        public MarkdownLeafBlockNode(LeafBlock leafBlock, MarkdownNode? inline, TextFile file)
             : base(leafBlock, file)
         {
             Inline = inline;

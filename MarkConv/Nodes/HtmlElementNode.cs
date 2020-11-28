@@ -16,7 +16,7 @@ namespace MarkConv.Nodes
 
         public bool SelfClosing => !(ClosingTag.ParseTree is HtmlParser.TagCloseContext);
 
-        public bool TryGetChild(string key, out Node child)
+        public bool TryGetChild(string key, out Node? child)
         {
             foreach (Node node in Content)
             {

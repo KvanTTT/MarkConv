@@ -10,8 +10,8 @@ namespace MarkConv.Tests
         public void ShouldCollectLinksFromHtmlAndMarkdown()
         {
             var logger = new Logger();
-            var parser = new Parser(new ProcessorOptions(), logger);
-            var parseResult = parser.Parse(ReadFileFromResources("Links.md"));
+            var parser = new Parser(new ProcessorOptions(), logger, ReadFileFromResources("Links.md"));
+            var parseResult = parser.Parse();
             var links = parseResult.Links;
             Assert.Equal("https://google.com", links.ElementAt(0).Value.Address);
             Assert.Equal("https://habrastorage.org/web/dcd/2e2/016/dcd2e201667847a1932eab96b60c0086.jpg", links.ElementAt(1).Value.Address);
@@ -30,7 +30,6 @@ namespace MarkConv.Tests
         {
             var logger = new Logger();
             var options = new ProcessorOptions { CheckLinks = true };
-            var parser = new Parser(options, logger);
             var textFile = new TextFile(@"<https://github.com/KvanTTT/MarkConv>
 <https://github.com/KvanTTT/MarkConv1>
 [Incorrect Link Format]((http://asdf.qwer))
@@ -42,7 +41,8 @@ namespace MarkConv.Tests
 
 # Header
 ", "Links.md");
-            var parseResult = parser.Parse(textFile);
+            var parser = new Parser(options, logger, textFile);
+            var parseResult = parser.Parse();
             var checker = new Checker(options, logger);
             checker.Check(parseResult);
 

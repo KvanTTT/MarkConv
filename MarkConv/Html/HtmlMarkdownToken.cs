@@ -39,9 +39,9 @@ namespace MarkConv.Html
 
         public int StopIndex { get; }
 
-        public ITokenSource TokenSource { get; }
+        public ITokenSource TokenSource { get; } = null!;
 
-        public ICharStream InputStream { get; }
+        public ICharStream InputStream { get; } = null!;
 
         protected HtmlMarkdownToken(TextFile file, int index, int start, int stop)
         {
@@ -54,8 +54,7 @@ namespace MarkConv.Html
         public override string ToString()
         {
             string str1 = string.Empty;
-            string text = Text;
-            string str2 = text == null ? "<no text>" : text.Replace("\n", "\\n").Replace("\r", "\\r").Replace("\t", "\\t");
+            string str2 = Text.Replace("\n", "\\n").Replace("\r", "\\r").Replace("\t", "\\t");
             string displayName = Type.ToString();
             return "[@" + TokenIndex + "," + StartIndex + ":" + StopIndex + "='" + str2 + "',<" + displayName + ">" + str1 + ":" + Column + "]";
         }

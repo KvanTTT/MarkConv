@@ -55,7 +55,7 @@ namespace MarkConv
         {
             try
             {
-                if (Uri.TryCreate(url, UriKind.Absolute, out Uri requestUri))
+                if (Uri.TryCreate(url, UriKind.Absolute, out Uri? requestUri))
                 {
                     var result = _httpClient.GetAsync(requestUri, HttpCompletionOption.ResponseHeadersRead, CancellationToken.None).Result;
                     return result.IsSuccessStatusCode;

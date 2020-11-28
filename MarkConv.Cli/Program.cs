@@ -24,8 +24,8 @@ namespace MarkConv.Cli
             string inputFileOrDirectory = parameters.InputFileName;
 
             string[] inputFiles;
-            string inputDirectory = null;
-            string outputDirectory = parameters.OutputDirectory;
+            string? inputDirectory = null;
+            string? outputDirectory = parameters.OutputDirectory;
 
             if (Directory.Exists(inputFileOrDirectory))
             {
@@ -59,8 +59,8 @@ namespace MarkConv.Cli
             return 0;
         }
 
-        private static void ConvertFile(CliParameters parameters, string inputFile, string outputDirectory,
-            string inputDirectory, ILogger logger)
+        private static void ConvertFile(CliParameters parameters, string inputFile, string? outputDirectory,
+            string? inputDirectory, ILogger logger)
         {
             logger.Info($"Converting of file {inputFile}...");
 
@@ -82,7 +82,7 @@ namespace MarkConv.Cli
 
             if (parameters.HeaderImageLink != null)
                 options.HeaderImageLink = parameters.HeaderImageLink;
-            else if (options.ImagesMap.TryGetValue(fileNameWoExt + ImagesMap.HeaderImageLinkSrc, out Image image))
+            else if (options.ImagesMap.TryGetValue(fileNameWoExt + ImagesMap.HeaderImageLinkSrc, out Image? image))
                 options.HeaderImageLink = image.Address;
 
             if (parameters.RemoveTitleHeader.HasValue)

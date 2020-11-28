@@ -82,14 +82,14 @@ namespace MarkConv
             return Convert(address, null, markdownType);
         }
 
-        private string Convert(string title, Node resultAnchorNode, MarkdownType markdownType)
+        private string Convert(string title, Node? resultAnchorNode, MarkdownType markdownType)
         {
             string address = ConvertHeaderTitleToLink(title, markdownType);
 
             int newNumber = 0;
             string newAddress = address;
 
-            if (_anchors.TryGetValue(address, out Anchor foundAnchor))
+            if (_anchors.TryGetValue(address, out Anchor? foundAnchor))
             {
                 do
                 {
@@ -127,7 +127,7 @@ namespace MarkConv
                 {
                     if (lower >= 'a' && lower <= 'z' || lower >= '0' && lower <= '9')
                         result.Append(lower);
-                    else if (RussianTransliterationMap.TryGetValue(lower, out string replacement))
+                    else if (RussianTransliterationMap.TryGetValue(lower, out string? replacement))
                         result.Append(replacement);
                 }
                 else

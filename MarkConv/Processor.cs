@@ -17,12 +17,12 @@ namespace MarkConv
 
         public string Process(TextFile file)
         {
-            var parser = new Parser(_options, _logger);
-            var parseResult = parser.Parse(file);
+            var parser = new Parser(_options, _logger, file);
+            var parseResult = parser.Parse();
             var checker = new Checker(_options, _logger);
             checker.Check(parseResult);
-            var converter = new Converter(_options, _logger);
-            var result = converter.ConvertAndReturn(parseResult);
+            var converter = new Converter(_options, _logger, parseResult, new ConverterState());
+            var result = converter.ConvertAndReturn();
             var postprocessor = new Postprocessor(_options, _logger);
             postprocessor.Postprocess(result);
             return result;

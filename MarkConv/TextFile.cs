@@ -6,11 +6,11 @@ namespace MarkConv
 {
     public class TextFile
     {
-        private int[] _lineIndexes;
+        private readonly int[] _lineIndexes;
 
-        public const int StartLine = 1;
+        private const int StartLine = 1;
 
-        public const int StartColumn = 1;
+        private const int StartColumn = 1;
 
         public string Name { get; }
 
@@ -27,7 +27,25 @@ namespace MarkConv
         {
             Name = name ?? throw new ArgumentNullException(nameof(name));
             Data = data ?? throw new ArgumentNullException(nameof(data));
-            InitLineIndexes();
+
+            string text = Data;
+
+            var lineIndexesBuffer = new List<int>(text.Length / 25) { 0 };
+            int textIndex = 0;
+            while (textIndex < text.Length)
+            {
+                char c = text[textIndex];
+                if (c == '\r' || c == '\n')
+                {
+                    if (c == '\r' && textIndex + 1 < text.Length && text[textIndex + 1] == '\n')
+                        textIndex++;
+
+                    lineIndexesBuffer.Add(textIndex + 1);
+                }
+                textIndex++;
+            }
+
+            _lineIndexes = lineIndexesBuffer.ToArray();
         }
 
         public string RenderToLineColumn(int start, int length)
@@ -70,28 +88,6 @@ namespace MarkConv
                 return "";
 
             return Data.Substring(start, length);
-        }
-
-        private void InitLineIndexes()
-        {
-            string text = Data;
-
-            var lineIndexesBuffer = new List<int>(text.Length / 25) { 0 };
-            int textIndex = 0;
-            while (textIndex < text.Length)
-            {
-                char c = text[textIndex];
-                if (c == '\r' || c == '\n')
-                {
-                    if (c == '\r' && textIndex + 1 < text.Length && text[textIndex + 1] == '\n')
-                        textIndex++;
-
-                    lineIndexesBuffer.Add(textIndex + 1);
-                }
-                textIndex++;
-            }
-
-            _lineIndexes = lineIndexesBuffer.ToArray();
         }
     }
 }

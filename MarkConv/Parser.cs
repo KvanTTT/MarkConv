@@ -17,22 +17,17 @@ namespace MarkConv
     {
         private readonly ProcessorOptions _options;
         private readonly ILogger _logger;
+        private readonly TextFile _file;
+        private readonly Dictionary<Node, Link> _links;
+        private readonly Dictionary<string, Anchor> _anchors;
+        private readonly HeaderToLinkConverter _headerToLinkConverter;
+        private readonly string _endOfLine;
+        private readonly MarkdownDocument _markdownDocument;
 
-        private TextFile _file;
-
-        private Dictionary<Node, Link> _links;
-        private Dictionary<string, Anchor> _anchors;
-        private HeaderToLinkConverter _headerToLinkConverter;
-        private string _endOfLine;
-
-        public Parser(ProcessorOptions options, ILogger logger)
+        public Parser(ProcessorOptions options, ILogger logger, TextFile file)
         {
-            _options = options ?? new ProcessorOptions();
+            _options = options;
             _logger = logger;
-        }
-
-        public ParseResult Parse(TextFile file)
-        {
             var builder = new MarkdownPipelineBuilder {PreciseSourceLocation = true};
             builder.UseAutoLinks();
             builder.UseGridTables().UsePipeTables();
@@ -40,11 +35,13 @@ namespace MarkConv
             _links = new Dictionary<Node, Link>();
             _anchors = new Dictionary<string, Anchor>();
             _headerToLinkConverter = new HeaderToLinkConverter(_anchors);
-            MarkdownDocument document = Markdown.Parse(_file.Data, builder.Build());
+            _markdownDocument = Markdown.Parse(_file.Data, builder.Build());
             _endOfLine = GetEndOfLine();
-            return new ParseResult(_file, new MarkdownContainerBlockNode(document, Parse(document), _file),
-                _links, _anchors, _endOfLine);
         }
+
+        public ParseResult Parse() =>
+            new ParseResult(_file, new MarkdownContainerBlockNode(_markdownDocument, Parse(_markdownDocument), _file),
+                _links, _anchors, _endOfLine);
 
         private string GetEndOfLine()
         {
@@ -104,8 +101,9 @@ namespace MarkConv
                 }
                 else
                 {
-                    tokens.Add(new MarkdownToken(_file, tokens.Count, blockSpan.Start, blockSpan.End,
-                        ParseMarkdown(markdownObject)));
+                    var markdownNode = ParseMarkdown(markdownObject);
+                    if (markdownNode != null)
+                        tokens.Add(new MarkdownToken(_file, tokens.Count, blockSpan.Start, blockSpan.End, markdownNode));
                 }
             }
 
@@ -168,10 +166,10 @@ namespace MarkConv
                 attributes.Add(nameNode.String, new HtmlAttributeNode(attributeContext, nameNode, valueNode));
             }
 
-            HtmlStringNode address = null;
+            HtmlStringNode? address = null;
             bool isImage = false;
             string tagNameString = tagName.String;
-            string addressAttrName = null;
+            string? addressAttrName = null;
 
             if (tagNameString == "a")
             {
@@ -185,7 +183,7 @@ namespace MarkConv
 
             if (addressAttrName != null)
             {
-                if (attributes.TryGetValue(addressAttrName, out HtmlAttributeNode htmlAttributeNode))
+                if (attributes.TryGetValue(addressAttrName, out HtmlAttributeNode? htmlAttributeNode))
                     address = htmlAttributeNode.Value;
                 else
                     _logger.Warn($"Element <{tagNameString}> does not contain required '{addressAttrName}' attribute at {tagName.LineColumnSpan}");
@@ -203,7 +201,7 @@ namespace MarkConv
             return result;
         }
 
-        private MarkdownNode ParseMarkdown(MarkdownObject markdownObject)
+        private MarkdownNode? ParseMarkdown(MarkdownObject markdownObject)
         {
             if (markdownObject is Block block)
                 return ParseMarkdownBlock(block);
@@ -238,7 +236,7 @@ namespace MarkConv
             }
         }
 
-        private MarkdownNode ParseMarkdownInline(Inline inline)
+        private MarkdownNode? ParseMarkdownInline(Inline inline)
         {
             MarkdownNode result;
 
@@ -262,7 +260,7 @@ namespace MarkConv
                 case ContainerInline containerInline:
                     List<Node> children = containerInline.Any(child => child is HtmlInline)
                         ? Parse(containerInline.Cast<MarkdownObject>().ToList())
-                        : containerInline.Select(ParseMarkdownInline).Cast<Node>().ToList();
+                        : containerInline.Select(ParseMarkdownInline).Where(node => node != null).Cast<Node>().ToList();
 
                     int start = -1, length = -1;
                     if (children.Count > 0 && containerInline.Span.Length == 1)
@@ -276,8 +274,9 @@ namespace MarkConv
 
                     if (containerInline is LinkInline linkInline)
                     {
-                        var urlSpan = linkInline.UrlSpan.Value;
-                        _links.Add(result, Link.Create(result, linkInline.Url, linkInline.IsImage, urlSpan.Start, urlSpan.Length));
+                        if (linkInline.UrlSpan is { } urlSpan)
+                            _links.Add(result,
+                                Link.Create(result, linkInline.Url, linkInline.IsImage, urlSpan.Start, urlSpan.Length));
                     }
 
                     return result;

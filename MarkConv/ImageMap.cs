@@ -10,7 +10,7 @@ namespace MarkConv
         public const string DefaultImagesMapFileName = "ImagesMap";
         public const string HeaderImageLinkSrc = "HeaderImageLink";
 
-        public static Dictionary<string, Image> Load(string imagesMapFileName, string rootDir, ILogger logger)
+        public static Dictionary<string, Image> Load(string? imagesMapFileName, string rootDir, ILogger logger)
         {
             var imagesMap = new Dictionary<string, Image>();
             if (string.IsNullOrEmpty(imagesMapFileName))

@@ -5,7 +5,7 @@ namespace MarkConv.Cli
     public class CliParameters
     {
         [Option('f', "file", Required = true, HelpText = "Input file to be processed")]
-        public string InputFileName { get; set; }
+        public string InputFileName { get; set; } = "";
 
         [Option('i', "inputType", HelpText = "Markdown type of an input image (GitHub, Habr, Dev)")]
         public MarkdownType InputMarkdownType { get; set; } = MarkdownType.GitHub;
@@ -17,13 +17,13 @@ namespace MarkConv.Cli
         public int? LinesMaxLength { get; set; } = null;
 
         [Option('m', "imagesMap", HelpText = "source -> replacement map for image paths")]
-        public string ImagesMapFileName { get; set; } = null;
+        public string? ImagesMapFileName { get; set; } = null;
 
         [Option("outDir")]
-        public string OutputDirectory { get; set; } = null;
+        public string? OutputDirectory { get; set; } = null;
 
         [Option]
-        public string HeaderImageLink { get; set; } = null;
+        public string? HeaderImageLink { get; set; } = null;
 
         [Option]
         public bool? RemoveTitleHeader { get; set; } = null;

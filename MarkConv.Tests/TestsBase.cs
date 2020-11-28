@@ -6,20 +6,20 @@ namespace MarkConv.Tests
 {
     public abstract class TestsBase
     {
-        protected static string ProjectDir { get; private set; }
+        protected static string ProjectDir { get; private set; } = "";
 
         static TestsBase()
         {
             InitProjectDir();
         }
 
-        private static void InitProjectDir([CallerFilePath]string thisFilePath = null)
+        private static void InitProjectDir([CallerFilePath]string thisFilePath = "")
         {
-            ProjectDir = Path.GetDirectoryName(thisFilePath);
+            ProjectDir = Path.GetDirectoryName(thisFilePath)!;
         }
 
-        protected static void CompareFiles(string inputFileName, string outputFileName, ProcessorOptions options = null,
-            Logger logger = null)
+        protected static void CompareFiles(string inputFileName, string outputFileName, ProcessorOptions options,
+            Logger? logger = null)
         {
             var processor = new Processor(options, logger ?? new Logger());
             string actual = processor.Process(ReadFileFromResources(inputFileName));

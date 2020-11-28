@@ -2,7 +2,7 @@
 
 namespace MarkConv
 {
-    internal class ConverterState
+    public class ConverterState
     {
         private Dictionary<string, Anchor> NewAnchors { get; }
 
