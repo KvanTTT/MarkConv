@@ -719,7 +719,7 @@ namespace MarkConv
                                !char.IsWhiteSpace(word[0]) && !IsTrailingPunctuation(word) &&
                                _lastBlockIsMarkdown;
 
-            if (_result.CurrentColumn + word.Length + (insertSpace ? 1 : 0) > linesMaxLength && !Consts.SpecialCharsRegex.IsMatch(word))
+            if (_result.CurrentColumn + word.Length + (insertSpace ? 1 : 0) > linesMaxLength && !IsLineStartingSyntax(word))
             {
                 if (_result.CurrentColumn > 0)
                 {
@@ -731,6 +731,22 @@ namespace MarkConv
             if (insertSpace)
                 _result.Append(' ');
             _result.Append(word);
+        }
+
+        private bool IsLineStartingSyntax(string word)
+        {
+            if (word.Length == 1)
+            {
+                char c = word[0];
+                return c == '>' || c == '*' || c == '-' || c == '+' || c == '|' || c == '=';
+            }
+
+            // Check \d+. pattern
+            for (int i = 0; i < word.Length - 1; i++)
+                if (!char.IsDigit(word[i]))
+                    return false;
+
+            return word[^1] == '.';
         }
 
         private bool IsBreakAcceptable => _options.LinesMaxLength > 0 && !_notBreak;
