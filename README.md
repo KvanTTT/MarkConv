@@ -46,15 +46,11 @@ If not defined the file with name `ImagesMap` in the directory of input file wil
 
 ### `--headerimagelink`
 
-Specify link to atricle that can be used for header image link.
+Specify the link to the article that can be used for header image link.
 
 ### `--removetitleheader`
 
 Removes title header.
-
-### `--tableofcontents`
-
-Generates TOC that based on headers and inserts it at the beginning of output article.
 
 ## Build Status
 
