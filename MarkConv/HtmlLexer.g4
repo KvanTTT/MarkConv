@@ -31,6 +31,7 @@ TAG_TRACK:       'track';
 TAG_WBR:         'wbr';
 
 TAG_CUT:         'cut'; // Habr cut element
+TAG_LINKMAP:     'linkmap';
 
 TAG_NAME:        [:a-zA-Z][:a-zA-Z\-_.0-9]*;
 TAG_WS:          [ \t\r\n]+ -> channel(HIDDEN);

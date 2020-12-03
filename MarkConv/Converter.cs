@@ -79,6 +79,9 @@ namespace MarkConv
                     if (ConvertSummaryElement(htmlElementNode))
                         return;
 
+                    if (ConvertLinkmapElement(htmlElementNode))
+                        return;
+
                     ConvertHtmlElement(htmlElementNode);
                     break;
 
@@ -216,10 +219,16 @@ namespace MarkConv
             if (_options.InputMarkdownType == MarkdownType.GitHub && _options.OutputMarkdownType != MarkdownType.GitHub)
             {
                 if (htmlElementNode.Name.String.Equals("summary", StringComparison.OrdinalIgnoreCase))
-                {
                     return true;
-                }
             }
+
+            return false;
+        }
+
+        private bool ConvertLinkmapElement(HtmlElementNode htmlElementNode)
+        {
+            if (htmlElementNode.Name.String.Equals(Parser.LinkmapHtmlElement, StringComparison.OrdinalIgnoreCase))
+                return true;
 
             return false;
         }
@@ -259,7 +268,11 @@ namespace MarkConv
                 string attrValue = htmlAttribute.Value.String;
                 if (name == "img" && attrName == "src")
                 {
-                    if (_options.LinksMap.TryGetValue(attrValue, out string? image))
+                    if (_parseResult.LinksMap.TryGetValue(_parseResult.Links[htmlNode], out Link? imageLink))
+                    {
+                        attrValue = imageLink.Address;
+                    }
+                    else if (_options.LinksMap.TryGetValue(attrValue, out string? image))
                     {
                         attrValue = image;
                     }
@@ -678,7 +691,11 @@ namespace MarkConv
                 }
                 else
                 {
-                    if (_options.LinksMap.TryGetValue(url, out string? link2))
+                    if (_parseResult.LinksMap.TryGetValue(link, out Link? link3))
+                    {
+                        url = link3.Address;
+                    }
+                    else if (_options.LinksMap.TryGetValue(url, out string? link2))
                     {
                         url = link2;
                     }

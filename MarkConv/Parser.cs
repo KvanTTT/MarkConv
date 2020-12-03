@@ -19,10 +19,13 @@ namespace MarkConv
         private readonly ILogger _logger;
         private readonly TextFile _file;
         private readonly Dictionary<Node, Link> _links;
+        private readonly Dictionary<Link, Link> _linksMap;
         private readonly Dictionary<string, Anchor> _anchors;
         private readonly HeaderToLinkConverter _headerToLinkConverter;
         private readonly string _endOfLine;
         private readonly MarkdownDocument _markdownDocument;
+
+        public const string LinkmapHtmlElement = "linkmap";
 
         public Parser(ProcessorOptions options, ILogger logger, TextFile file)
         {
@@ -33,6 +36,7 @@ namespace MarkConv
             builder.UseGridTables().UsePipeTables();
             _file = file;
             _links = new Dictionary<Node, Link>();
+            _linksMap = new Dictionary<Link, Link>(LinkAddressComparer.Instance);
             _anchors = new Dictionary<string, Anchor>();
             _headerToLinkConverter = new HeaderToLinkConverter(_anchors);
             _markdownDocument = Markdown.Parse(_file.Data, builder.Build());
@@ -41,7 +45,7 @@ namespace MarkConv
 
         public ParseResult Parse() =>
             new ParseResult(_file, new MarkdownContainerBlockNode(_markdownDocument, Parse(_markdownDocument), _file),
-                _links, _anchors, _endOfLine);
+                _links, _linksMap, _anchors, _endOfLine);
 
         private string GetEndOfLine()
         {
@@ -163,12 +167,12 @@ namespace MarkConv
                 var valueNode = new HtmlStringNode(valueTerminal, value,
                     valueSymbol.StartIndex, valueSymbol.StopIndex - valueSymbol.StartIndex + 1);
 
-                attributes.Add(nameNode.String, new HtmlAttributeNode(attributeContext, nameNode, valueNode));
+                attributes.Add(nameNode.String.ToLowerInvariant(), new HtmlAttributeNode(attributeContext, nameNode, valueNode));
             }
 
             HtmlStringNode? address = null;
             bool isImage = false;
-            string tagNameString = tagName.String;
+            string tagNameString = tagName.String.ToLowerInvariant();
             string? addressAttrName = null;
 
             if (tagNameString == "a")
@@ -179,6 +183,38 @@ namespace MarkConv
             {
                 addressAttrName = "src";
                 isImage = true;
+            }
+            else if (tagNameString == LinkmapHtmlElement)
+            {
+                Link? srcLink = null, dstLink = null;
+
+                if (!attributes.TryGetValue("src", out HtmlAttributeNode? srcNode))
+                {
+                    _logger.Warn($"{LinkmapHtmlElement} element should contain src attribute at {tagName.LineColumnSpan}");
+                }
+                else
+                {
+                    srcLink = Link.Create(srcNode.Value, srcNode.Value.String);
+                    Link? existingLink;
+                    if ((existingLink = _linksMap.Keys.FirstOrDefault(key => key.Address.Equals(srcLink.Address))) != null)
+                    {
+                        _logger.Warn($"{LinkmapHtmlElement} \"{srcLink.Node.Substring}\" at {srcLink.Node.LineColumnSpan} replaces linkmap at {existingLink.Node.LineColumnSpan}");
+                    }
+                }
+
+                if (!attributes.TryGetValue("dst", out HtmlAttributeNode? dstNode))
+                {
+                    _logger.Warn($"{LinkmapHtmlElement} element should contain dst attribute at {tagName.LineColumnSpan}");
+                }
+                else
+                {
+                    dstLink = Link.Create(dstNode.Value, dstNode.Value.String);
+                }
+
+                if (srcLink != null && dstLink != null)
+                {
+                    _linksMap[srcLink] = dstLink;
+                }
             }
 
             if (addressAttrName != null)

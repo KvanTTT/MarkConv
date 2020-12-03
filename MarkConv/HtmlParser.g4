@@ -61,6 +61,7 @@ voidElementTag
     | TAG_TRACK
     | TAG_WBR
     | TAG_CUT
+    | TAG_LINKMAP
     ;
 
 attribute
