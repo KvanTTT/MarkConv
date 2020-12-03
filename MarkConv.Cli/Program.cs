@@ -22,7 +22,8 @@ namespace MarkConv.Cli
 
         private static int Convert(CliParameters parameters)
         {
-            string inputFileOrDirectory = parameters.InputFileName;
+            string inputFileOrDirectory =
+                parameters.InputFileName.Replace(Path.AltDirectorySeparatorChar, Path.DirectorySeparatorChar);
 
             string[] inputFiles;
             string? inputDirectory = null;
