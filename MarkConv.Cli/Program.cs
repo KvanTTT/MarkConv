@@ -11,6 +11,7 @@ namespace MarkConv.Cli
     {
         private const string MdExtension = ".md";
         private const string OutExtension = ".out";
+        private const string IgnoreExtension = ".ignore";
 
         static int Main(string[] args)
         {
@@ -30,8 +31,9 @@ namespace MarkConv.Cli
             if (Directory.Exists(inputFileOrDirectory))
             {
                 string outMdSuffix = OutExtension + MdExtension;
+                string ignoreMdSuffix = IgnoreExtension + MdExtension;
                 inputFiles = Directory.GetFiles(inputFileOrDirectory, "*" + MdExtension, SearchOption.AllDirectories)
-                    .Where(file => !file.EndsWith(outMdSuffix, StringComparison.OrdinalIgnoreCase))
+                    .Where(file => !file.EndsWith(outMdSuffix, StringComparison.OrdinalIgnoreCase) && !file.EndsWith(ignoreMdSuffix, StringComparison.OrdinalIgnoreCase))
                     .ToArray();
                 inputDirectory = inputFileOrDirectory;
                 outputDirectory ??= Path.Combine(inputFileOrDirectory, "_Output");
@@ -66,7 +68,6 @@ namespace MarkConv.Cli
 
             string directory = Path.GetDirectoryName(inputFile) ?? "";
             string fileName = Path.GetFileNameWithoutExtension(inputFile);
-            string fileNameWoExt = Path.GetFileNameWithoutExtension(fileName);
 
             var file = TextFile.Read(inputFile);
             var options = ProcessorOptions.GetDefaultOptions(parameters.InputMarkdownType, parameters.OutputMarkdownType);
