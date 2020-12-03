@@ -147,16 +147,15 @@ Paragraph text
             var options = new ProcessorOptions
             {
                 CheckLinks = true,
-                LinksMap = LinksMap.Load(Path.Combine(ProjectDir, "Resources", "ImagesMap"), ProjectDir, logger),
                 RootDirectory = ProjectDir
             };
 
             CompareFiles("Images.md", "Images-Mapped.md", options, logger);
 
-            Assert.Equal(1, logger.WarningMessages.Count(message => message.Contains("Duplicated")));
-            Assert.Equal(1, logger.WarningMessages.Count(message => message.Contains("Incorrect mapping")));
-            Assert.Equal(1, logger.WarningMessages.Count(message => message.Contains("does not exist")));
-            // Assert.Equal(1, logger.WarningMessages.Count(message => message.Contains("Replacement link"))); // TODO: fix later
+            var warnings = logger.WarningMessages;
+            Assert.Equal("linkmap \"GitHub.jpg\" at [5,14..24) replaces linkmap at [1,14..24)", warnings[0]);
+            Assert.Equal(2, logger.WarningMessages.Count(message => message.Contains("does not exist")));
+            Assert.Equal("Absolute Link https://habrastorage-1.org/not-existed.png at [4,30..74) is probably broken", warnings[3]);
         }
 
         private void Compare(string inputFileName, string outputFileName, MarkdownType inputKind, MarkdownType outputKind)
