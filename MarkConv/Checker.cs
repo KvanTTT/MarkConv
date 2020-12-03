@@ -27,28 +27,39 @@ namespace MarkConv
 
             Parallel.ForEach(parseResult.Links.Values, parallelOptions, link =>
             {
-                switch (link)
-                {
-                    case AbsoluteLink _:
-                        if (_options.CheckLinks && !IsUrlAlive(link.Address))
-                            _logger.Warn(
-                                $"Absolute Link {link.Address} at {link.Node.LineColumnSpan} is probably broken");
-                        break;
-
-                    case RelativeLink relativeLink:
-                        string normalizedAddress = HeaderToLinkConverter.ConvertHeaderTitleToLink(relativeLink.Address,
-                            _options.InputMarkdownType);
-                        if (!parseResult.Anchors.ContainsKey(normalizedAddress))
-                            _logger.Warn($"Relative link {link.Address} at {link.Node.LineColumnSpan} is broken");
-                        break;
-
-                    case LocalLink localLink:
-                        var fullPath = Path.Combine(rootDirectory, localLink.Address);
-                        if (!File.Exists(fullPath))
-                            _logger.Warn($"Local file {fullPath} at {link.Node.LineColumnSpan} does not exist");
-                        break;
-                }
+                CheckLink(parseResult, link, rootDirectory);
             });
+
+            Parallel.ForEach(parseResult.LinksMap, parallelOptions, linkMap =>
+            {
+                CheckLink(parseResult, linkMap.Key, rootDirectory);
+                CheckLink(parseResult, linkMap.Value, rootDirectory);
+            });
+        }
+
+        private void CheckLink(ParseResult parseResult, Link link, string rootDirectory)
+        {
+            switch (link)
+            {
+                case AbsoluteLink _:
+                    if (_options.CheckLinks && !IsUrlAlive(link.Address))
+                        _logger.Warn(
+                            $"Absolute Link {link.Address} at {link.Node.LineColumnSpan} is probably broken");
+                    break;
+
+                case RelativeLink _:
+                    string normalizedAddress = HeaderToLinkConverter.ConvertHeaderTitleToLink(link.Address,
+                        _options.InputMarkdownType);
+                    if (!parseResult.Anchors.ContainsKey(normalizedAddress))
+                        _logger.Warn($"Relative link {link.Address} at {link.Node.LineColumnSpan} is broken");
+                    break;
+
+                case LocalLink _:
+                    var fullPath = Path.Combine(rootDirectory, link.Address);
+                    if (!File.Exists(fullPath))
+                        _logger.Warn($"Local file {fullPath} at {link.Node.LineColumnSpan} does not exist");
+                    break;
+            }
         }
 
         private bool IsUrlAlive(string url)
