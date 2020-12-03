@@ -26,8 +26,6 @@ namespace MarkConv
 
         public string RootDirectory { get; set; } = "";
 
-        public Dictionary<string, string> LinksMap = new Dictionary<string, string>();
-
         public bool RemoveDetails { get; set; }
 
         public bool RemoveComments { get; set; }

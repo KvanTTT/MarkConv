@@ -272,10 +272,6 @@ namespace MarkConv
                     {
                         attrValue = imageLink.Address;
                     }
-                    else if (_options.LinksMap.TryGetValue(attrValue, out string? image))
-                    {
-                        attrValue = image;
-                    }
                 }
 
                 _result.Append('\"');
@@ -691,13 +687,9 @@ namespace MarkConv
                 }
                 else
                 {
-                    if (_parseResult.LinksMap.TryGetValue(link, out Link? link3))
+                    if (_parseResult.LinksMap.TryGetValue(link, out Link? link2))
                     {
-                        url = link3.Address;
-                    }
-                    else if (_options.LinksMap.TryGetValue(url, out string? link2))
-                    {
-                        url = link2;
+                        url = link2.Address;
                     }
                 }
 

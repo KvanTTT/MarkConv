@@ -77,12 +77,8 @@ namespace MarkConv.Cli
 
             options.RootDirectory = directory;
 
-            options.LinksMap = LinksMap.Load(parameters.LinksMapFileName, directory, logger);
-
             if (parameters.HeaderImageLink != null)
                 options.HeaderImageLink = parameters.HeaderImageLink;
-            else if (options.LinksMap.TryGetValue(fileNameWoExt + LinksMap.HeaderImageLinkSrc, out string? image))
-                options.HeaderImageLink = image;
 
             if (parameters.RemoveTitleHeader.HasValue)
                 options.RemoveTitleHeader = parameters.RemoveTitleHeader.Value;

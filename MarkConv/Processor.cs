@@ -9,7 +9,7 @@ namespace MarkConv
 
         public Processor(ProcessorOptions options, ILogger logger)
         {
-            _options = options ?? new ProcessorOptions();
+            _options = options;
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
         }
 
