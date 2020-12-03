@@ -1,5 +1,4 @@
-﻿using System.IO;
-using System.Linq;
+﻿using System.Linq;
 using Xunit;
 
 namespace MarkConv.Tests
@@ -90,10 +89,12 @@ namespace MarkConv.Tests
         [Fact]
         public void ShouldAddHeaderImageLink()
         {
-            var options = new ProcessorOptions { HeaderImageLink = "https://github.com/KvanTTT/MarkConv" };
+            var options = new ProcessorOptions();
             var processor = new Processor(options, new Logger());
             string actual = processor.Process(
-@"# Header
+@"<linkmap src=HeaderImageLink dst=https://github.com/KvanTTT/MarkConv />
+
+# Header
 
 Paragraph [Some link](https://google.com)
 
@@ -108,7 +109,9 @@ Paragraph [Some link](https://google.com)
                 actual);
 
             actual = processor.Process(
-                @"# Header
+                @"<linkmap src=HeaderImageLink dst=https://github.com/KvanTTT/MarkConv />
+
+# Header
 
 Paragraph [Some link](https://google.com)
 
@@ -141,7 +144,7 @@ Paragraph text
         }
 
         [Fact]
-        public void ShouldMapImageLinks()
+        public void ShouldMapLinks()
         {
             var logger = new Logger();
             var options = new ProcessorOptions
@@ -153,9 +156,9 @@ Paragraph text
             CompareFiles("Images.md", "Images-Mapped.md", options, logger);
 
             var warnings = logger.WarningMessages;
-            Assert.Equal("linkmap \"GitHub.jpg\" at [5,14..24) replaces linkmap at [1,14..24)", warnings[0]);
+            Assert.Equal("linkmap \"GitHub.jpg\" at [7,14..24) replaces linkmap at [3,14..24)", warnings[0]);
             Assert.Equal(2, logger.WarningMessages.Count(message => message.Contains("does not exist")));
-            Assert.Equal("Absolute Link https://habrastorage-1.org/not-existed.png at [4,30..74) is probably broken", warnings[3]);
+            Assert.Equal("Absolute Link https://habrastorage-1.org/not-existed.png at [6,30..74) is probably broken", warnings[3]);
         }
 
         private void Compare(string inputFileName, string outputFileName, MarkdownType inputKind, MarkdownType outputKind)
