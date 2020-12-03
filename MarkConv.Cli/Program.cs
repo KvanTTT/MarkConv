@@ -77,9 +77,6 @@ namespace MarkConv.Cli
 
             options.RootDirectory = directory;
 
-            if (parameters.HeaderImageLink != null)
-                options.HeaderImageLink = parameters.HeaderImageLink;
-
             if (parameters.RemoveTitleHeader.HasValue)
                 options.RemoveTitleHeader = parameters.RemoveTitleHeader.Value;
 

@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using Antlr4.Runtime;
 using Antlr4.Runtime.Tree;
@@ -25,7 +26,11 @@ namespace MarkConv
         private readonly string _endOfLine;
         private readonly MarkdownDocument _markdownDocument;
 
-        public const string LinkmapHtmlElement = "linkmap";
+        private Link? _headerImageLink;
+
+        public const string LinkmapTagName = "linkmap";
+        public const string IncludeTagName = "include";
+        public const string HeaderImageLink = "HeaderImageLink";
 
         public Parser(ProcessorOptions options, ILogger logger, TextFile file)
         {
@@ -45,7 +50,7 @@ namespace MarkConv
 
         public ParseResult Parse() =>
             new ParseResult(_file, new MarkdownContainerBlockNode(_markdownDocument, Parse(_markdownDocument), _file),
-                _links, _linksMap, _anchors, _endOfLine);
+                _links, _linksMap, _headerImageLink, _anchors, _endOfLine);
 
         private string GetEndOfLine()
         {
@@ -184,13 +189,13 @@ namespace MarkConv
                 addressAttrName = "src";
                 isImage = true;
             }
-            else if (tagNameString == LinkmapHtmlElement)
+            else if (tagNameString == LinkmapTagName)
             {
                 Link? srcLink = null, dstLink = null;
 
                 if (!attributes.TryGetValue("src", out HtmlAttributeNode? srcNode))
                 {
-                    _logger.Warn($"{LinkmapHtmlElement} element should contain src attribute at {tagName.LineColumnSpan}");
+                    _logger.Warn($"{LinkmapTagName} element should contain src attribute at {tagName.LineColumnSpan}");
                 }
                 else
                 {
@@ -198,13 +203,13 @@ namespace MarkConv
                     Link? existingLink;
                     if ((existingLink = _linksMap.Keys.FirstOrDefault(key => key.Address.Equals(srcLink.Address))) != null)
                     {
-                        _logger.Warn($"{LinkmapHtmlElement} \"{srcLink.Node.Substring}\" at {srcLink.Node.LineColumnSpan} replaces linkmap at {existingLink.Node.LineColumnSpan}");
+                        _logger.Warn($"{LinkmapTagName} \"{srcLink.Node.Substring}\" at {srcLink.Node.LineColumnSpan} replaces linkmap at {existingLink.Node.LineColumnSpan}");
                     }
                 }
 
                 if (!attributes.TryGetValue("dst", out HtmlAttributeNode? dstNode))
                 {
-                    _logger.Warn($"{LinkmapHtmlElement} element should contain dst attribute at {tagName.LineColumnSpan}");
+                    _logger.Warn($"{LinkmapTagName} element should contain dst attribute at {tagName.LineColumnSpan}");
                 }
                 else
                 {
@@ -213,7 +218,72 @@ namespace MarkConv
 
                 if (srcLink != null && dstLink != null)
                 {
-                    _linksMap[srcLink] = dstLink;
+                    if (srcLink.Address == HeaderImageLink)
+                        _headerImageLink = dstLink;
+                    else
+                        _linksMap[srcLink] = dstLink;
+                }
+            }
+            else if (tagNameString == IncludeTagName)
+            {
+                if (!attributes.TryGetValue("src", out HtmlAttributeNode? srcNode))
+                {
+                    _logger.Warn($"{IncludeTagName} element should contain src attribute at {tagName.LineColumnSpan}");
+                }
+                else
+                {
+                    var srcLink = Link.Create(srcNode.Value, srcNode.Value.String);
+                    if (srcLink is LocalLink localLink)
+                    {
+                        var rootDirectory = Path.GetDirectoryName(_file.Name) ?? "";
+                        var includeFilePath = Path.Combine(rootDirectory, localLink.Address);
+                        if (!File.Exists(includeFilePath))
+                        {
+                            _logger.Warn($"File {includeFilePath} does not exist at {localLink.Node.LineColumnSpan}");
+                        }
+                        else
+                        {
+                            var includeFile = new TextFile(File.ReadAllText(includeFilePath), includeFilePath);
+                            var parser = new Parser(_options, _logger, includeFile);
+                            var includeParseResult = parser.Parse();
+
+                            foreach (KeyValuePair<Node, Link> pair in includeParseResult.Links)
+                                _links.Add(pair.Key, pair.Value);
+
+                            foreach ((Link includeKey, Link includeValue) in includeParseResult.LinksMap)
+                            {
+                                Link? existingLinkMap;
+                                if ((existingLinkMap = _linksMap.Keys.FirstOrDefault(key => key.Address.Equals(includeKey.Address))) != null)
+                                {
+                                    _logger.Warn($"{LinkmapTagName} \"{existingLinkMap.Node.Substring}\" at {existingLinkMap.Node.LineColumnSpan} replaces " +
+                                                    $"linkmap at {includeKey.Node.LineColumnSpan} at {includeKey.Node.File.Name}");
+                                }
+                                else
+                                {
+                                    _linksMap.Add(includeKey, includeValue);
+                                }
+                            }
+
+                            foreach ((string anchorKey, Anchor anchorValue) in includeParseResult.Anchors)
+                            {
+                                if (_anchors.TryGetValue(anchorKey, out Anchor? existingAnchor))
+                                {
+                                    _logger.Warn($"Anchor {existingAnchor.Address} at {existingAnchor.Node.LineColumnSpan} replaces "
+                                                + $"anchor at {anchorValue.Node.LineColumnSpan} at {anchorValue.Node.File.Name}");
+                                }
+                                else
+                                {
+                                    _anchors.Add(anchorKey, anchorValue);
+                                }
+                            }
+
+                            content.Add(includeParseResult.Node);
+                        }
+                    }
+                    else
+                    {
+                        _logger.Warn($"Only local files can be included via <include/> element at {srcLink.Node.LineColumnSpan}");
+                    }
                 }
             }
 

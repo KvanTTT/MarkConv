@@ -15,18 +15,22 @@ namespace MarkConv
 
         public IReadOnlyDictionary<Link, Link> LinksMap { get; }
 
+        public Link? HeaderImageLink { get; }
+
         public IReadOnlyDictionary<string, Anchor> Anchors { get; }
 
         public string EndOfLine { get; }
 
-        public ParseResult(TextFile file, Node node, Dictionary<Node, Link> links, Dictionary<Link, Link> linksMap, Dictionary<string, Anchor> anchors, string endOfLine)
+        public ParseResult(TextFile file, Node node, Dictionary<Node, Link> links, Dictionary<Link, Link> linksMap, Link? headerImageLink,
+            Dictionary<string, Anchor> anchors, string endOfLine)
         {
-            File = file ?? throw new ArgumentNullException(nameof(file));
-            Node = node ?? throw new ArgumentNullException(nameof(node));
-            Links = links ?? throw new ArgumentNullException(nameof(links));
-            LinksMap = linksMap ?? throw new ArgumentNullException(nameof(linksMap));
-            Anchors = anchors ?? throw new ArgumentNullException(nameof(anchors));
-            EndOfLine = endOfLine ?? throw new ArgumentNullException(nameof(endOfLine));
+            File = file;
+            Node = node;
+            Links = links;
+            LinksMap = linksMap;
+            HeaderImageLink = headerImageLink;
+            Anchors = anchors;
+            EndOfLine = endOfLine;
         }
     }
 }

@@ -15,8 +15,8 @@ namespace MarkConv
 
         public Checker(ProcessorOptions options, ILogger logger)
         {
-            _options = options ?? throw new ArgumentNullException(nameof(options));
-            _logger = logger ?? throw new ArgumentNullException(nameof(logger));
+            _options = options;
+            _logger = logger;
         }
 
         public void Check(ParseResult parseResult)
@@ -35,6 +35,9 @@ namespace MarkConv
                 CheckLink(parseResult, linkMap.Key, rootDirectory);
                 CheckLink(parseResult, linkMap.Value, rootDirectory);
             });
+
+            if (parseResult.HeaderImageLink != null)
+                CheckLink(parseResult, parseResult.HeaderImageLink, rootDirectory);
         }
 
         private void CheckLink(ParseResult parseResult, Link link, string rootDirectory)
@@ -57,7 +60,13 @@ namespace MarkConv
                 case LocalLink _:
                     var fullPath = Path.Combine(rootDirectory, link.Address);
                     if (!File.Exists(fullPath))
-                        _logger.Warn($"Local file {fullPath} at {link.Node.LineColumnSpan} does not exist");
+                    {
+                        var linkFileName = link.Node.File.Name;
+                        string suffix = linkFileName != parseResult.File.Name
+                            ? $" at {linkFileName}"
+                            : "";
+                        _logger.Warn($"Local file {fullPath} at {link.Node.LineColumnSpan}{suffix} does not exist");
+                    }
                     break;
             }
         }

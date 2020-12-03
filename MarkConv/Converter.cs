@@ -82,6 +82,9 @@ namespace MarkConv
                     if (ConvertLinkmapElement(htmlElementNode))
                         return;
 
+                    if (ConvertIncludeElement(htmlElementNode))
+                        return;
+
                     ConvertHtmlElement(htmlElementNode);
                     break;
 
@@ -227,8 +230,19 @@ namespace MarkConv
 
         private bool ConvertLinkmapElement(HtmlElementNode htmlElementNode)
         {
-            if (htmlElementNode.Name.String.Equals(Parser.LinkmapHtmlElement, StringComparison.OrdinalIgnoreCase))
+            if (htmlElementNode.Name.String.Equals(Parser.LinkmapTagName, StringComparison.OrdinalIgnoreCase))
                 return true;
+
+            return false;
+        }
+
+        private bool ConvertIncludeElement(HtmlElementNode htmlElementNode)
+        {
+            if (htmlElementNode.Name.String.Equals(Parser.IncludeTagName, StringComparison.OrdinalIgnoreCase))
+            {
+                Convert(htmlElementNode.Content[0], true);
+                return true;
+            }
 
             return false;
         }
@@ -247,9 +261,9 @@ namespace MarkConv
             {
                 _converterState.ImageLinkNumber++;
 
-                if (_converterState.ImageLinkNumber == 0 && !string.IsNullOrWhiteSpace(_options.HeaderImageLink))
+                if (_converterState.ImageLinkNumber == 0 && _parseResult.HeaderImageLink != null)
                 {
-                    headerImageLink = _options.HeaderImageLink;
+                    headerImageLink = _parseResult.HeaderImageLink.Address;
                     _result.Append('[');
                 }
             }
@@ -636,9 +650,9 @@ namespace MarkConv
                 {
                     _converterState.ImageLinkNumber++;
 
-                    if (_converterState.ImageLinkNumber == 0 && !string.IsNullOrWhiteSpace(_options.HeaderImageLink))
+                    if (_converterState.ImageLinkNumber == 0 && _parseResult.HeaderImageLink != null)
                     {
-                        headerImageLink = _options.HeaderImageLink;
+                        headerImageLink = _parseResult.HeaderImageLink.Address;
                         result.Append('[');
                     }
 

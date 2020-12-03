@@ -14,8 +14,6 @@ namespace MarkConv
 
         public MarkdownType OutputMarkdownType { get; set; } = MarkdownType.GitHub;
 
-        public string HeaderImageLink { get; set; } = string.Empty;
-
         public bool RemoveTitleHeader { get; set; }
 
         public string IndentString { get; set; } = "    ";

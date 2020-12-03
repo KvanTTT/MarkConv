@@ -23,9 +23,6 @@ namespace MarkConv.Cli
         public string? OutputDirectory { get; set; } = null;
 
         [Option]
-        public string? HeaderImageLink { get; set; } = null;
-
-        [Option]
         public bool? RemoveTitleHeader { get; set; } = null;
 
         [Option]
