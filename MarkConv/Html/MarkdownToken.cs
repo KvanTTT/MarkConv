@@ -1,5 +1,4 @@
-﻿using System;
-using Antlr4.Runtime;
+﻿using Antlr4.Runtime;
 using MarkConv.Nodes;
 
 namespace MarkConv.Html
@@ -17,7 +16,7 @@ namespace MarkConv.Html
         public MarkdownToken(TextFile file, int index, int start, int stop, MarkdownNode markdownNode)
             : base(file, index, start, stop)
         {
-            MarkdownNode = markdownNode ?? throw new ArgumentNullException(nameof(markdownNode));
+            MarkdownNode = markdownNode;
         }
     }
 }

@@ -1,5 +1,4 @@
-﻿using System;
-using System.Text.RegularExpressions;
+﻿using System.Text.RegularExpressions;
 using MarkConv.Nodes;
 
 namespace MarkConv.Links
@@ -35,8 +34,8 @@ namespace MarkConv.Links
 
         protected Link(Node node, string address, bool isImage = false, int start = -1, int length = -1)
         {
-            Node = node ?? throw new ArgumentNullException(nameof(node));
-            Address = address ?? throw new ArgumentNullException(nameof(address));
+            Node = node;
+            Address = address;
             IsImage = isImage;
             Start = start == -1 ? node.Start : start;
             Length = length == -1 ? node.Length : length;

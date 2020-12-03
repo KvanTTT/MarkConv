@@ -10,7 +10,7 @@ namespace MarkConv
         public Processor(ProcessorOptions options, ILogger logger)
         {
             _options = options;
-            _logger = logger ?? throw new ArgumentNullException(nameof(logger));
+            _logger = logger;
         }
 
         public string Process(string data) => Process(new TextFile(data, ""));

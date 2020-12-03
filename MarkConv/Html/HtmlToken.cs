@@ -1,6 +1,4 @@
-﻿using System;
-
-namespace MarkConv.Html
+﻿namespace MarkConv.Html
 {
     public class HtmlToken : HtmlMarkdownToken
     {
@@ -14,7 +12,7 @@ namespace MarkConv.Html
             : base(file, index, start, stop)
         {
             Type = type;
-            Text = text ?? throw new ArgumentNullException(nameof(text));
+            Text = text;
             Channel = channel;
         }
     }

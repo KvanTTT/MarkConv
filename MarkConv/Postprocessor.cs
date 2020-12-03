@@ -1,5 +1,4 @@
-﻿using System;
-using System.Text.RegularExpressions;
+﻿using System.Text.RegularExpressions;
 
 namespace MarkConv
 {
@@ -26,8 +25,8 @@ namespace MarkConv
 
         public Postprocessor(ProcessorOptions options, ILogger logger)
         {
-            _options = options ?? throw new ArgumentNullException(nameof(options));
-            _logger = logger ?? throw new ArgumentNullException(nameof(logger));
+            _options = options;
+            _logger = logger;
         }
 
         public void Postprocess(string result)

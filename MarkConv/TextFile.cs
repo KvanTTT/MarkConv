@@ -89,5 +89,7 @@ namespace MarkConv
 
             return Data.Substring(start, length);
         }
+
+        public override string ToString() => Name;
     }
 }

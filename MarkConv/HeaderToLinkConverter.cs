@@ -1,5 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Text;
 using MarkConv.Nodes;
 using Markdig;
@@ -51,7 +50,7 @@ namespace MarkConv
 
         public HeaderToLinkConverter(Dictionary<string, Anchor> anchors)
         {
-            _anchors = anchors ?? throw new ArgumentNullException(nameof(anchors));
+            _anchors = anchors;
         }
 
         public string Convert(Node resultAnchorNode, MarkdownType markdownType)

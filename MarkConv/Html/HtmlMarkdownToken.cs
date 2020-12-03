@@ -1,5 +1,4 @@
-﻿using System;
-using Antlr4.Runtime;
+﻿using Antlr4.Runtime;
 
 namespace MarkConv.Html
 {
@@ -45,7 +44,7 @@ namespace MarkConv.Html
 
         protected HtmlMarkdownToken(TextFile file, int index, int start, int stop)
         {
-            File = file ?? throw new ArgumentNullException(nameof(file));
+            File = file;
             TokenIndex = index;
             StartIndex = start;
             StopIndex = stop;

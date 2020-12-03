@@ -14,7 +14,7 @@ namespace MarkConv
 
         public ConversionResult(string endOfLine = "\n", int capacity = 0)
         {
-            EndOfLine = endOfLine ?? throw new ArgumentNullException(nameof(endOfLine));
+            EndOfLine = endOfLine;
             _result = new StringBuilder(capacity);
         }
 

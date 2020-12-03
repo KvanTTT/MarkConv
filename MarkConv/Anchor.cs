@@ -1,5 +1,4 @@
-﻿using System;
-using MarkConv.Nodes;
+﻿using MarkConv.Nodes;
 
 namespace MarkConv
 {
@@ -15,9 +14,9 @@ namespace MarkConv
 
         public Anchor(Node node, string title, string address, int number)
         {
-            Title = title ?? throw new ArgumentNullException(nameof(title));
-            Node = node ?? throw new ArgumentNullException(nameof(node));
-            Address = address ?? throw new ArgumentNullException(nameof(address));
+            Title = title;
+            Node = node;
+            Address = address;
             Number = number;
         }
 
