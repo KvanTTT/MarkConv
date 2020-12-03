@@ -259,9 +259,9 @@ namespace MarkConv
                 string attrValue = htmlAttribute.Value.String;
                 if (name == "img" && attrName == "src")
                 {
-                    if (_options.ImagesMap.TryGetValue(attrValue, out Image? image))
+                    if (_options.LinksMap.TryGetValue(attrValue, out string? image))
                     {
-                        attrValue = image.Address;
+                        attrValue = image;
                     }
                 }
 
@@ -678,9 +678,9 @@ namespace MarkConv
                 }
                 else
                 {
-                    if (_options.ImagesMap.TryGetValue(url, out Image? image))
+                    if (_options.LinksMap.TryGetValue(url, out string? link2))
                     {
-                        url = image.Address;
+                        url = link2;
                     }
                 }
 

@@ -147,7 +147,7 @@ Paragraph text
             var options = new ProcessorOptions
             {
                 CheckLinks = true,
-                ImagesMap = ImagesMap.Load(Path.Combine(ProjectDir, "Resources", "ImagesMap"), ProjectDir, logger),
+                LinksMap = LinksMap.Load(Path.Combine(ProjectDir, "Resources", "ImagesMap"), ProjectDir, logger),
                 RootDirectory = ProjectDir
             };
 

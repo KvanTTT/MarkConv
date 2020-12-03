@@ -22,13 +22,11 @@ namespace MarkConv
 
         public bool CheckLinks { get; set; } = true;
 
-        public bool CompareImageHashes { get; set; }
-
         public bool CenterImageAlignment { get; set; }
 
         public string RootDirectory { get; set; } = "";
 
-        public Dictionary<string, Image> ImagesMap = new Dictionary<string, Image>();
+        public Dictionary<string, string> LinksMap = new Dictionary<string, string>();
 
         public bool RemoveDetails { get; set; }
 

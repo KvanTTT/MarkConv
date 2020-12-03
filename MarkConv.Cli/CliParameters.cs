@@ -16,8 +16,8 @@ namespace MarkConv.Cli
         [Option('l', "linesLength", HelpText = "Lines max length. 0 - not change, -1 - merge lines")]
         public int? LinesMaxLength { get; set; } = null;
 
-        [Option('m', "imagesMap", HelpText = "source -> replacement map for image paths")]
-        public string? ImagesMapFileName { get; set; } = null;
+        [Option('m', "linksMap", HelpText = "source -> replacement map for links (including images)")]
+        public string? LinksMapFileName { get; set; } = null;
 
         [Option("outDir")]
         public string? OutputDirectory { get; set; } = null;
@@ -30,9 +30,6 @@ namespace MarkConv.Cli
 
         [Option]
         public bool CheckLinks { get; set; } = true;
-
-        [Option]
-        public bool CompareImages { get; set; } = false;
 
         [Option]
         public bool RemoveSpoilers { get; set; } = false;

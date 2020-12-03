@@ -4,29 +4,29 @@ using System.IO;
 
 namespace MarkConv
 {
-    public static class ImagesMap
+    public static class LinksMap
     {
         private static readonly char[] SpaceChars = { ' ', '\t' };
         public const string DefaultImagesMapFileName = "ImagesMap";
         public const string HeaderImageLinkSrc = "HeaderImageLink";
 
-        public static Dictionary<string, Image> Load(string? imagesMapFileName, string rootDir, ILogger logger)
+        public static Dictionary<string, string> Load(string? linksMapFileName, string rootDir, ILogger logger)
         {
-            var imagesMap = new Dictionary<string, Image>();
-            if (string.IsNullOrEmpty(imagesMapFileName))
+            var linksMap = new Dictionary<string, string>();
+            if (string.IsNullOrEmpty(linksMapFileName))
             {
                 string defaultImagesMapFile = Path.Combine(rootDir, DefaultImagesMapFileName);
                 if (File.Exists(defaultImagesMapFile))
                 {
-                    imagesMapFileName = defaultImagesMapFile;
+                    linksMapFileName = defaultImagesMapFile;
                 }
                 else
                 {
-                    return imagesMap;
+                    return linksMap;
                 }
             }
 
-            string[] mappingItems = File.ReadAllLines(imagesMapFileName);
+            string[] mappingItems = File.ReadAllLines(linksMapFileName);
             for (int i = 0; i < mappingItems.Length; i++)
             {
                 if (string.IsNullOrWhiteSpace(mappingItems[i]) || mappingItems[i].TrimStart().StartsWith("//"))
@@ -42,16 +42,16 @@ namespace MarkConv
                     string source = parts[0];
                     string replacement = parts[1];
 
-                    if (imagesMap.ContainsKey(source))
+                    if (linksMap.ContainsKey(source))
                     {
                         logger?.Warn($"Duplicated {source} image at line {i + 1}");
                     }
 
-                    imagesMap[source] = new Image(replacement);
+                    linksMap[source] = replacement;
                 }
             }
 
-            return imagesMap;
+            return linksMap;
         }
     }
 }

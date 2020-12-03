@@ -71,19 +71,18 @@ namespace MarkConv.Cli
             var file = TextFile.Read(inputFile);
             var options = ProcessorOptions.GetDefaultOptions(parameters.InputMarkdownType, parameters.OutputMarkdownType);
             options.CheckLinks = parameters.CheckLinks;
-            options.CompareImageHashes = parameters.CompareImages;
 
             if (parameters.LinesMaxLength.HasValue)
                 options.LinesMaxLength = parameters.LinesMaxLength.Value;
 
             options.RootDirectory = directory;
 
-            options.ImagesMap = ImagesMap.Load(parameters.ImagesMapFileName, directory, logger);
+            options.LinksMap = LinksMap.Load(parameters.LinksMapFileName, directory, logger);
 
             if (parameters.HeaderImageLink != null)
                 options.HeaderImageLink = parameters.HeaderImageLink;
-            else if (options.ImagesMap.TryGetValue(fileNameWoExt + ImagesMap.HeaderImageLinkSrc, out Image? image))
-                options.HeaderImageLink = image.Address;
+            else if (options.LinksMap.TryGetValue(fileNameWoExt + LinksMap.HeaderImageLinkSrc, out string? image))
+                options.HeaderImageLink = image;
 
             if (parameters.RemoveTitleHeader.HasValue)
                 options.RemoveTitleHeader = parameters.RemoveTitleHeader.Value;
