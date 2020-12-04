@@ -85,23 +85,23 @@ namespace MarkConv.Cli
             {
                 try
                 {
-                    ConvertFile(parameters, inputFile, outputDirectory, inputDirectory, options);
+                    ConvertFile(inputFile, outputDirectory, inputDirectory, options);
                 }
                 catch (Exception ex)
                 {
-                    Logger.Warn($"Error during {inputFile} processing: {ex.Message}");
+                    Logger.Error($"Error during {inputFile} processing: {ex.Message}");
                 }
             });
 
             Logger.Info("Process completed");
 
-            return 0;
+            return Logger.ErrorCount == 0 ? 0 : 2;
         }
 
-        private static void ConvertFile(CliParameters parameters, string inputFile, string? outputDirectory,
+        private static void ConvertFile(string inputFile, string? outputDirectory,
             string? inputDirectory, ProcessorOptions options)
         {
-            Logger.Info($"Converting of file {inputFile}...");
+            Logger.Info($"Converting of file {Path.GetFullPath(inputFile)}...");
 
             string directory = Path.GetDirectoryName(inputFile) ?? "";
             string fileName = Path.GetFileNameWithoutExtension(inputFile);
