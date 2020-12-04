@@ -16,7 +16,7 @@
 
         public string IndentString { get; set; } = "    ";
 
-        public bool CheckLinks { get; set; } = true;
+        public bool CheckLinks { get; set; }
 
         public bool CenterImageAlignment { get; set; }
 
