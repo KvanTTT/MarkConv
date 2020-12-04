@@ -19,7 +19,7 @@ private void ProcessClosingTag()
 	var openingTagName = openingSymbol.Text;
 	var closingTagName = closingSymbol.Text;
 	if (!openingTagName.Equals(closingTagName, System.StringComparison.OrdinalIgnoreCase))
-		_logger.Warn($"Incorrect nesting: element </{closingTagName}> at {closingSymbol.LineColumnSpan} closes <{openingTagName}> at {openingSymbol.LineColumnSpan}");
+		_logger.Error($"Incorrect nesting: element </{closingTagName}> at {closingSymbol.LineColumnSpan} closes <{openingTagName}> at {openingSymbol.LineColumnSpan}");
 }
 }
 
