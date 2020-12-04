@@ -39,7 +39,7 @@ namespace MarkConv
                 {
                     if (result.Trim().Length >= HabrMaxTextLengthWithoutCut)
                     {
-                        _logger.Warn(HabrMaxTextLengthWithoutCutMessage);
+                        _logger.Error(HabrMaxTextLengthWithoutCutMessage);
                     }
                 }
                 else
@@ -47,16 +47,16 @@ namespace MarkConv
                     int cutElementIndex = cutMatch.Index;
                     if (cutElementIndex > HabrMaxTextLengthBeforeCut)
                     {
-                        _logger.Warn(HabrMaxTextLengthBeforeCutMessage);
+                        _logger.Error(HabrMaxTextLengthBeforeCutMessage);
                     }
                     else if (cutElementIndex < HabrMinTextLengthBeforeCut)
                     {
-                        _logger.Warn(HabrMinTextLengthBeforeCutMessage);
+                        _logger.Error(HabrMinTextLengthBeforeCutMessage);
                     }
 
                     if (result.Length - (cutElementIndex + 4) < HabrMinTextLengthAfterCut) // TODO: Bug on habr.com
                     {
-                        _logger.Warn(HabrMinTextLengthAfterCutMessage);
+                        _logger.Error(HabrMinTextLengthAfterCutMessage);
                     }
                 }
             }

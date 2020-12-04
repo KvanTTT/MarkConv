@@ -195,7 +195,7 @@ namespace MarkConv
 
                 if (!attributes.TryGetValue("src", out HtmlAttributeNode? srcNode))
                 {
-                    _logger.Warn($"{LinkmapTagName} element should contain src attribute at {tagName.LineColumnSpan}");
+                    _logger.Error($"{LinkmapTagName} element should contain src attribute at {tagName.LineColumnSpan}");
                 }
                 else
                 {
@@ -209,7 +209,7 @@ namespace MarkConv
 
                 if (!attributes.TryGetValue("dst", out HtmlAttributeNode? dstNode))
                 {
-                    _logger.Warn($"{LinkmapTagName} element should contain dst attribute at {tagName.LineColumnSpan}");
+                    _logger.Error($"{LinkmapTagName} element should contain dst attribute at {tagName.LineColumnSpan}");
                 }
                 else
                 {
@@ -228,7 +228,7 @@ namespace MarkConv
             {
                 if (!attributes.TryGetValue("src", out HtmlAttributeNode? srcNode))
                 {
-                    _logger.Warn($"{IncludeTagName} element should contain src attribute at {tagName.LineColumnSpan}");
+                    _logger.Error($"{IncludeTagName} element should contain src attribute at {tagName.LineColumnSpan}");
                 }
                 else
                 {
@@ -239,7 +239,7 @@ namespace MarkConv
                         var includeFilePath = Path.Combine(rootDirectory, localLink.Address);
                         if (!File.Exists(includeFilePath))
                         {
-                            _logger.Warn($"File {includeFilePath} does not exist at {localLink.Node.LineColumnSpan}");
+                            _logger.Error($"File {includeFilePath} does not exist at {localLink.Node.LineColumnSpan}");
                         }
                         else
                         {
@@ -282,7 +282,7 @@ namespace MarkConv
                     }
                     else
                     {
-                        _logger.Warn($"Only local files can be included via <include/> element at {srcLink.Node.LineColumnSpan}");
+                        _logger.Error($"Only local files can be included via <include/> element at {srcLink.Node.LineColumnSpan}");
                     }
                 }
             }
@@ -292,7 +292,7 @@ namespace MarkConv
                 if (attributes.TryGetValue(addressAttrName, out HtmlAttributeNode? htmlAttributeNode))
                     address = htmlAttributeNode.Value;
                 else
-                    _logger.Warn($"Element <{tagNameString}> does not contain required '{addressAttrName}' attribute at {tagName.LineColumnSpan}");
+                    _logger.Error($"Element <{tagNameString}> does not contain required '{addressAttrName}' attribute at {tagName.LineColumnSpan}");
             }
 
             var closingTag = elementContext.GetChild(elementContext.ChildCount - 1);

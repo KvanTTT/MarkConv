@@ -11,7 +11,7 @@ namespace MarkConv.Tests
             var processor = new Processor(new ProcessorOptions(), logger);
             processor.Process(ReadFileFromResources("HtmlParseErrors.md"));
 
-            var messages = logger.WarningMessages;
+            var messages = logger.ErrorMessages;
             Assert.Equal(6, messages.Count);
             Assert.Equal("Incorrect nesting: element </x> at [3,3..4) closes <y> at [2,2..3)", messages[0]);
             Assert.Equal("Incorrect nesting: element </y> at [4,3..4) closes <x> at [1,2..3)", messages[1]);
@@ -103,7 +103,7 @@ Next Line
 
             string inputText = new string('a', Postprocessor.HabrMaxTextLengthWithoutCut);
             processor.Process(inputText);
-            Assert.Equal(Postprocessor.HabrMaxTextLengthWithoutCutMessage, logger.WarningMessages[0]);
+            Assert.Equal(Postprocessor.HabrMaxTextLengthWithoutCutMessage, logger.ErrorMessages[0]);
             logger.Clear();
 
             inputText = new string('a', Postprocessor.HabrMaxTextLengthWithoutCut - 1);
@@ -114,7 +114,7 @@ Next Line
             inputText = new string('a', Postprocessor.HabrMaxTextLengthBeforeCut + 1) + "<cut/>" +
                         new string('a', Postprocessor.HabrMinTextLengthAfterCut);
             processor.Process(inputText);
-            Assert.Equal(Postprocessor.HabrMaxTextLengthBeforeCutMessage, logger.WarningMessages[0]);
+            Assert.Equal(Postprocessor.HabrMaxTextLengthBeforeCutMessage, logger.ErrorMessages[0]);
             logger.Clear();
 
             inputText = new string('a', Postprocessor.HabrMaxTextLengthBeforeCut - 1) + "<cut/>" +
@@ -126,7 +126,7 @@ Next Line
             inputText = new string('a', Postprocessor.HabrMinTextLengthBeforeCut - 2) + "<cut/>" +
                         new string('a', 1000);
             processor.Process(inputText);
-            Assert.Equal(Postprocessor.HabrMinTextLengthBeforeCutMessage, logger.WarningMessages[0]);
+            Assert.Equal(Postprocessor.HabrMinTextLengthBeforeCutMessage, logger.ErrorMessages[0]);
             logger.Clear();
 
             inputText = new string('a', Postprocessor.HabrMinTextLengthBeforeCut) + "<cut/>" +
@@ -138,7 +138,7 @@ Next Line
             inputText = new string('a', 1000) + "<cut/>" +
                         new string('a', Postprocessor.HabrMinTextLengthAfterCut - 4);
             processor.Process(inputText);
-            Assert.Equal(Postprocessor.HabrMinTextLengthAfterCutMessage, logger.WarningMessages[0]);
+            Assert.Equal(Postprocessor.HabrMinTextLengthAfterCutMessage, logger.ErrorMessages[0]);
             logger.Clear();
 
             inputText = new string('a', 1000) + "<cut/>" +

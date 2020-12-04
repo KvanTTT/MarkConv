@@ -45,7 +45,9 @@ namespace MarkConv.Tests
             var checker = new Checker(options, logger);
             checker.Check(parseResult);
 
-            Assert.Equal(5, logger.WarningMessages.Count);
+            Assert.Equal(4, logger.WarningMessages.Count);
+            Assert.Single(logger.ErrorMessages);
+            Assert.Equal("Relative link broken-header at [6,1..32) is broken", logger.ErrorMessages[0]);
         }
 
         [Theory]
@@ -157,8 +159,8 @@ Paragraph text
 
             var warnings = logger.WarningMessages;
             Assert.Equal("linkmap \"GitHub.jpg\" at [7,14..24) replaces linkmap at [3,14..24)", warnings[0]);
-            Assert.Equal(2, logger.WarningMessages.Count(message => message.Contains("does not exist")));
-            Assert.Equal("Absolute Link https://habrastorage-1.org/not-existed.png at [6,30..74) is probably broken", warnings[3]);
+            Assert.Equal("Absolute Link https://habrastorage-1.org/not-existed.png at [6,30..74) is probably broken", warnings[1]);
+            Assert.Equal(2, logger.ErrorMessages.Count(message => message.Contains("does not exist")));
         }
 
         private void Compare(string inputFileName, string outputFileName, MarkdownType inputKind, MarkdownType outputKind)

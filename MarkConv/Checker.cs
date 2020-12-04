@@ -54,7 +54,7 @@ namespace MarkConv
                     string normalizedAddress = HeaderToLinkConverter.ConvertHeaderTitleToLink(link.Address,
                         _options.InputMarkdownType);
                     if (!parseResult.Anchors.ContainsKey(normalizedAddress))
-                        _logger.Warn($"Relative link {link.Address} at {link.Node.LineColumnSpan} is broken");
+                        _logger.Error($"Relative link {link.Address} at {link.Node.LineColumnSpan} is broken");
                     break;
 
                 case LocalLink _:
@@ -65,7 +65,7 @@ namespace MarkConv
                         string suffix = linkFileName != parseResult.File.Name
                             ? $" at {linkFileName}"
                             : "";
-                        _logger.Warn($"Local file {fullPath} at {link.Node.LineColumnSpan}{suffix} does not exist");
+                        _logger.Error($"Local file {fullPath} at {link.Node.LineColumnSpan}{suffix} does not exist");
                     }
                     break;
             }
