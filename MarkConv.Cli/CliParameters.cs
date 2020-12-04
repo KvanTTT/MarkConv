@@ -1,6 +1,4 @@
-﻿using CommandLine;
-
-namespace MarkConv.Cli
+﻿namespace MarkConv.Cli
 {
     public class CliParameters
     {
@@ -8,30 +6,27 @@ namespace MarkConv.Cli
         public string InputFileName { get; set; } = "";
 
         [Option('i', "inputType", HelpText = "Markdown type of an input image (GitHub, Habr, Dev)")]
-        public MarkdownType InputMarkdownType { get; set; } = MarkdownType.GitHub;
+        public MarkdownType? InputMarkdownType { get; set; }
 
         [Option('o', "outputType", HelpText = "Markdown type of an output image (GitHub, Habr, Dev)")]
-        public MarkdownType OutputMarkdownType { get; set; } = MarkdownType.Habr;
+        public MarkdownType? OutputMarkdownType { get; set; }
 
         [Option('l', "linesLength", HelpText = "Lines max length. 0 - not change, -1 - merge lines")]
-        public int? LinesMaxLength { get; set; } = null;
-
-        [Option('m', "linksMap", HelpText = "source -> replacement map for links (including images)")]
-        public string? LinksMapFileName { get; set; } = null;
+        public int? LinesMaxLength { get; set; }
 
         [Option("outDir")]
-        public string? OutputDirectory { get; set; } = null;
+        public string? OutputDirectory { get; set; }
 
         [Option]
-        public bool? RemoveTitleHeader { get; set; } = null;
+        public bool? RemoveTitleHeader { get; set; }
 
         [Option]
-        public bool CheckLinks { get; set; } = true;
+        public bool? CheckLinks { get; set; }
 
         [Option]
-        public bool RemoveSpoilers { get; set; } = false;
+        public bool? RemoveSpoilers { get; set; }
 
         [Option]
-        public bool RemoveComments { get; set; } = false;
+        public bool? RemoveComments { get; set; }
     }
 }

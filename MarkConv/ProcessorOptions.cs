@@ -1,6 +1,4 @@
-﻿using System.Collections.Generic;
-
-namespace MarkConv
+﻿namespace MarkConv
 {
     public class ProcessorOptions
     {
@@ -28,19 +26,16 @@ namespace MarkConv
 
         public bool RemoveComments { get; set; }
 
-        public static ProcessorOptions FromOptions(ProcessorOptions options)
+        public static ProcessorOptions GetDefaultOptions(MarkdownType? inputMarkdownType, MarkdownType? outputMarkdownType)
         {
-            return (ProcessorOptions)options.MemberwiseClone();
-        }
+            var options = new ProcessorOptions();
+            if (inputMarkdownType.HasValue)
+                options.InputMarkdownType = inputMarkdownType.Value;
 
-        public static ProcessorOptions GetDefaultOptions(MarkdownType inputMarkdownType, MarkdownType outputMarkdownType)
-        {
-            var options = new ProcessorOptions
-            {
-                InputMarkdownType = inputMarkdownType,
-                OutputMarkdownType = outputMarkdownType
-            };
-            switch (inputMarkdownType)
+            if (outputMarkdownType.HasValue)
+                options.OutputMarkdownType = outputMarkdownType.Value;
+
+            switch (options.InputMarkdownType)
             {
                 case MarkdownType.Habr:
                 case MarkdownType.Dev:

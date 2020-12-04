@@ -1,8 +1,7 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.IO;
-using CommandLine;
 using System.Linq;
+using System.Reflection;
 using System.Threading.Tasks;
 
 namespace MarkConv.Cli
@@ -13,11 +12,31 @@ namespace MarkConv.Cli
         private const string OutExtension = ".out";
         private const string IgnoreExtension = ".ignore";
 
+        private static ILogger Logger = new ConsoleLogger();
+
         static int Main(string[] args)
         {
-            var parser = new CommandLine.Parser(config => config.HelpWriter = Console.Out);
-            var parserResult = parser.ParseArguments<CliParameters>(args);
-            return parserResult.MapResult(Convert, ProcessErrors);
+            var parser = new CliParametersParser<CliParameters>(Logger);
+            var parserResult = parser.Parse(args);
+
+            if (parserResult.ShowHelp || Logger.ErrorCount > 0)
+            {
+                var helpText = CliParametersParser<CliParameters>.GenerateHelpText();
+                foreach (string line in helpText)
+                    Console.WriteLine(line);
+
+                if (Logger.ErrorCount > 0)
+                {
+                    return 1;
+                }
+            }
+
+            if (parserResult.ShowVersion)
+            {
+                Console.WriteLine(Assembly.GetExecutingAssembly().GetName().Version);
+            }
+
+            return Convert(parserResult.Parameters);
         }
 
         private static int Convert(CliParameters parameters)
@@ -45,47 +64,51 @@ namespace MarkConv.Cli
             }
 
             var parallelOptions = new ParallelOptions {MaxDegreeOfParallelism = 1};
-            var logger = new ConsoleLogger();
+            var options = ProcessorOptions.GetDefaultOptions(parameters.InputMarkdownType, parameters.OutputMarkdownType);
+
+            if (parameters.CheckLinks.HasValue)
+                options.CheckLinks = parameters.CheckLinks.Value;
+
+            if (parameters.LinesMaxLength.HasValue)
+                options.LinesMaxLength = parameters.LinesMaxLength.Value;
+
+            if (parameters.RemoveTitleHeader.HasValue)
+                options.RemoveTitleHeader = parameters.RemoveTitleHeader.Value;
+
+            if (parameters.RemoveSpoilers.HasValue)
+                options.RemoveDetails = parameters.RemoveSpoilers.Value;
+
+            if (parameters.RemoveComments.HasValue)
+                options.RemoveComments = parameters.RemoveComments.Value;
 
             Parallel.ForEach(inputFiles, parallelOptions, inputFile =>
             {
                 try
                 {
-                    ConvertFile(parameters, inputFile, outputDirectory, inputDirectory, logger);
+                    ConvertFile(parameters, inputFile, outputDirectory, inputDirectory, options);
                 }
                 catch (Exception ex)
                 {
-                    logger.Warn($"Error during {inputFile} processing: {ex.Message}");
+                    Logger.Warn($"Error during {inputFile} processing: {ex.Message}");
                 }
             });
+
+            Logger.Info("Process completed");
 
             return 0;
         }
 
         private static void ConvertFile(CliParameters parameters, string inputFile, string? outputDirectory,
-            string? inputDirectory, ILogger logger)
+            string? inputDirectory, ProcessorOptions options)
         {
-            logger.Info($"Converting of file {inputFile}...");
+            Logger.Info($"Converting of file {inputFile}...");
 
             string directory = Path.GetDirectoryName(inputFile) ?? "";
             string fileName = Path.GetFileNameWithoutExtension(inputFile);
 
             var file = TextFile.Read(inputFile);
-            var options = ProcessorOptions.GetDefaultOptions(parameters.InputMarkdownType, parameters.OutputMarkdownType);
-            options.CheckLinks = parameters.CheckLinks;
 
-            if (parameters.LinesMaxLength.HasValue)
-                options.LinesMaxLength = parameters.LinesMaxLength.Value;
-
-            options.RootDirectory = directory;
-
-            if (parameters.RemoveTitleHeader.HasValue)
-                options.RemoveTitleHeader = parameters.RemoveTitleHeader.Value;
-
-            options.RemoveDetails = parameters.RemoveSpoilers;
-            options.RemoveComments = parameters.RemoveComments;
-
-            var processor = new Processor(options, logger);
+            var processor = new Processor(options, Logger);
             var converted = processor.Process(file);
 
             string localOutputDirectory = outputDirectory ?? directory;
@@ -121,10 +144,8 @@ namespace MarkConv.Cli
 
             File.WriteAllText(Path.Combine(localOutputDirectory, outputFileName), converted);
 
-            logger.Info($"File {outputFileName} is ready");
-            logger.Info("");
+            Logger.Info($"File {outputFileName} is ready");
+            Logger.Info("");
         }
-
-        private static int ProcessErrors(IEnumerable<Error> errors) => 1;
     }
 }

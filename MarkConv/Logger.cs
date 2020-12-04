@@ -8,10 +8,13 @@ namespace MarkConv
 
         public List<string> WarningMessages { get; }
 
+        public List<string> ErrorMessages { get; }
+
         public Logger()
         {
             InfoMessages = new List<string>();
             WarningMessages = new List<string>();
+            ErrorMessages = new List<string>();
         }
 
         public void Info(string message)
@@ -30,10 +33,21 @@ namespace MarkConv
             }
         }
 
+        public void Error(string message)
+        {
+            lock (ErrorMessages)
+            {
+                ErrorMessages.Add(message);
+            }
+        }
+
+        public int ErrorCount => ErrorMessages.Count;
+
         public void Clear()
         {
             InfoMessages.Clear();
             WarningMessages.Clear();
+            ErrorMessages.Clear();
         }
     }
 }
