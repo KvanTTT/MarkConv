@@ -12,6 +12,7 @@ EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "SolutionItems", "SolutionItems", "{E156AE19-0925-4DFE-B94A-AC0A2BBF9077}"
 ProjectSection(SolutionItems) = preProject
 	AssemblyInfoCommon.cs = AssemblyInfoCommon.cs
+	appveyor.yml = appveyor.yml
 EndProjectSection
 EndProject
 Global
