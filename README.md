@@ -33,21 +33,6 @@ Supported values:
 
 Max length of line. `0` - not change, `-1` - merge lines
 
-### `-m` or `--imagesmap`
-
-source -> replacement map for image paths. Example of such file:
-
-```
-ANTLR.png https://habrastorage.org/files/3ce/bab/ae6/3cebabae6be0455587bc3a379dc7a4f9.png
-GitHub.png https://habrastorage.org/webt/v3/gk/id/v3gkidocqqefcthmlywi_c5bjww.png
-```
-
-If not defined the file with name `ImagesMap` in the directory of input file will be chosen.
-
-### `--headerimagelink`
-
-Specify the link to the article that can be used for header image link.
-
 ### `--removetitleheader`
 
 Removes title header.
