@@ -12,6 +12,7 @@ namespace MarkConv.Cli
 
     public class ConsoleLogger : ILogger
     {
+        private static readonly object LockObject = new object();
         private int _errorCount;
 
         public ConsoleLogger()
@@ -33,10 +34,21 @@ namespace MarkConv.Cli
 
         private void WriteMessage(string message, MessageType messageType)
         {
-            if (!string.IsNullOrWhiteSpace(message))
-                Console.WriteLine($"[{messageType.ToString().ToUpperInvariant()}] {message}");
-            else
-                Console.WriteLine();
+            lock (LockObject)
+            {
+                if (!string.IsNullOrWhiteSpace(message))
+                {
+                    var oldColor = Console.ForegroundColor;
+                    if (messageType == MessageType.Warn)
+                        Console.ForegroundColor = ConsoleColor.Yellow;
+                    else if (messageType == MessageType.Error)
+                        Console.ForegroundColor = ConsoleColor.Red;
+                    Console.WriteLine($"[{messageType.ToString().ToUpperInvariant()}] {message}");
+                    Console.ForegroundColor = oldColor;
+                }
+                else
+                    Console.WriteLine();
+            }
         }
     }
 }
