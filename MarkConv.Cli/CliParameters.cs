@@ -28,5 +28,8 @@
 
         [Option]
         public bool? RemoveComments { get; set; }
+
+        [Option("errorCode", HelpText = "Return not zero error code if errors occured (use for CI)")]
+        public bool NotZeroErrorCodeIfErrors { get; set; }
     }
 }

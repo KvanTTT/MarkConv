@@ -95,7 +95,9 @@ namespace MarkConv.Cli
 
             Logger.Info("Process completed");
 
-            return Logger.ErrorCount == 0 ? 0 : 2;
+            return parameters.NotZeroErrorCodeIfErrors
+                ? Logger.ErrorCount == 0 ? 0 : 2
+                : 0;
         }
 
         private static void ConvertFile(string inputFile, string? outputDirectory,
