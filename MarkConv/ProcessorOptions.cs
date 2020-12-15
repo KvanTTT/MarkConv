@@ -10,7 +10,7 @@
 
         public MarkdownType InputMarkdownType { get; set; } = MarkdownType.GitHub;
 
-        public MarkdownType OutputMarkdownType { get; set; } = MarkdownType.GitHub;
+        public MarkdownType OutputMarkdownType { get; set; } = MarkdownType.Habr;
 
         public bool RemoveTitleHeader { get; set; }
 
@@ -43,10 +43,10 @@
                     break;
                 case MarkdownType.GitHub:
                     options.LinesMaxLength =
-                        outputMarkdownType == MarkdownType.Habr || outputMarkdownType == MarkdownType.Dev ? -1 : 0;
+                        options.OutputMarkdownType == MarkdownType.Habr || outputMarkdownType == MarkdownType.Dev ? -1 : 0;
                     break;
             }
-            if (outputMarkdownType == MarkdownType.Habr || outputMarkdownType == MarkdownType.Dev)
+            if (options.OutputMarkdownType == MarkdownType.Habr || options.OutputMarkdownType == MarkdownType.Dev)
             {
                 options.IndentString = "    ";
                 options.RemoveTitleHeader = true;

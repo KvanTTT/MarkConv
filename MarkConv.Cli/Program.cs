@@ -139,7 +139,7 @@ namespace MarkConv.Cli
             outputFileName =
                 $"{outputFileName}.{options.OutputMarkdownType.ToString().ToLowerInvariant()}{OutExtension}{MdExtension}";
 
-            if (!Directory.Exists(localOutputDirectory))
+            if (!string.IsNullOrWhiteSpace(localOutputDirectory) && !Directory.Exists(localOutputDirectory))
             {
                 Directory.CreateDirectory(localOutputDirectory);
             }
