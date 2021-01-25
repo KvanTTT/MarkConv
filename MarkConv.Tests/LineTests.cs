@@ -13,7 +13,9 @@ namespace MarkConv.Tests
         [Fact]
         public void ShouldCorrectlyMergeLines()
         {
-            var processor = new Processor(new ProcessorOptions { LinesMaxLength = -1 }, new Logger());
+            var processor =
+                new Processor(new ProcessorOptions {LinesMaxLength = -1, OutputMarkdownType = MarkdownType.GitHub},
+                    new Logger());
             var result = processor.Process(@"a,
 b,
 c.

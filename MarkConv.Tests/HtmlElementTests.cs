@@ -67,7 +67,7 @@ namespace MarkConv.Tests
         public void ShouldIgnoreCaseOfHtmlNames()
         {
             var logger = new Logger();
-            var processor = new Processor(new ProcessorOptions(), logger);
+            var processor = new Processor(new ProcessorOptions { OutputMarkdownType = MarkdownType.GitHub }, logger);
             var result = processor.Process(@"<details>
 <SUMMARY>title</summary>
 CONTENT
@@ -83,7 +83,9 @@ CONTENT
         public void ShouldCorrectlyFormatHtml()
         {
             var logger = new Logger();
-            var processor = new Processor(new ProcessorOptions() { LinesMaxLength = -1 }, logger);
+            var processor =
+                new Processor(new ProcessorOptions {LinesMaxLength = -1, OutputMarkdownType = MarkdownType.GitHub},
+                    logger);
             var result = processor.Process(@"<details>
 <b>bold</b>,<i>italic</i>,   <s>strike</s>
 Next Line

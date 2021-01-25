@@ -2,7 +2,7 @@
 
 namespace MarkConv.Tests
 {
-    public class MiscTests : TestsBase
+    public class  MiscTests : TestsBase
     {
         [Theory]
         [InlineData("Headers")]
@@ -14,7 +14,7 @@ namespace MarkConv.Tests
         [InlineData("Tables")]
         public void ShouldConvertMarkdown(string fileName)
         {
-            var options = new ProcessorOptions();
+            var options = new ProcessorOptions {OutputMarkdownType = MarkdownType.GitHub};
             fileName = $"{fileName}.md";
             CompareFiles(fileName, fileName, options);
         }
