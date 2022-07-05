@@ -32,7 +32,7 @@ namespace MarkConv
             return char.IsWhiteSpace(lastChar) || lastChar == '(' || lastChar == '[' || lastChar == '{';
         }
 
-        public void Append(string str)
+        public void Append(string? str)
         {
             if (string.IsNullOrEmpty(str))
                 return;

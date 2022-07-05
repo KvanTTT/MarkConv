@@ -45,7 +45,7 @@ namespace MarkConv.Tests
             var checker = new Checker(options, logger);
             checker.Check(parseResult);
 
-            Assert.Equal(4, logger.WarningMessages.Count);
+            Assert.Equal(3, logger.WarningMessages.Count);
             Assert.Single(logger.ErrorMessages);
             Assert.Equal("Relative link broken-header at [6,1..32) is broken", logger.ErrorMessages[0]);
         }

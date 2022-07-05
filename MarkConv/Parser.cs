@@ -342,7 +342,7 @@ namespace MarkConv
             }
         }
 
-        private MarkdownNode? ParseMarkdownInline(Inline inline)
+        private MarkdownNode? ParseMarkdownInline(Inline? inline)
         {
             MarkdownNode result;
 
@@ -378,11 +378,9 @@ namespace MarkConv
 
                     result = new MarkdownContainerInlineNode(containerInline, children, _file, start, length);
 
-                    if (containerInline is LinkInline linkInline)
+                    if (containerInline is LinkInline { UrlSpan: var urlSpan, Url: { } url } linkInline)
                     {
-                        if (linkInline.UrlSpan is { } urlSpan)
-                            _links.Add(result,
-                                Link.Create(result, linkInline.Url, linkInline.IsImage, urlSpan.Start, urlSpan.Length));
+                        _links.Add(result, Link.Create(result, url, linkInline.IsImage, urlSpan.Start, urlSpan.Length));
                     }
 
                     return result;

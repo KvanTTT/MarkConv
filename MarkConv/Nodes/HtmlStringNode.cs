@@ -1,5 +1,4 @@
-﻿using System;
-using Antlr4.Runtime;
+﻿using Antlr4.Runtime;
 using Antlr4.Runtime.Tree;
 
 namespace MarkConv.Nodes
@@ -11,7 +10,7 @@ namespace MarkConv.Nodes
         public HtmlStringNode(ITerminalNode terminalNode, string value, int start, int length)
             : base(terminalNode, start, length)
         {
-            String = value ?? throw new ArgumentNullException(nameof(value));
+            String = value;
         }
 
         public HtmlStringNode(ITerminalNode terminalNode)

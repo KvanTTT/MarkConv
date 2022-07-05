@@ -533,7 +533,7 @@ namespace MarkConv
 
             if (fencedCodeBlock != null)
             {
-                _result.Append(fencedCodeBlock.FencedChar, fencedCodeBlock.FencedCharCount);
+                _result.Append(fencedCodeBlock.FencedChar, fencedCodeBlock.OpeningFencedCharCount);
                 _result.Append(fencedCodeBlock.Info);
                 _result.AppendNewLine();
             }
@@ -552,7 +552,7 @@ namespace MarkConv
             if (fencedCodeBlock != null)
             {
                 _result.SetIndent(codeBlock.Column);
-                _result.Append(fencedCodeBlock.FencedChar, fencedCodeBlock.FencedCharCount);
+                _result.Append(fencedCodeBlock.FencedChar, fencedCodeBlock.ClosingFencedCharCount);
             }
         }
 
@@ -686,7 +686,7 @@ namespace MarkConv
             if (linkInline != null)
             {
                 result!.Append("](");
-                string url = linkInline.Url;
+                string? url = linkInline.Url;
 
                 var link = _parseResult.Links[containerInlineNode];
                 string? newAddress = null;
