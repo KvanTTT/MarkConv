@@ -3,7 +3,7 @@
 Converts markdown of different types (GitHub, Habr, Dev) to each other.
 GitHub is also equivalent to VisualCode.
 
-Platform: NET Core 3.1 (Crossplatform).
+Platform: NET 6.0 (Cross-platform).
 
 ## Using
 
